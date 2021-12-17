@@ -8,11 +8,9 @@
         <groupId>dumb</groupId>
         <artifactId>jcog</artifactId>
         <version>1.0</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>logic</artifactId>
-    <version>1.0</version>
+    <artifactId>prolog</artifactId>
 
     <dependencies>
 
