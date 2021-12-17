@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dumb</groupId>
+        <artifactId>jcog</artifactId>
+        <version>1.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>learn</artifactId>
+    <version>1.0</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>dumb</groupId>
+            <artifactId>io</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dumb</groupId>
+            <artifactId>graph</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <!-- may not be necessary, if vectors and regions from RTree are separated into a super-module -->
+            <groupId>dumb</groupId>
+            <artifactId>rtree</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${byte-buddy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hipparchus</groupId>
+            <artifactId>hipparchus-optim</artifactId>
+            <version>${hipparchus.version}</version>
+        </dependency>
+
+
+
+        <!--        <dependency>-->
+<!--            <groupId>org.jcodec</groupId>-->
+<!--            <artifactId>jcodec-javase</artifactId>-->
+<!--            <version>0.2.5</version>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.gridkit.lab</groupId>
+            <artifactId>telecontrol-ssh</artifactId>
+            <version>0.8.21</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+    </dependencies>
+</project>

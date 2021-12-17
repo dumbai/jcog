@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--    <parent>-->
+<!--        <artifactId>metanarchy</artifactId>-->
+<!--        <groupId>dumb</groupId>-->
+<!--        <version>1.0</version>-->
+<!--        <relativePath>../pom.xml</relativePath>-->
+<!--    </parent>-->
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <groupId>dumb</groupId>
+    <artifactId>jcog</artifactId>
+    <version>1.0</version>
+
+    <modules>
+        <module>util</module>
+        <module>logic</module>
+        <module>learn</module>
+        <module>http</module>
+        <module>db</module>
+        <module>net</module>
+        <module>io</module>
+        <module>pri</module>
+        <module>memoize</module>
+        <module>graph</module>
+        <module>rtree</module>
+        <module>realtime</module>
+    </modules>
+    <!--
+        generate wrapper:
+
+            mvn -N io.takari:maven:wrapper
+
+        see: https://github.com/takari/maven-wrapper#legacy-documentation
+    -->
+    <properties>
+        <jvmArgs>--enable-preview --illegal-access=permit --add-opens java.base/java.io=ALL-UNNAMED</jvmArgs>
+
+        <byte-buddy.version>1.12.4</byte-buddy.version>
+        <hipparchus.version>2.0</hipparchus.version>
+
+        <junit-platform-launcher.version>1.8.2</junit-platform-launcher.version>
+        <junit-jupiter-params.version>5.8.2</junit-jupiter-params.version>
+
+        <boofcv.version>0.39.1</boofcv.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!--  <repositories>-->
+    <!--    <repository>-->
+    <!--      <id>jcenter</id>-->
+    <!--      <url>http://jcenter.bintray.com</url>-->
+    <!--    </repository>-->
+    <!--    <repository>-->
+    <!--      <id>jenkins-ci</id>-->
+    <!--      <url>http://repo.jenkins-ci.org/releases</url>-->
+    <!--    </repository>-->
+    <!--  </repositories>-->
+    <build>
+        <plugins>
+            <!--            <plugin>-->
+            <!--                <groupId>org.codehaus.mojo</groupId>-->
+            <!--                <artifactId>exec-maven-plugin</artifactId>-->
+            <!--                <version>1.6.0</version>-->
+            <!--                <configuration>-->
+            <!--                    <arguments>${jvmArgs}</arguments>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <!--                    <compilerArgument>&#45;&#45;enable-preview</compilerArgument>-->
+
+                    <source>16</source>
+                    <target>16</target>
+                    <!--                    <release>16</release>-->
+                    <!--                    <multiReleaseOutput>true</multiReleaseOutput>-->
+
+                    <!--                    <useIncrementalCompilation>false</useIncrementalCompilation>-->
+
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
+                <configuration>
+                    <argLine>${jvmArgs} -Djunit.jupiter.execution.parallel.mode.classes.default=CONCURRENT -Djunit.jupiter.execution.parallel.enabled=true</argLine>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <!--<systemPropertyVariables>
+                      <gzoltar-agent.destfile>${project.build.directory}/gzoltar.ser</gzoltar-agent.destfile>
+                    </systemPropertyVariables> -->
+                    <skipTests>true</skipTests>
+                    <!--          <forkCount>1C</forkCount>-->
+                    <!-- <properties>
+                     <property>
+                       <name>listener</name>
+                       <value>com.gzoltar.internal.core.listeners.JUnitListener</value>
+                     </property>
+                         </properties>-->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>${junit-jupiter-params.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <rules>
+                        <dependencyConvergence/>
+                        <banDuplicatePomDependencyVersions/>
+                    </rules>
+                </configuration>
+            </plugin>
+
+
+
+            <!--      &lt;!&ndash;      https://github.com/GZoltar/gzoltar/tree/master/com.gzoltar.maven&ndash;&gt;-->
+            <!--      <plugin>-->
+            <!--        <groupId>com.gzoltar</groupId>-->
+            <!--        <artifactId>com.gzoltar.maven</artifactId>-->
+            <!--        <version>1.7.2</version>-->
+            <!--        <executions>-->
+            <!--          <execution>-->
+            <!--            <id>pre-unit-test</id>-->
+            <!--            <goals>-->
+            <!--              <goal>prepare-agent</goal>-->
+            <!--            </goals>-->
+            <!--          </execution>-->
+            <!--          <execution>-->
+            <!--            <id>post-unit-test</id>-->
+            <!--            <phase>test</phase>-->
+            <!--            <goals>-->
+            <!--              <goal>fl-report</goal>-->
+            <!--            </goals>-->
+            <!--          </execution>-->
+            <!--        </executions>-->
+            <!--      </plugin>-->
+
+
+            <!--    <plugin>-->
+            <!--        <artifactId>maven-dependency-plugin</artifactId>-->
+            <!--        <version>3.1.1</version>-->
+            <!--        <executions>-->
+            <!--          <execution>-->
+            <!--            <phase>install</phase>-->
+            <!--            <goals>-->
+            <!--              <goal>copy-dependencies</goal>-->
+            <!--            </goals>-->
+            <!--            <configuration>-->
+            <!--              <outputDirectory>${project.build.directory}/lib</outputDirectory>-->
+            <!--            </configuration>-->
+            <!--          </execution>-->
+            <!--        </executions>-->
+            <!--      </plugin>-->
+            <!--&lt;!&ndash;      <plugin>&ndash;&gt;-->
+            <!--&lt;!&ndash;        <artifactId>maven-shade-plugin</artifactId>&ndash;&gt;-->
+            <!--&lt;!&ndash;        <version>3.2.1</version>&ndash;&gt;-->
+            <!--&lt;!&ndash;        <executions>&ndash;&gt;-->
+            <!--&lt;!&ndash;          <execution>&ndash;&gt;-->
+            <!--&lt;!&ndash;            <phase>package</phase>&ndash;&gt;-->
+            <!--&lt;!&ndash;            <goals>&ndash;&gt;-->
+            <!--&lt;!&ndash;              <goal>shade</goal>&ndash;&gt;-->
+            <!--&lt;!&ndash;            </goals>&ndash;&gt;-->
+            <!--&lt;!&ndash;            <configuration>&ndash;&gt;-->
+            <!--&lt;!&ndash;              &lt;!&ndash; <minimizeJar>true</minimizeJar> &ndash;&gt;&ndash;&gt;-->
+            <!--&lt;!&ndash;              <filters>&ndash;&gt;-->
+            <!--&lt;!&ndash;                <filter>&ndash;&gt;-->
+            <!--&lt;!&ndash;                  <artifact>*:*</artifact>&ndash;&gt;-->
+            <!--&lt;!&ndash;                  <excludes>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <include>META-INF/BenchmarkList</include>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <exclude>META-INF/*.SF</exclude>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <exclude>META-INF/*.DSA</exclude>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <exclude>META-INF/*.RSA</exclude>&ndash;&gt;-->
+            <!--&lt;!&ndash;                  </excludes>&ndash;&gt;-->
+            <!--&lt;!&ndash;                </filter>&ndash;&gt;-->
+            <!--&lt;!&ndash;              </filters>&ndash;&gt;-->
+            <!--&lt;!&ndash;              &lt;!&ndash;<transformers>&ndash;&gt;-->
+            <!--&lt;!&ndash;                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />&ndash;&gt;-->
+            <!--&lt;!&ndash;                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">&ndash;&gt;-->
+            <!--&lt;!&ndash;                  <mainClass>com.stackoverflow.nullpointer.expression.SwitchExpressions</mainClass>&ndash;&gt;-->
+            <!--&lt;!&ndash;                </transformer>&ndash;&gt;-->
+            <!--&lt;!&ndash;              </transformers>&ndash;&gt;&ndash;&gt;-->
+            <!--&lt;!&ndash;            </configuration>&ndash;&gt;-->
+            <!--&lt;!&ndash;          </execution>&ndash;&gt;-->
+            <!--&lt;!&ndash;        </executions>&ndash;&gt;-->
+            <!--&lt;!&ndash;      </plugin>&ndash;&gt;-->
+
+            <!--            &lt;!&ndash; https://mvnrepository.com/artifact/io.takari/maven-wrapper &ndash;&gt;-->
+            <!--            <plugin>-->
+
+
+            <!--                <groupId>io.takari</groupId>-->
+            <!--                <artifactId>maven-wrapper</artifactId>-->
+            <!--                <version>0.5.6</version>-->
+            <!--                <configuration>-->
+
+            <!--                </configuration>-->
+            <!--            </plugin>-->
+
+        </plugins>
+    </build>
+</project>
