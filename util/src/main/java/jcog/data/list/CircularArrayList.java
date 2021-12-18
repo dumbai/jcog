@@ -1,21 +1,23 @@
 package jcog.data.list;
 
 import jcog.Util;
+import jcog.random.RandomBits;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
 
 /* High-performance Circular (Ring) Buffer. Not thread safe, and sacrifices safety for speed in other ways. */
-public class CircularArrayList<E> extends AbstractList<E> implements RandomAccess, Deque<E>, Serializable {
+public class CircularArrayList<X> extends AbstractList<X> implements RandomAccess, Deque<X>, Serializable {
 
     private int n = -1; 
-    public E[] array;
+    public X[] array;
     private int head;
     private int tail;
     private int size;
 
-    public CircularArrayList(Collection<E> c) {
+    public CircularArrayList(Collection<X> c) {
         this(c.size());
         addAll(c);
     }
@@ -31,8 +33,8 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     public void clear(int resize) {
         resize = Math.max(1, resize);
         if (n!=resize) {
-            n = resize+1;
-            array = (E[]) new Object[resize];
+            n = resize;
+            array = (X[]) new Object[resize];
         }
         clear();
     }
@@ -43,7 +45,7 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<X> iterator() {
         int max = size;
         if (max == 0)
             return Util.emptyIterator;
@@ -58,9 +60,9 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
             }
 
             @Override
-            public E next() {
+            public X next() {
                 int p = pos;
-                E e = get(p);
+                X e = get(p);
                 pos++;
                 return e;
             }
@@ -68,7 +70,7 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public Iterator<E> descendingIterator() {
+    public Iterator<X> descendingIterator() {
         return new Iterator<>() {
             int pos = size - 1;
 
@@ -78,14 +80,14 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
             }
 
             @Override
-            public E next() {
+            public X next() {
                 return get(pos--);
             }
         };
     }
 
     @Override
-    public void forEach(Consumer<? super E> action) {
+    public void forEach(Consumer<? super X> action) {
         /** NOTE: uses the descending iterator's semantics */
         for (int i = size - 1; i >= 0; i--) {
             action.accept(get(i--));
@@ -121,7 +123,7 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public E get(int i) {
+    public X get(int i) {
         
         
         
@@ -131,20 +133,20 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
         
     }
 
-    public final E getAndSet(int i, E newValue) {
+    public final X getAndSet(int i, X newValue) {
         int ii = (head + i) % n;
-        E[] a = this.array;
-        E e = a[ii];
+        X[] a = this.array;
+        X e = a[ii];
         a[ii] = newValue;
         return e;
     }
 
-    public void setFast(int i, E e) {
+    public void setFast(int i, X e) {
         array[(head + i) % n] = e;
     }
 
     @Override
-    public E set(int i, E e) {
+    public X set(int i, X e) {
         /*if (i < 0 || i >= size()) {
          throw new IndexOutOfBoundsException();
          }*/
@@ -152,13 +154,13 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
         int m = (head + i) % n;
         
 
-        E existing = array[m];
+        X existing = array[m];
         array[m] = e;
         return existing;
     }
 
     @Override
-    public void add(int i, E e) {
+    public void add(int i, X e) {
         int s = size;
         /*
          if (s == n - 1) {
@@ -169,14 +171,13 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
          throw new IndexOutOfBoundsException();
          }
          */
-        if (++tail == n) {
+        if (++tail == n)
             tail = 0;
-        }
+
         size++;
 
-        if (i < s) {
+        if (i < s)
             shiftBlock(i, s);
-        }
 
         if (e != null)
             setFast(i, e);
@@ -184,32 +185,28 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
 
 
     public void removeFast(int i) {
-        if (i > 0) {
+        if (i > 0)
             shiftBlock(0, i);
-        }
 
-        if (++head == n) {
+
+        if (++head == n)
             head = 0;
-        }
         size--;
     }
 
     public void removeFirst(int n) {
         n = Math.min(size(), n);
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++)
             removeFast(0);
-        }
     }
 
     @Override
-    public E remove(int i) {
+    public X remove(int i) {
         int s = size;
-        if (i < 0 || i >= s) {
+        if (i < 0 || i >= s)
             throw new IndexOutOfBoundsException();
-        }
 
-
-        E e = get(i);
+        X e = get(i);
         removeFast(i);
         return e;
     }
@@ -231,12 +228,12 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public void addFirst(E e) {
+    public void addFirst(X e) {
         add(0, e);
     }
 
     @Override
-    public E getLast() {
+    public X getLast() {
         return get(size - 1);
     }
 
@@ -245,8 +242,8 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     public void swap(int a, int b) {
-        E ap = get(a);
-        E bp = get(b);
+        X ap = get(a);
+        X bp = get(b);
         if ((ap == null) || (bp == null))
             throw new RuntimeException("illegal swap");
 
@@ -256,19 +253,19 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public void addLast(E e) {
+    public void addLast(X e) {
         add(size, e);
     }
 
 
     @Override
-    public E getFirst() {
+    public X getFirst() {
         return get(0);
     }
 
 
     @Override
-    public E removeFirst() {
+    public X removeFirst() {
         return remove(0);
     }
 
@@ -276,10 +273,9 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
 
 
     @Override
-    public E removeLast() {
-        int s = size();
-        if (s == 0)
-            return null;
+    public X removeLast() {
+//        int s = size();
+//        return s == 0 ? null : remove(size - 1);
         return remove(size - 1);
     }
 
@@ -298,34 +294,35 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public boolean offerFirst(E e) {
+    public boolean offerFirst(X e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public boolean offerLast(E e) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-
-    @Override
-    public E pollFirst() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public E pollLast() {
+    public boolean offerLast(X e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
 
     @Override
-    public E peekFirst() {
+    @Nullable public X pollFirst() {
+        if (size==0) return null;
+        return remove(0);
+    }
+
+    @Override
+    public X pollLast() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+
+    @Override
+    public X peekFirst() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public E peekLast() {
+    public X peekLast() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -340,46 +337,56 @@ public class CircularArrayList<E> extends AbstractList<E> implements RandomAcces
     }
 
     @Override
-    public boolean offer(E e) {
+    public boolean offer(X e) {
         addFirst(e);
         return true;
     }
 
     @Override
-    public E remove() {
+    public X remove() {
         return removeLast();
     }
 
     @Override
-    public E poll() {
+    public X poll() {
         return removeLast();
     }
 
     @Override
-    public E element() {
+    public X element() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public E peek() {
+    public X peek() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void push(E e) {
+    public void push(X e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public E pop() {
+    public X pop() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public E getModulo(int i) {
+    public X getModulo(int i) {
         return get(i % size());
     }
 
     public boolean isFull() {
         return size() == capacity();
+    }
+
+    @Nullable
+    public X pollRandom(RandomBits rng) {
+        int s = size();
+        if (s == 0) return null;
+        else if (s == 1) return removeFirst();
+        else {
+            return remove(rng.nextInt(s));
+        }
     }
 }
