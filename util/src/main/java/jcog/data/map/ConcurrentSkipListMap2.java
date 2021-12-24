@@ -442,6 +442,10 @@ public class ConcurrentSkipListMap2<K,V> extends AbstractMap<K,V>
         if ((q = head) == null || key == null)
             return null;
 
+        return _findPredecessor(key, q);
+    }
+
+    private Node<K, V> _findPredecessor(K key, Index<K, V> q) {
         for (Index<K,V> r, d;;) {
             while ((r = q.right) != null) {
                 Node<K,V> p; K k;
@@ -978,17 +982,15 @@ public class ConcurrentSkipListMap2<K,V> extends AbstractMap<K,V>
      * @return nearest node fitting relation, or null if no such
      */
     final Node<K,V> findNear(K key, int rel) {
-//        if (key == null) throw new NullPointerException();
-//        Node<K,V> result;
-        outer: for (Node<K,V> b;;) {
-            if ((b = findPredecessor(key)) == null) {
-                return null;                // empty
-            }
+        outer: for (;;) {
+            Node<K,V> b;
+            if ((b = findPredecessor(key)) == null)
+                return null; // empty
+
             for (;;) {
                 Node<K,V> n; K k;
-                if ((n = b.next) == null) {
+                if ((n = b.next) == null)
                     return (rel & LT) != 0 && b.key != null ? b : null;
-                }
 
                 else if ((k = n.key) == null)
                     break;
