@@ -72,11 +72,12 @@ public class TopN<X> extends SortedArray<X> implements FloatFunction<X>, TopFilt
     }
 
 
+    /** TODO accelerate somehow? */
+    public final boolean addUnique(/*@NotNull*/ X x) {
+        return !contains(x) && add(x);
+    }
 
     public final boolean add(/*@NotNull*/ X x) {
-
-        if (this.contains(x)) //TODO accelerate somehow?
-            return false;
 
         if (!addRanked(x))
             return false;
