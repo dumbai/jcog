@@ -42,19 +42,19 @@ public class FloatNormalizer implements FloatToFloatFunction {
     }
 
     public final FloatNormalizer period(int expandIterations, int contractIterations) {
-        expanding = rate(expandIterations);
-        contracting = rate(contractIterations);
+        expanding = halflifeRate(expandIterations);
+        contracting = halflifeRate(contractIterations);
         if (Util.equals(contracting,1))
             throw new UnsupportedOperationException("instantaneous contraction");
 
         return this;
     }
 
-    static float rate(int iterations) {
-          return iterations < 1 ?
+    private static float halflifeRate(int period) {
+          return period < 1 ?
                   1 //instant
                   :
-                  (float) (Math.log(2)/iterations); //half-life
+                  (float) (Math.log(2)/period); //half-life
     }
 
     public final FloatNormalizer polar() {
