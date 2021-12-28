@@ -445,7 +445,7 @@ public abstract class KMeansPlusPlus<X> {
 
     public void sortClustersByVariance() {
         //clusters.sortThisByDouble(i -> i.variance(this));
-        clusters.sortThisByFloat(i -> (float)i.variance(this), true);
+        clusters.sortThisByFloat(i -> (float)i.meanDistanceToCenter(this), true);
     }
 
     public final Lst<X> valueList(int c) {
@@ -474,6 +474,10 @@ public abstract class KMeansPlusPlus<X> {
         return clusters.get(cluster).values.iterator();
     }
 
+    public void sortClustersRandom() {
+        clusters.shuffleThis(random);
+    }
+
     /**
      * Strategies to use for replacing an empty cluster.
      */
@@ -493,7 +497,7 @@ public abstract class KMeansPlusPlus<X> {
                         continue;
 
 
-                    double variance = cluster.variance(k);
+                    double variance = cluster.meanDistanceToCenter(k);
 
                     // select the cluster with the largest variance
                     if (variance > maxVariance) {
@@ -657,20 +661,20 @@ public abstract class KMeansPlusPlus<X> {
             return l;
         }
 
-        private double variance(KMeansPlusPlus k) {
+        private double meanDistanceToCenter(KMeansPlusPlus k) {
 
 //            final Variance stat = new Variance();
 //            values.forEach((int v) -> stat.increment(dist(v, center)));
 //            return stat.getResult();
 
-            double variance = 0;
+            double distSum = 0;
             int n = 0;
             PeekableIntIterator vv = values.getIntIterator();
             while (vv.hasNext()) {
-                variance += k.dist(vv.next(), center);
+                distSum += k.dist(vv.next(), center);
                 n++;
             }
-            return variance / n;
+            return n == 0 ? Double.POSITIVE_INFINITY : distSum / n;
         }
 
         int size() {
