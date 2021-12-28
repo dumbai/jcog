@@ -38,12 +38,12 @@ public enum Forgetting {
 //                    m;
 //                    //m * 0.5;
 
-                double mMax = c * 1.0;
-
+//                double mMax = c * 1.0;
                 double mIdeal = c * 0.5;
 
                 double pressureExcess =
-                    pressure * (m/mMax);
+                    pressure;
+                    //pressure * (m/mMax);
                     //Util.min(pressure, pMax) * (m / mMax);
 
                 double massExcess = Util.max(0, m - mIdeal);

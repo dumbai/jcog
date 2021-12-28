@@ -59,10 +59,10 @@ public class MutableFloat extends PlainMutableFloat {
      */
     @Override
     public void set(float value) {
-        //this.v = post(value);
-        // V.setVolatile(this, post(value));
-        V.setOpaque(this, post(value));
-        //V.setRelease(this, post(value));
+        var v = post(value);
+        V.setOpaque(this, v);
+        // V.setVolatile(this, v);
+        //V.setRelease(this, v);
     }
 
     @Override public final float getAndSet(float p) {

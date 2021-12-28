@@ -9,6 +9,7 @@ import jcog.data.list.Lst;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.util.ArrayUtil;
+import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -84,8 +85,9 @@ public abstract class KMeansPlusPlus<X> {
                           DistanceFunction measure,
                           Random random) {
         this(k, dims, measure, random,
-        EmptyClusterStrategy.LARGEST_POINTS_NUMBER
-            //EmptyClusterStrategy.FARTHEST_POINT
+            //EmptyClusterStrategy.POINTS_MOST
+            EmptyClusterStrategy.FARTHEST_POINT
+            //EmptyClusterStrategy.LARGEST_VARIANCE
         );
     }
 
@@ -114,7 +116,7 @@ public abstract class KMeansPlusPlus<X> {
     }
 
     public final void clusterDirect(Collection<X> points, int iters) {
-        clusterDirect(points instanceof List ? (List<X>)points : new Lst<>(points), iters);
+        clusterDirect((Lst<X>)(points instanceof List ? (List<X>)points : new Lst<>(points)), iters);
     }
 
 
@@ -130,8 +132,8 @@ public abstract class KMeansPlusPlus<X> {
         if (V <= 0)
             throw new UnsupportedOperationException();
 
-        if (V < k)
-            throw new TODO("remove unnecessary centroids"); //remove dependence on field 'k' for actual (only max) # of centroids
+//        if (V < k)
+//            throw new TODO("remove unnecessary centroids"); //remove dependence on field 'k' for actual (only max) # of centroids
 
         this.values = values;
         realloc(V);
@@ -181,7 +183,7 @@ public abstract class KMeansPlusPlus<X> {
         }
 
         //ERASE
-        for (int i = 0; i < c; i++) Arrays.fill(coords[i], Float.NaN);
+        for (int i = 0; i < c; i++) Arrays.fill(coords[i], Double.NaN);
         Arrays.fill(assignments, 0, c, -1);
         Arrays.fill(minDistSquared, 0, c, 0);
     }
@@ -516,34 +518,54 @@ public abstract class KMeansPlusPlus<X> {
         /**
          * Split the cluster with largest number of points.
          */
-        LARGEST_POINTS_NUMBER() {
+        POINTS_MOST() {
             @Override
             public <X> int get(KMeansPlusPlus<X> k) {
                 var clusters = k.clusters;
-                int maxNumber = 0;
+                int max = 0;
                 CentroidCluster<X> selected = null;
-                for (CentroidCluster<X> cluster : clusters) {
+                int kk = clusters.size();
+                int offset = k.random.nextInt(kk); //random offset
+                for (int i = 0; i < kk; i++) {
+                    int I = (i + offset) % kk;
+                    CentroidCluster<X> cluster = clusters.get(I);
 
                     // get the number of points of the current cluster
-                    int number = cluster.size();
+                    int cs = cluster.size();
 
                     // select the cluster with the largest number of points
-                    if (number > maxNumber) {
-                        maxNumber = number;
+                    if (cs > max) {
+                        max = cs;
                         selected = cluster;
                     }
-
                 }
 
-                // did we find at least one non-empty cluster ?
-                if (selected == null)
-                    throw new RuntimeException();
-
+//                // did we find at least one non-empty cluster ?
+//                if (selected == null)
+//                    throw new RuntimeException();
 
                 // extract a random point from the cluster
-                var selectedPoints = selected.values;
-                int which = k.random.nextInt(selectedPoints.getCardinality());
-                selectedPoints.remove(which);
+                var vals = selected.values;
+                int vn = vals.getCardinality();
+                int whichIth = k.random.nextInt(vn);
+                int which;
+                if (whichIth == 0)
+                    which = vals.first();
+                else if (whichIth == vn-1){
+                    which = vals.last();
+                } else {
+                    var ii = vals.getIntIterator();
+                    int ith = 0;
+                    which = -1; //HACK
+                    while (ii.hasNext()) {
+                        int w = ii.next();
+                        if (whichIth == ith++) {
+                            which = w;
+                            break;
+                        }
+                    }
+                }
+                vals.remove(which);
                 return which;
             }
         },
@@ -562,12 +584,13 @@ public abstract class KMeansPlusPlus<X> {
                 for (int j = 0; j < cc; j++) {
 
                     CentroidCluster<X> c = clusters.get(j);
-                    double[] center = c.center;
+                    double[] clusterCenter = c.center;
                     RoaringBitmap v = c.values;
-                    PeekableIntIterator vv = v.getIntIterator();
+                    IntIterator vv = k.random.nextBoolean() ?
+                            v.getReverseIntIterator() : v.getIntIterator();
                     while (vv.hasNext()) {
                         int i = vv.next();
-                        double distance = k.dist(i, center);
+                        double distance = k.dist(i, clusterCenter);
                         if (distance > maxDistance) {
                             maxDistance = distance;
                             selectedCluster = c;

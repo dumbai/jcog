@@ -228,13 +228,13 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
 
                 float p = pri(y);
 
-                if (p == p && update != null) {
-                    update.accept(y);
-
-                    pri(x, p = pri(y));
-                }
-
                 if (p == p) {
+
+                    if (update != null) {
+                        update.accept(y);
+
+                        pri(x, p = pri(y));
+                    }
 
                     m += p;
 
@@ -250,19 +250,11 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
                 }
             }
 
-            if (removals != null) {
-                IntIterator rr = removals.getReverseIntIterator();
-                while (rr.hasNext()) {
-                    _remove(sort.remove(rr.next()));
-                    n--;
-                }
-                //s = size();
-            }
+            if (removals != null)
+                n = removeRemovals(n, removals);
+
         } else
             xy = null;
-
-
-
 
         if (n > 0) {
             if (n > 1 && !sorted)
@@ -283,12 +275,22 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
                 commitHistogram(xy, n, h, pri(xy[0]) - pMin, pMin);
 
         } else {
+            //empty
             m = 0;
             pMin = 0;
         }
 
         priMin = pMin;
         massSet((float) m);
+    }
+
+    private int removeRemovals(int n, RoaringBitmap removals) {
+        IntIterator rr = removals.getReverseIntIterator();
+        while (rr.hasNext()) {
+            _remove(sort.remove(rr.next()));
+            n--;
+        }
+        return n;
     }
 
     @Deprecated private void commitHistogram(short[] sort, int n, DistributionApproximator h, float pRange, float pMin) {
