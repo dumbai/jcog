@@ -13,20 +13,20 @@ import org.eclipse.collections.api.block.function.primitive.FloatToFloatFunction
  * <p>
  * warning this can converge/stall.  best to use FloatAveragedWindow instead
  */
-public class FloatAveraged implements FloatToFloatFunction {
-    private float prev;
-    private final FloatRange alpha;
+public class FloatMean implements FloatToFloatFunction {
+    private float value;
+    protected final FloatRange alpha;
     private final boolean lowOrHighPass;
 
-    public FloatAveraged(float alpha) {
+    public FloatMean(float alpha) {
         this(alpha, true);
     }
 
-    public FloatAveraged(float alpha, boolean lowOrHighPass) {
-        this(new FloatRange(alpha, 0, 1f), lowOrHighPass);
+    public FloatMean(float alpha, boolean lowOrHighPass) {
+        this(FloatRange.unit(alpha), lowOrHighPass);
     }
 
-    public FloatAveraged(FloatRange alpha, boolean lowOrHighPass) {
+    public FloatMean(FloatRange alpha, boolean lowOrHighPass) {
         this.alpha = alpha;
         this.lowOrHighPass = lowOrHighPass;
     }
@@ -37,26 +37,29 @@ public class FloatAveraged implements FloatToFloatFunction {
 
 //        synchronized (this) {
             if (x != x)
-                return this.prev;
+                return this.value;
 
-            float p = prev, next;
+            float p = value, next;
             if (p == p) {
-                double alpha = this.alpha.asFloat();
+                double alpha = alpha(x, value);
                 next = (float) (alpha * x + (1 - alpha) * p);
             } else {
                 next = x;
             }
-            this.prev = next;
+            this.value = next;
             return lowOrHighPass ? next : x - next;
 //        }
+    }
+
+    protected float alpha(float next, float prev) {
+        return this.alpha.asFloat();
     }
 
     /**
      * previous value computed by valueOf
      */
     public float floatValue() {
-        return prev;
+        return value;
     }
-
 
 }

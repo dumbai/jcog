@@ -3310,4 +3310,11 @@ public enum Util {
 	public static double powAbs(double x, float p) {
 		return x >= 0 ? Math.pow(x, p) : -Math.pow(-x, p);
 	}
+
+    public static float halflifeRate(int period) {
+          return period < 1 ?
+                  1 //instant
+                  :
+                  (float) (Math.log(2)/period); //half-life
+    }
 }
