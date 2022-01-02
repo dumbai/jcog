@@ -213,7 +213,7 @@ import java.util.function.IntPredicate;
     }
 
     private int nextN() {
-        float distance = rng.nextFloat() * weightSum;
+        float distance = Util.max(EPSILON, rng.nextFloat() * weightSum);
 
         float[] w = this.w;
         int i = this.i;
@@ -226,8 +226,8 @@ import java.util.function.IntPredicate;
                 return -1; //HACK emergency bailout
 
             wi = w[i = Util.next(i, direction, count)];
-            if (wi == 0)
-                continue; //skip selection, in case distance ~= 0
+//            if (wi == 0)
+//                continue; //skip selection, in case distance ~= 0
             distance -= wi;
         } while (distance > 0);
 
