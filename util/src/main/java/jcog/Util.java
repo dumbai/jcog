@@ -3311,7 +3311,7 @@ public enum Util {
 		return x >= 0 ? Math.pow(x, p) : -Math.pow(-x, p);
 	}
 
-    public static float halflifeRate(int period) {
+    public static float halflifeRate(float period) {
           return period < 1 ?
                   1 //instant
                   :
