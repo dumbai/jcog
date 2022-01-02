@@ -45,7 +45,7 @@
         <junit-platform-launcher.version>1.8.2</junit-platform-launcher.version>
         <junit-jupiter-params.version>5.8.2</junit-jupiter-params.version>
 
-        <boofcv.version>0.39.1</boofcv.version>
+<!--        <boofcv.version>0.39.1</boofcv.version>-->
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

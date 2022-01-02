@@ -19,8 +19,7 @@ import jcog.math.FloatSupplier;
 import org.eclipse.collections.api.block.function.primitive.DoubleToDoubleFunction;
 
 import static java.lang.Math.sqrt;
-import static jcog.Util.assertFinite;
-import static jcog.Util.assertUnitized;
+import static jcog.Util.*;
 
 // TODO Add model warmup param and anomaly level. See e.g. CUSUM, Individuals, PEWMA. [WLW]
 
@@ -79,17 +78,13 @@ public final class Ewma {
     }
 
     public Ewma period(int halfLifeExpand, int halfLifeContract) {
-        return alphaPos(halfLife(halfLifeExpand)).
-               alphaNeg(halfLife(halfLifeContract))
+        return alphaPos(halflifeRate(halfLifeExpand)).
+               alphaNeg(halflifeRate(halfLifeContract))
         ;
     }
 
     public final Ewma period(int halfLife) {
-        return alpha(halfLife(halfLife));
-    }
-
-    public static double halfLife(int dur) {
-        return Math.log(2) / Math.max(1, dur);
+        return alpha(halflifeRate(halfLife));
     }
 
     public final Ewma alpha(double a) {
