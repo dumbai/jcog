@@ -75,15 +75,12 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <!--                    <compilerArgument>&#45;&#45;enable-preview</compilerArgument>-->
-
                     <source>16</source>
                     <target>16</target>
+                    <useIncrementalCompilation>true</useIncrementalCompilation>
                     <!--                    <release>16</release>-->
                     <!--                    <multiReleaseOutput>true</multiReleaseOutput>-->
-
-                    <!--                    <useIncrementalCompilation>false</useIncrementalCompilation>-->
-
+                    <!--                    <compilerArgument>&#45;&#45;enable-preview</compilerArgument>-->
                 </configuration>
             </plugin>
 
@@ -94,10 +91,10 @@
                 <configuration>
                     <argLine>${jvmArgs} -Djunit.jupiter.execution.parallel.mode.classes.default=CONCURRENT -Djunit.jupiter.execution.parallel.enabled=true</argLine>
                     <testFailureIgnore>true</testFailureIgnore>
+                    <skipTests>true</skipTests>
                     <!--<systemPropertyVariables>
                       <gzoltar-agent.destfile>${project.build.directory}/gzoltar.ser</gzoltar-agent.destfile>
                     </systemPropertyVariables> -->
-                    <skipTests>true</skipTests>
                     <!--          <forkCount>1C</forkCount>-->
                     <!-- <properties>
                      <property>
