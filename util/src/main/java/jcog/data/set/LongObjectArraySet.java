@@ -10,6 +10,7 @@ import jcog.data.list.Lst;
 import jcog.sort.QuickSort;
 import jcog.util.ArrayUtil;
 import org.eclipse.collections.api.block.predicate.primitive.LongObjectPredicate;
+import org.eclipse.collections.api.block.procedure.primitive.IntIntProcedure;
 import org.eclipse.collections.api.block.procedure.primitive.LongObjectProcedure;
 import org.eclipse.collections.api.iterator.LongIterator;
 import org.eclipse.collections.api.iterator.MutableLongIterator;
@@ -26,7 +27,7 @@ import java.util.function.Predicate;
  * a set of (long,object) pairs as 2 array lists
  * TODO sort and binary search lookup
  */
-public class LongObjectArraySet<X> extends Lst<X> {
+public class LongObjectArraySet<X> extends Lst<X> implements IntIntProcedure  {
 
     public long[] when = ArrayUtil.EMPTY_LONG_ARRAY;
 
@@ -42,7 +43,8 @@ public class LongObjectArraySet<X> extends Lst<X> {
         super(initialCapacity);
     }
 
-    public void swap(int a, int b) {
+    /** public void swap(int a, int b) { */
+    @Override public final void value(int a, int b) {
         if (a != b) {
             super.swap(a,b);
             ArrayUtil.swapLong(when, a, b);
@@ -52,8 +54,8 @@ public class LongObjectArraySet<X> extends Lst<X> {
     public LongObjectArraySet<X> sortThis(IntComparator cmp) {
         int size = this.size;
         if (size > 1) {
-            //TODO SmoothSort
-            QuickSort.quickSort(0, size, cmp, this::swap);
+            //TODO SmoothSort ?
+            QuickSort.quickSort(0, size, cmp, this);
         }
         return this;
     }

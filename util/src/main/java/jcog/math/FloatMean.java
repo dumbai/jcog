@@ -1,5 +1,6 @@
 package jcog.math;
 
+import jcog.Util;
 import jcog.signal.FloatRange;
 import org.eclipse.collections.api.block.function.primitive.FloatToFloatFunction;
 
@@ -14,9 +15,9 @@ import org.eclipse.collections.api.block.function.primitive.FloatToFloatFunction
  * warning this can converge/stall.  best to use FloatAveragedWindow instead
  */
 public class FloatMean implements FloatToFloatFunction {
-    private float value;
     protected final FloatRange alpha;
     private final boolean lowOrHighPass;
+    private float value;
 
     public FloatMean(float alpha) {
         this(alpha, true);
@@ -33,22 +34,20 @@ public class FloatMean implements FloatToFloatFunction {
 
     @Override
     public float valueOf(float x) {
+//            if (x != x)
+//                return this.value;
 
+        float p = value, next;
+        if (x!=x) {
+            x = next = p;
+        } else if (p!=p) {
+            this.value = next = x;
+        } else {
+            float alpha = alpha(x, p);
+            this.value = next = Util.lerpSafe(alpha, p, x);
+        }
 
-//        synchronized (this) {
-            if (x != x)
-                return this.value;
-
-            float p = value, next;
-            if (p == p) {
-                double alpha = alpha(x, value);
-                next = (float) (alpha * x + (1 - alpha) * p);
-            } else {
-                next = x;
-            }
-            this.value = next;
-            return lowOrHighPass ? next : x - next;
-//        }
+        return lowOrHighPass ? next : x - next;
     }
 
     protected float alpha(float next, float prev) {

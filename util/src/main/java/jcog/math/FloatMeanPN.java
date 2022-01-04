@@ -19,6 +19,10 @@ public class FloatMeanPN extends FloatMean {
     }
 
     protected float alpha(float next, float prev) {
+        if (prev!=prev)
+            return 1;
+        if (next!=next)
+            return 0;
         if (next >= prev)
             return this.alpha.asFloat();
         else

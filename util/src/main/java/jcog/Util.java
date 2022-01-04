@@ -3215,6 +3215,7 @@ public enum Util {
 	}
 
 	@Is("Relative_change_and_difference") public static double pctDiff(double x, double y) {
+		if (x == y) return 0;
 		return abs(x - y) /
 				mean(abs(x), abs(y));
 				//max(abs(x), abs(y));
