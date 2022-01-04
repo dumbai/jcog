@@ -51,6 +51,11 @@ public class LongObjectArraySet<X> extends Lst<X> implements IntIntProcedure  {
         }
     }
 
+    @Override
+    public final void swap(int a, int b) {
+        value(a, b);
+    }
+
     public LongObjectArraySet<X> sortThis(IntComparator cmp) {
         int size = this.size;
         if (size > 1) {
