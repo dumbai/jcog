@@ -31,12 +31,12 @@ public enum PriMerge implements BiConsumer<Prioritizable, Prioritized>, FloatFlo
     mean {
         @Override
         public float valueOf(float e, float i) {
-            return (float) Fuzzy.mean(e, i);
+            return Util.mean(e, i);
         }
 
         @Override
         public double apply(double e, double i) {
-            return Fuzzy.mean(e, i);
+            return Util.mean(e, i);
         }
 
     },

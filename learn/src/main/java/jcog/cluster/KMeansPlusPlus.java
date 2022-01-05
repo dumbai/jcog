@@ -9,7 +9,6 @@ import jcog.data.list.Lst;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.util.ArrayUtil;
-import org.roaringbitmap.IntIterator;
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -85,7 +84,7 @@ public abstract class KMeansPlusPlus<X> {
                           DistanceFunction measure,
                           Random random) {
         this(k, dims, measure, random,
-            //EmptyClusterStrategy.POINTS_MOST
+            //EmptyClusterStrategy.MOST_POINTS
             EmptyClusterStrategy.FARTHEST_POINT
             //EmptyClusterStrategy.LARGEST_VARIANCE
         );
@@ -127,7 +126,6 @@ public abstract class KMeansPlusPlus<X> {
      */
     public void clusterDirect(Lst<X> values, int max)  {
 
-
         int V = values.size();
         if (V <= 0)
             throw new UnsupportedOperationException();
@@ -138,39 +136,43 @@ public abstract class KMeansPlusPlus<X> {
         this.values = values;
         realloc(V);
 
-
-        clusters.clear();
-
-        if (V == k) {
-            //TODO fast assign each point to its own centroid
-        }
-
+//        if (V == k) {
+//            //TODO fast assign each point to its own centroid
+//        }
 
         init();
 
-        assign(clusters, assignments);
+        var clustersArray = clusters.array();
+        var clustersNextArray = clustersNext.array();
+
+        assign(clustersArray, assignments);
 
         // iterate through updating the centers until we're done
         int iter = 0;
         for ( ; iter < max; iter++) {
-            clustersNext.clear();
-            for (CentroidCluster<X> cluster : clusters) {
-                RoaringBitmap v = cluster.values;
-                clustersNext.add(new CentroidCluster(v.isEmpty() ?
-                        coord(emptyStrategy.get(this)) :
-                        center(v, cluster.center.length)));
+            //clustersNext.clear();
+
+            for (int i = 0; i < k; i++) {
+                CentroidCluster<X> y = clustersNextArray[i];
+                y.clearValues();
+                double[] yc = y.center;
+                RoaringBitmap x = clustersArray[i].values;
+                if (x.isEmpty())
+                    coordCopy(emptyStrategy.get(this), yc);
+                else
+                    center(x, yc);
             }
 
-            int changes = assign(clustersNext, assignments);
-            //System.out.println(iter + " " + n2(((float)changes)/V));
+
+            int changes = assign(clustersNextArray, assignments);
             if (changes <= 0)
                 break; //converged
 
-            clusters.clear();
-            clusters.addAll(clustersNext);
+            for (int i = 0; i < k; i++)
+                clustersArray[i].set(clustersNextArray[i]);
         }
 
-        clustersNext.clear(); //HACK to be sure
+        //clustersNext.clear(); //HACK to be sure
     }
 
     private void realloc(int c) {
@@ -186,6 +188,18 @@ public abstract class KMeansPlusPlus<X> {
         for (int i = 0; i < c; i++) Arrays.fill(coords[i], Double.NaN);
         Arrays.fill(assignments, 0, c, -1);
         Arrays.fill(minDistSquared, 0, c, 0);
+
+        int cc = clusters.size();
+        if (cc != k) {
+            if (cc > 0) {
+                clusters.clear(); clustersNext.clear();
+            }
+
+            for (int i = 0; i < k; i++) {
+                clusters.add(new CentroidCluster<>(dims));
+                clustersNext.add(new CentroidCluster<>(dims));
+            }
+        }
     }
 
 
@@ -203,7 +217,7 @@ public abstract class KMeansPlusPlus<X> {
      * @param assignments points assignments to clusters
      * @return the number of points assigned to different clusters as the iteration before
      */
-    private int assign(Lst<CentroidCluster<X>> clusters, int[] assignments) {
+    private int assign(CentroidCluster<X>[] clusters, int[] assignments) {
         int changes = 0;
 
         int P = values.size();
@@ -214,7 +228,7 @@ public abstract class KMeansPlusPlus<X> {
                 assignments[p] = c;
             }
 
-            clusters.get(c).add(p);
+            clusters[c].add(p);
         }
 
         return changes;
@@ -222,7 +236,8 @@ public abstract class KMeansPlusPlus<X> {
 
     public int nearest(X p) {
         int known = indexOf(p);
-        return known >= 0 ? nearest(known, clusters) : nearest(coord(p, new double[this.dims()]), clusters);
+        var clustersArray = clusters.array();
+        return known >= 0 ? nearest(known, clustersArray) : nearest(coord(p, new double[this.dims()]), clustersArray);
     }
 
     private int dims() {
@@ -233,15 +248,14 @@ public abstract class KMeansPlusPlus<X> {
         return values!=null ? values.indexOf(p) : -1;
     }
 
-    private int nearest(int p, Lst<CentroidCluster<X>> clusters) {
+    private int nearest(int p, CentroidCluster<X>[] clusters) {
         return nearest(coord(p), clusters);
     }
 
-    private int nearest(double[] p, Lst<CentroidCluster<X>> clusters) {
+    private int nearest(double[] p, CentroidCluster<X>[] cc) {
         double minDistance = Double.POSITIVE_INFINITY;
         int i = 0;
         int minCluster = 0;
-        CentroidCluster<X>[] cc = clusters.array();
         for (int j = 0, clustersSize = clusters.size(); j < clustersSize; j++) {
             double d = dist(p, cc[j].center);
             if (d < minDistance) {
@@ -273,7 +287,8 @@ public abstract class KMeansPlusPlus<X> {
 
         double[] firstPointC = coord(firstPointIndex);
 
-        clusters.add(new CentroidCluster(firstPointC));
+        int cc = 0;
+        clusters.get(cc++).set(firstPointC);
 
         // Must mark it as taken
         taken.set(firstPointIndex, true);
@@ -290,7 +305,7 @@ public abstract class KMeansPlusPlus<X> {
                 minDistSquared[i] = dist(i, firstPointC);
         }
 
-        while (clusters.size() < k) {
+        while (cc < k) {
 
             // Sum up the squared distances for the points in pointList not
             // already taken.
@@ -335,7 +350,7 @@ public abstract class KMeansPlusPlus<X> {
             // We found one.
             if (p >= 0) {
 
-                clusters.add(new CentroidCluster(coord(p)));
+                clusters.get(cc++).set(coord(p));
 
                 // Mark it as taken.
                 taken.set(p, true);
@@ -367,6 +382,7 @@ public abstract class KMeansPlusPlus<X> {
     private double dist(int x, double[] y) {
         return dist(coord(x), y);
     }
+
     private double dist(double[] x, double[] y) {
         return distance.distance(x, y);
     }
@@ -378,29 +394,41 @@ public abstract class KMeansPlusPlus<X> {
         return c0 == c0 ? c : coord(values.get(x), c);
     }
 
+    public void coordCopy(int x, double[] target) {
+        double[] c = coords[x];
+        double c0 = c[0];
+        if (c0 == c0) {
+            System.arraycopy(c, 0, target, 0, c.length);
+        } else {
+            coord(values.get(x), target);
+        }
+    }
     public abstract double[] coord(X x, double[] coords);
 
     /**
      * Computes the centroid for a set of points.
      *
      * @param points    the set of points
-     * @param dim the point dimension
+     * @param dims the point dimension
      * @return the computed centroid for the set of points
      */
-    private double[] center(RoaringBitmap points, int dim) {
-        int n = points.getCardinality();
+    private double[] center(RoaringBitmap points, double[] c) {
+        int dims = c.length;
+        int n = 0;
 
-        double[] c = new double[dim];
+        Arrays.fill(c, 0);
+
         PeekableIntIterator pp = points.getIntIterator();
         while (pp.hasNext()) {
             int p = pp.next();
             double[] point = coord(p);
-            for (int i = 0; i < dim; i++)
+            for (int i = 0; i < dims; i++)
                 c[i] += point[i];
+            n++;
         }
 
         if (n>1) {
-            for (int i = 0; i < dim; i++)
+            for (int i = 0; i < dims; i++)
                 c[i] /= n;
         }
 
@@ -423,7 +451,8 @@ public abstract class KMeansPlusPlus<X> {
 //    }
 
     public void clear() {
-        clusters.clear();
+        clusters.forEach(CentroidCluster::clear);
+        //clusters.clear();
         coords = null;
         assignments = null;
         minDistSquared = null;
@@ -522,25 +551,21 @@ public abstract class KMeansPlusPlus<X> {
         /**
          * Split the cluster with largest number of points.
          */
-        POINTS_MOST() {
+        MOST_POINTS() {
             @Override
             public <X> int get(KMeansPlusPlus<X> k) {
                 var clusters = k.clusters;
                 int max = 0;
-                CentroidCluster<X> selected = null;
+                CentroidCluster<X> biggest = null;
                 int kk = clusters.size();
-                int offset = k.random.nextInt(kk); //random offset
+                int I = k.random.nextInt(kk); //random offset
+
                 for (int i = 0; i < kk; i++) {
-                    int I = (i + offset) % kk;
-                    CentroidCluster<X> cluster = clusters.get(I);
-
-                    // get the number of points of the current cluster
+                    CentroidCluster<X> cluster = clusters.get(I++); if (I == kk) I = 0; //wraparound
                     int cs = cluster.size();
-
-                    // select the cluster with the largest number of points
                     if (cs > max) {
                         max = cs;
-                        selected = cluster;
+                        biggest = cluster;
                     }
                 }
 
@@ -549,7 +574,7 @@ public abstract class KMeansPlusPlus<X> {
 //                    throw new RuntimeException();
 
                 // extract a random point from the cluster
-                var vals = selected.values;
+                var vals = biggest.values;
                 int vn = vals.getCardinality();
                 int whichIth = k.random.nextInt(vn);
                 int which;
@@ -578,35 +603,59 @@ public abstract class KMeansPlusPlus<X> {
          * Create a cluster around the point farthest from its centroid.
          */
         FARTHEST_POINT() {
-            @Override
-            public <X> int get(KMeansPlusPlus<X> k) {
-                var clusters = k.clusters;
-                double maxDistance = Double.NEGATIVE_INFINITY;
-                CentroidCluster<X> selectedCluster = null;
-                int selectedPoint = -1;
-                int cc = clusters.size();
-                for (int j = 0; j < cc; j++) {
 
-                    CentroidCluster<X> c = clusters.get(j);
-                    double[] clusterCenter = c.center;
-                    RoaringBitmap v = c.values;
-                    IntIterator vv = k.random.nextBoolean() ?
-                            v.getReverseIntIterator() : v.getIntIterator();
-                    while (vv.hasNext()) {
-                        int i = vv.next();
-                        double distance = k.dist(i, clusterCenter);
-                        if (distance > maxDistance) {
-                            maxDistance = distance;
-                            selectedCluster = c;
-                            selectedPoint = i;
-                        }
+            static class MaxDist<X> implements org.roaringbitmap.IntConsumer {
+                final KMeansPlusPlus<X> k;
+                final boolean fwd;
+
+                int selectedPoint = -1;
+                double maxDistance = Double.NEGATIVE_INFINITY;
+                private transient CentroidCluster<X> selectedCluster = null;
+                private transient double[] clusterCenter = null;
+                private transient CentroidCluster<X> c;
+
+                MaxDist(KMeansPlusPlus<X> k, boolean fwd) {
+                    this.k = k;
+                    this.fwd = fwd;
+                }
+
+                @Override
+                public void accept(int i) {
+                    double distance = k.dist(i, clusterCenter);
+                    if ((fwd && distance > maxDistance) || (!fwd && distance >= maxDistance)) {
+                        maxDistance = distance;
+                        selectedCluster = c;
+                        selectedPoint = i;
                     }
 
                 }
 
-                // did we find at least one non-empty cluster ?
-                selectedCluster.remove(selectedPoint);
-                return selectedPoint;
+                public int commit() {
+                    selectedCluster.remove(selectedPoint);
+                    this.c = null;
+                    this.clusterCenter = null;
+                    this.selectedCluster = null;
+                    return selectedPoint;
+                }
+
+                public void apply(CentroidCluster<X> c) {
+                    this.c = c;
+                    this.clusterCenter = c.center;
+                    c.values.forEach(this);
+                }
+            }
+
+            @Override
+            public <X> int get(KMeansPlusPlus<X> k) {
+                var cc = k.clusters;
+
+                var m = new MaxDist<>(k,  k.random.nextBoolean());
+
+                int n = cc.size();
+                for (int j = 0; j < n; j++)
+                    m.apply(cc.get(j));
+
+                return m.commit();
             }
         };
 
@@ -614,9 +663,14 @@ public abstract class KMeansPlusPlus<X> {
 
     }
 
-    public static final class CentroidCluster<X> {
+    private static final class CentroidCluster<X> {
         public final RoaringBitmap values = new RoaringBitmap();
         public final double[] center;
+
+        CentroidCluster(int dims) {
+            center = new double[dims];
+            Arrays.fill(center, Double.NaN);
+        }
 
         CentroidCluster(double[] center) {
             this.center = center;
@@ -640,18 +694,6 @@ public abstract class KMeansPlusPlus<X> {
             List<X> kv = k.values;
             while (vv.hasNext()) { each.accept(kv.get(vv.next())); }
         }
-
-//        /** from inclusive, to exclusive */
-//        public void values(KMeansPlusPlus<X> k, Consumer<X> each, int from, int to) {
-//            PeekableIntIterator vv = values.getIntIterator();
-//
-//            //HACK
-//            for (int i = 0; i < from; i++) { if (!vv.hasNext()) return; vv.next();  }
-//
-//            List<X> kv = k.values;
-//            int r = to-from;
-//            while (r-- > 0 && vv.hasNext()) { each.accept(kv.get(vv.next())); }
-//        }
 
         private Lst<X> valueList(KMeansPlusPlus<X> k) {
             PeekableIntIterator vv = values.getIntIterator();
@@ -705,6 +747,28 @@ public abstract class KMeansPlusPlus<X> {
 
             }
         }
+
+        public void set(CentroidCluster<X> c) {
+            set(c.center);
+            clearValues();
+            values.or(c.values);
+        }
+
+        public void set(double[] c) {
+            System.arraycopy(c, 0, center, 0, c.length);
+        }
+
+        public void clear() {
+            clearValues();
+            Arrays.fill(center, Double.NaN);
+        }
+
+        public void clearValues() {
+            if (!values.isEmpty()) //HACK this prevents unnecessary container realloc
+                values.clear();
+        }
+
+
     }
 
 

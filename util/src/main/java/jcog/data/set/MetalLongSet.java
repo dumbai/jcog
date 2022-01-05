@@ -9,7 +9,8 @@ import java.util.Arrays;
 @Deprecated public class MetalLongSet extends LongHashSet {
 
     public MetalLongSet(int capacity) {
-        super(1+capacity/2 /* HACK */);
+        super(capacity);
+        //super(1+capacity/2 /* HACK */);
     }
 
     public MetalLongSet(long[] initial) {

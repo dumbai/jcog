@@ -89,7 +89,7 @@ public class ArrayIterator<X> implements Iterator<X>, Iterable<X> {
     public static <E> Iterator<E> iterateN(E[] e, int size) {
         return switch (size) {
             case 0 -> Util.emptyIterator;
-//            case 1 -> new SingletonIterator(e[0]);
+            case 1 -> new SingletonIterator<>(e[0]);
             default -> size == e.length ?
                     new ArrayIterator<>(e) :
                     new PartialArrayIterator<>(e, 0, size);

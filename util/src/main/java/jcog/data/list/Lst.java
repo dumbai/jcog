@@ -1,6 +1,5 @@
 package jcog.data.list;
 
-import com.google.common.collect.Iterators;
 import jcog.TODO;
 import jcog.Util;
 import jcog.data.bit.MetalBitSet;
@@ -8,6 +7,7 @@ import jcog.data.iterator.ArrayIterator;
 import jcog.random.RandomBits;
 import jcog.sort.QuickSort;
 import jcog.util.ArrayUtil;
+import jcog.util.SingletonIterator;
 import org.eclipse.collections.api.block.function.primitive.DoubleFunction;
 import org.eclipse.collections.api.block.function.primitive.IntToDoubleFunction;
 import org.eclipse.collections.api.block.function.primitive.LongFunction;
@@ -858,7 +858,7 @@ public class Lst<X> implements List<X>, RandomAccess {
     public Iterator<X> iterator() {
         return switch (size) {
             case 0 -> Util.emptyIterator;
-            case 1 -> Iterators.singletonIterator(items[0]);
+            case 1 -> new SingletonIterator<>(items[0]);
             default -> new MutableListIterator<>(this, 0);
         };
     }

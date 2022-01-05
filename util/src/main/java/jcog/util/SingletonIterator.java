@@ -2,9 +2,9 @@ package jcog.util;
 
 import java.util.Iterator;
 
-public final class SingletonIterator<X> implements Iterator<X> {
+public final class SingletonIterator<X> implements Iterator<X>, Iterable<X> {
 
-	private X x;
+	private transient X x;
 
 	public SingletonIterator(X x) {
 		this.x = x;
@@ -20,5 +20,10 @@ public final class SingletonIterator<X> implements Iterator<X> {
 		X y = x;
 		this.x = null;
 		return y;
+	}
+
+	@Override
+	public Iterator<X> iterator() {
+		return this;
 	}
 }

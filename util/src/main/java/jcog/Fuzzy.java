@@ -156,8 +156,9 @@ import static jcog.Util.*;
         return Util.mean(e,i);
     }
     public static float mean(float e, float i) {
-        return (float)Util.mean((double)e,i);
+        return Util.mean(e, i);
     }
+
 //    /**
 //     * @param x in 0..1
 //     * @param pow exponent
