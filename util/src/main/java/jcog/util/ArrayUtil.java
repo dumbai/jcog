@@ -3710,10 +3710,7 @@ public enum ArrayUtil {
 			}
 		}
 	}
-	public static void shuffle(Object[] array, Rand rng) {
-		for (int i = array.length; i > 1; i--)
-			swap(array, i - 1, rng.nextInt(i));
-	}
+
 	/**
 	 * from,to is an inclusive range which is non-standard wrt the other shuffle methods
 	 */
