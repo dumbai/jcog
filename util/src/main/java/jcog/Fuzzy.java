@@ -114,7 +114,7 @@ import static jcog.Util.*;
      */
     public static double xnr(double x, double y) {
         //return (x * y) + ((1-x)*(1-y));
-        return fma(x, y, ((1-x)*(1-y)));
+        return fma(x, y, (1-x)*(1-y));
     }
     @Deprecated public static double xnrNorm(double x, double y) {
         double d =

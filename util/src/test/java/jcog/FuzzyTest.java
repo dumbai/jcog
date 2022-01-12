@@ -41,6 +41,7 @@ class FuzzyTest {
         assertEquals(0.5, xnr(0.5, 1), 0.01);
 
         assertEquals(0.55, xnr(0.6, 0.75), 0.01);
+        assertEquals(0.48, xnr(0.6, 0.4), 0.01);
     }
     @Test void XNRNorm_() {
         assertEquals(0.8, xnrNorm(0.6, 0.75), 0.01);
