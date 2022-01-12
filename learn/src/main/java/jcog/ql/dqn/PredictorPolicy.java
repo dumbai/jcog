@@ -10,7 +10,8 @@ public abstract class PredictorPolicy implements Policy {
 
     /** "alpha" learning rate */
     public final FloatRange learn = new FloatRange(
-        0.005f
+        0.00025f
+        //0.005f
         //0.01f
         , 0, 1);
 

@@ -16,7 +16,7 @@ import java.util.Random;
     ;
 
     public static int selectRoulette(float[] x, FloatSupplier rng) {
-        return selectRoulette(x.length, (n) -> x[n], rng);
+        return selectRoulette(x.length, n -> x[n], rng);
     }
 
     public static int selectRoulette(int weightCount, IntToFloatFunction weight, Random rng) {

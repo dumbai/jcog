@@ -10,7 +10,7 @@ import java.util.Random;
  */
 public class DecideEpsilonGreedy implements Decide {
 
-    /** argmax, with shuffling in case of a tie */
+    /** argmax (greedy), with shuffling in case of a tie */
     public static final Decide ArgMax = new DecideEpsilonGreedy(0, new XoRoShiRo128PlusRandom(1));
 
     private final Random random;
@@ -25,7 +25,6 @@ public class DecideEpsilonGreedy implements Decide {
      */
 
     public DecideEpsilonGreedy(float epsilonRandom, Random random) {
-
         this.epsilonRandom = epsilonRandom;
         this.random = random;
     }
