@@ -37,9 +37,9 @@ public class DecideEpsilonGreedy implements Decide {
                 motivationOrder[i] = i;
         }
 
-        if (epsilonRandom > 0 && random.nextFloat() < epsilonRandom) {
+        if (epsilonRandom > 0 && random.nextFloat() < epsilonRandom)
             return random.nextInt(actions);
-        }
+
 
         ArrayUtil.shuffle(motivationOrder, random);
 
@@ -59,7 +59,8 @@ public class DecideEpsilonGreedy implements Decide {
         
         int a = nextAction;
         if (a < 0)
-            return random.nextInt(actions);
+            return random.nextInt(actions); //all <= NEGATIVE_INFINITY
+        
         return a;
     }
 }
