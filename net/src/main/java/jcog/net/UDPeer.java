@@ -152,8 +152,8 @@ public class UDPeer extends UDP {
                 return null;
             }
 
-            @Override
-            public float pri(UDProfile key) {
+            /** TODO refine */
+            @Override public float pri(UDProfile key) {
                 long latency = key.latency();
                 return 1f / (1f + Util.sqr(latency / 100f));
             }
@@ -442,9 +442,9 @@ public class UDPeer extends UDP {
 
     private RecycledSummaryStatistics latencyAvg() {
         RecycledSummaryStatistics r = new RecycledSummaryStatistics();
-        for (UDProfile x : them) {
+        for (UDProfile x : them)
             r.accept(x.latency());
-        }
+
         return r;
     }
 

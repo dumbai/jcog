@@ -1,6 +1,5 @@
 package jcog.decide;
 
-import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.util.ArrayUtil;
 
 import java.util.Random;
@@ -9,9 +8,6 @@ import java.util.Random;
  * Created by me on 6/9/16.
  */
 public class DecideEpsilonGreedy implements Decide {
-
-    /** argmax (greedy), with shuffling in case of a tie */
-    public static final Decide ArgMax = new DecideEpsilonGreedy(0, new XoRoShiRo128PlusRandom(1));
 
     private final Random random;
 

@@ -78,7 +78,7 @@ import java.util.Random;
 
 
         decideInput =
-                DecideEpsilonGreedy.ArgMax;
+                Decide.Greedy;
 
 
         decideAction =

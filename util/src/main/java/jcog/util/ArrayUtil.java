@@ -1320,14 +1320,12 @@ public enum ArrayUtil {
 	 *                            change. Over value (&gt;array.length) is demoted to array length.
 	 * @since 3.2
 	 */
-	public static void reverse(Object[] array, int startIndexInclusive, int endIndexExclusive) {
+	public static void reverse(@Nullable Object[] array, int startIndexInclusive, int endIndexExclusive) {
 		if (array == null) return;
-		int i = Math.max(startIndexInclusive, 0);
-		int j = Math.min(array.length, endIndexExclusive) - 1;
+		int i = Math.max(startIndexInclusive, 0),
+			j = Math.min(array.length, endIndexExclusive) - 1;
 		while (j > i) {
-			_swap(array, j, i);
-			j--;
-			i++;
+			_swap(array, j--, i++);
 		}
 	}
 
