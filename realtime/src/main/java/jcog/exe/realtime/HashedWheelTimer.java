@@ -221,19 +221,19 @@ public class HashedWheelTimer implements AbstractTimer, ScheduledExecutorService
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable runnable,
-									   long delayNS,
+									   long delay,
 									   TimeUnit timeUnit) {
-		return scheduleOneShot(NANOSECONDS.convert(delayNS, timeUnit), constantlyNull(runnable));
+		return scheduleOneShot(NANOSECONDS.convert(delay, timeUnit), constantlyNull(runnable));
 	}
 
 	@Override
-	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delayNS, TimeUnit timeUnit) {
-		return scheduleOneShot(NANOSECONDS.convert(delayNS, timeUnit), callable);
+	public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit timeUnit) {
+		return scheduleOneShot(NANOSECONDS.convert(delay, timeUnit), callable);
 	}
 
 	@Override
-	public FixedRateTimedFuture scheduleAtFixedRate(Runnable runnable, long delayNS, long periodNS, TimeUnit unit) {
-		return scheduleFixedRate(NANOSECONDS.convert(periodNS, unit), NANOSECONDS.convert(delayNS, unit),
+	public FixedRateTimedFuture scheduleAtFixedRate(Runnable runnable, long delay, long period, TimeUnit unit) {
+		return scheduleFixedRate(NANOSECONDS.convert(period, unit), NANOSECONDS.convert(delay, unit),
 			runnable);
 	}
 

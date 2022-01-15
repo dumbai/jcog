@@ -118,7 +118,7 @@ public interface LongInterval extends LongIntervalArray {
     }
 
     static double diffTotal(double fs, double fe, double ts, double te) {
-        return Math.abs(fs - ts) + Math.abs(fe - te);
+        return abs(fs - ts) + abs(fe - te);
     }
 
     static long minTimeToRaw(long fs, long fe, long ts, long te) {

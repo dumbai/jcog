@@ -1012,37 +1012,37 @@ public enum Util {
 //		return s;
 //	}
 
-	public static int[] reverse(IntArrayList l) {
-		return switch (l.size()) {
-			case 0 -> throw new UnsupportedOperationException();
-			case 1 -> new int[]{l.get(0)};
-			case 2 -> new int[]{l.get(1), l.get(0)};
-			case 3 -> new int[]{l.get(2), l.get(1), l.get(0)};
-			default -> l.asReversed().toArray();
-		};
-	}
+//	public static int[] reverse(IntArrayList l) {
+//		return switch (l.size()) {
+//			case 0 -> throw new UnsupportedOperationException();
+//			case 1 -> new int[]{l.get(0)};
+//			case 2 -> new int[]{l.get(1), l.get(0)};
+//			case 3 -> new int[]{l.get(2), l.get(1), l.get(0)};
+//			default -> l.asReversed().toArray();
+//		};
+//	}
 
-	public static byte[] reverse(ByteArrayList l) {
-		int s = l.size();
-		switch (s) {
-			case 0:
-				return ArrayUtil.EMPTY_BYTE_ARRAY;
-			case 1:
-				return new byte[]{l.get(0)};
-			case 2:
-				return new byte[]{l.get(1), l.get(0)};
-			default:
-				byte[] b = new byte[s];
-				for (int i = 0; i < s; i++)
-					b[i] = l.get(--s);
-				return b;
-		}
-	}
+//	public static byte[] reverse(ByteArrayList l) {
+//		int s = l.size();
+//		switch (s) {
+//			case 0:
+//				return ArrayUtil.EMPTY_BYTE_ARRAY;
+//			case 1:
+//				return new byte[]{l.get(0)};
+//			case 2:
+//				return new byte[]{l.get(1), l.get(0)};
+//			default:
+//				byte[] b = new byte[s];
+//				for (int i = 0; i < s; i++)
+//					b[i] = l.get(--s);
+//				return b;
+//		}
+//	}
 
-	public static String s(String s, int maxLen) {
-		if (s.length() < maxLen) return s;
-		return s.substring(0, maxLen - 2) + "..";
-	}
+//	public static String s(String s, int maxLen) {
+//		if (s.length() < maxLen) return s;
+//		return s.substring(0, maxLen - 2) + "..";
+//	}
 
 //	public static void writeBits(int x, int numBits, float[] y, int offset) {
 //		for (int i = 0, j = offset; i < numBits; i++, j++) {

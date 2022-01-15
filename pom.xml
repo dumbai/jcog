@@ -39,7 +39,6 @@
     <properties>
         <jvmArgs>--enable-preview --illegal-access=permit --add-opens java.base/java.io=ALL-UNNAMED</jvmArgs>
 
-        <byte-buddy.version>1.12.6</byte-buddy.version>
         <hipparchus.version>2.0</hipparchus.version>
 
         <junit-platform-launcher.version>1.8.2</junit-platform-launcher.version>
