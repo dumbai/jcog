@@ -98,13 +98,12 @@ public class DenseLayer extends AbstractLayer {
 
     private void randomizeHe(Random r) {
         float a =
-            in.length*2;
-            //in.length;
+            //in.length*2;
+            in.length;
             //in.length/2f;
             //Util.sqrt(in.length);
             //in.length + out.length;
-        double[] W = this.W;
-        randomizeHe(W, a, r);
+        randomizeHe(this.W, a, r);
     }
 
     public static void randomizeHe(double[] W, float n, Random r) {

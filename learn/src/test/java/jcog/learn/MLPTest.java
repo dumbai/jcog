@@ -106,7 +106,7 @@ class MLPTest {
 
 		p.clear(r);
 
-		float alpha = 0.05f;
+		float alpha = 0.04f;
 
 		int maxIter = 10000*d.rowCount();
 		int minIterations = cases * 2;

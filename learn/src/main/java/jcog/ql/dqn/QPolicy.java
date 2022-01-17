@@ -8,6 +8,7 @@ import jcog.signal.FloatRange;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static jcog.Fuzzy.polarize;
 import static jcog.Util.clampSafe;
 
 
@@ -118,8 +119,14 @@ public class QPolicy extends PredictorPolicy {
                 /* estimate of optimal future value */
                 double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
 
-                dq[a] = PRI * action[a] * (reward + gq) - qPrevA; //better, almost sure
-                //dq[a] = PRI * action[a] * reward + gq - qPrevA;
+                dq[a] = PRI * action[a] * reward + gq - qPrevA;
+
+                //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
+
+//                double ar =
+//                    (reward >= 0.5f ? (action[a] * polarize(reward)) : ((1-action[a]) * -polarize(reward)));
+//                    //(reward >= 0.5f ? (action[a] * reward) : ((1-action[a]) * (1-reward)));
+//                dq[a] = PRI * ar + gq - qPrevA;
 
 //                dq[a] = PRI * (
 //                              action[a]     *    (reward + gq)

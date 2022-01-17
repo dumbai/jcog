@@ -3,15 +3,17 @@ package jcog.ql;
 import jcog.agent.Agent;
 import jcog.decide.Decide;
 import jcog.decide.DecideEpsilonGreedy;
+import jcog.decide.DecideSoftmax;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.signal.FloatRange;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
  * q-learning + SOM agent, cognitive prosthetic. designed by patham9
  */
-@Deprecated public class HaiQ extends Agent {
+@Deprecated public abstract class HaiQ extends Agent {
 
     protected final Random rng;
 
@@ -19,13 +21,6 @@ import java.util.Random;
     public double[][] et;
 
     /*
-     * http:
-     * qlearning Alpha is the learning rate. If the reward or transition
-     * function is stochastic (random), then alpha should change over time,
-     * approaching zero at infinity. This has to do with approximating the
-     * expected outcome of a inner product (T(transition)*R(reward)), when one
-     * of the two, or both, have random behavior.
-     *
      * Gamma is the value of future reward. It can affect learning quite a bit,
      * and can be a dynamic or static value. If it is equal to one, the agent
      * values future reward JUST AS MUCH as current reward. This means, in ten
@@ -34,8 +29,10 @@ import java.util.Random;
      * gamma values. Conversely, a gamma of zero will cause the agent to only
      * value immediate rewards, which only works with very detailed reward
      * functions.
-     *
-     * http:
+     */
+    public final FloatRange Gamma = new FloatRange(0, 0, 1);
+
+    /**
      * the rate of decay (in conjunction with gamma) of the eligibility trace.
      * This is the amount by which the eligibility of a state is reduced each
      * time step that it is not being visited. A low lambda causes a lower
@@ -49,16 +46,21 @@ import java.util.Random;
      * state values which might have been incorrectly reinforced and create a
      * more defined path to the goal in fewer episodes.
      */
-    public final FloatRange Gamma = new FloatRange(0, 0, 1f);
-
-    public final FloatRange Lambda = new FloatRange(0, 0, 1f);
-
-    public final FloatRange Alpha = new FloatRange(0, 0, 1f);
+    public final FloatRange Lambda = new FloatRange(0, 0, 1);
 
     /**
-     * input selection; HaiQAgent will not use this in its override of perceive
+     * qlearning Alpha is the learning rate. If the reward or transition
+     * function is stochastic (random), then alpha should change over time,
+     * approaching zero at infinity. This has to do with approximating the
+     * expected outcome of a inner product (T(transition)*R(reward)), when one
+     * of the two, or both, have random behavior.
      */
-    public final Decide decideInput;
+    public final FloatRange Alpha = new FloatRange(0, 0, 1);
+
+//    /**
+//     * input selection; HaiQAgent will not use this in its override of perceive
+//     */
+//    public final Decide decideInput;
 
 
     /**
@@ -77,54 +79,18 @@ import java.util.Random;
         rng = new XoRoShiRo128PlusRandom(1);
 
 
-        decideInput =
-                Decide.Greedy;
+//        decideInput =
+//                Decide.Greedy;
 
 
         decideAction =
-                new DecideEpsilonGreedy(0.03f, rng);
-        //new DecideSoftmax(0.5f, rng);
+            //new DecideEpsilonGreedy(0.03f, rng);
+            new DecideSoftmax(0.5f, rng);
 
 
     }
 
-    void learn(double[] actionPrev, int state, float reward, double[] actionNext) {
-
-
-        if (reward != reward)
-            reward = 0;
-
-
-        int action = nextAction(state); //decide ? nextAction(state) : -1;
-//
-        int lastState = this.lastState;
-
-        float alpha = Alpha.floatValue();
-        double deltaSum = 0;
-        for (int lastAction = 0, actionFeedbackLength = actionPrev.length; lastAction < actionFeedbackLength; lastAction++) {
-            double f = actionPrev[lastAction];
-            double ff = Math.abs(f);
-            if (ff > Float.MIN_NORMAL) {
-                double lastQ = q[lastState][lastAction];
-                double delta = reward + f * ((Gamma.floatValue() * q[state][action]) - lastQ);
-                deltaSum += delta;
-                double nextQ = lastQ + alpha * delta;
-                q[state][action] = (float) nextQ;
-                et[lastState][lastAction] += f * alpha;
-            }
-
-        }
-        update((float)deltaSum, alpha);
-
-
-//        if (decide) {
-//            this.lastState = state;
-//        }
-
-//        return action;
-    }
-
-//    private void etScale(float s) {
+    //    private void etScale(float s) {
 //        for (int i = 0; i < inputs; i++) {
 //            double[] eti = et[i];
 //            for (int k = 0; k < actions; k++) {
@@ -134,7 +100,7 @@ import java.util.Random;
 //    }
 
     protected int nextAction(int state) {
-        return /*rng.nextFloat() < Epsilon ? randomAction() : */choose(state);
+        return decideAction.applyAsInt(q[state]);
     }
 
 //    private int randomAction() {
@@ -161,10 +127,6 @@ import java.util.Random;
         }
     }
 
-    protected int choose(int state) {
-        return decideAction.applyAsInt(q[state]);
-    }
-
 
     public void setQ(float alpha, float gamma, float lambda) {
         Alpha.set(alpha);
@@ -177,12 +139,49 @@ import java.util.Random;
      */
     @Override
     public void apply(double[] actionPrev, float reward, double[] input, double[] qNext) {
-        learn(actionPrev, perceive(input), reward, qNext);
+        int state = perceive(input);
+
+
+        if (reward != reward)
+            reward = 0;
+
+
+        int action = nextAction(state); //decide ? nextAction(state) : -1;
+        //Arrays.fill(qNext, 0); qNext[action] = 1;
+        System.arraycopy(q[state], 0, qNext, 0, qNext.length);
+//
+        int lastState1 = this.lastState;
+
+        float alpha = Alpha.floatValue();
+        double deltaSum = 0;
+        for (int lastAction = 0, actionFeedbackLength = actionPrev.length; lastAction < actionFeedbackLength; lastAction++) {
+            double f = actionPrev[lastAction];
+            double ff = Math.abs(f);
+            if (ff > Float.MIN_NORMAL) {
+                double lastQ = q[lastState1][lastAction];
+                double delta = reward + f * ((Gamma.floatValue() * q[state][action]) - lastQ);
+                deltaSum += delta;
+                double nextQ = lastQ + alpha * delta;
+                q[state][action] = (float) nextQ;
+                et[lastState1][lastAction] += f * alpha;
+            }
+
+        }
+        update((float)deltaSum, alpha);
+
+
+//        if (decide) {
+//            this.lastState = state;
+//        }
+
+//        return action;
     }
 
-    protected int perceive(double[] input) {
-        return decideInput.applyAsInt(input);
-    }
+    /** encode the input vector to an internal discrete state */
+    abstract protected int perceive(double[] input);
+//    {
+//        return decideInput.applyAsInt(input);
+//    }
 
 
     /**
