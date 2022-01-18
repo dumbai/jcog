@@ -173,10 +173,10 @@ public class ValuePredictAgent extends Agent {
 
         layers.add(new MLP.Dense(o,
                         //SigmoidActivation.the
-                        LinearActivation.the
+                        //LinearActivation.the
+                        ReluActivation.the
                 //new SigLinearActivation()
                         //new SigLinearActivation(-1, +1, 0, +1)
-                        //ReluActivation.the
 //                            new SigLinearActivation(
 //                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
 //                                    //0.5f, 0, 1

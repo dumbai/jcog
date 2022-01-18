@@ -1,5 +1,6 @@
 package jcog.ql.dqn;
 
+import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
@@ -120,6 +121,8 @@ public class QPolicy extends PredictorPolicy {
                 double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
 
                 dq[a] = PRI * action[a] * reward + gq - qPrevA;
+                //dq[a] = PRI * Fuzzy.polarize(action[a]) * Fuzzy.polarize(reward) + gq - qPrevA;
+
 
                 //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
 
