@@ -4,13 +4,17 @@ import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
+import jcog.decide.DecideSoftmax;
 import jcog.predict.Predictor;
 import jcog.signal.FloatRange;
 
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static jcog.Fuzzy.polarize;
 import static jcog.Util.clampSafe;
+import static jcog.Util.max;
 
 
 @Is({"Q-learning", "State-action-reward-state-action"})
@@ -23,7 +27,7 @@ public class QPolicy extends PredictorPolicy {
 
 
     /** TODO move into separate impls of the update function */
-    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(true);
+    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(false);
 
     static final float tdErrClamp =
         Float.NaN;
@@ -83,17 +87,21 @@ public class QPolicy extends PredictorPolicy {
         double logsumPrev = m ? Util.logsumexp(qPrev, -qPrevMax, 1/entropy_tau)*entropy_tau : Double.NaN;
 
 
+        //int a = new DecideSoftmax(0.1f, ThreadLocalRandom.current()).applyAsInt(action);
         for (int a = 0; a < n; a++) {
+            Arrays.fill(dq, 0);
+            /*for (int a = 0; a < n; a++)*/
+            {
 
-            double qPrevA = qPrev[a], qNextA = qNext[a];
+                double qPrevA = qPrev[a], qNextA = qNext[a];
 
-            if (m) {
-                // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
-                double mNext = qNextA - qNextMax - logsumNext;
+                if (m) {
+                    // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
+                    double mNext = qNextA - qNextMax - logsumNext;
 
-                double mPrev = qPrevA - qPrevMax - logsumPrev;
+                    double mPrev = qPrevA - qPrevMax - logsumPrev;
 
-                boolean terminal = false; //TODO final episode iteration
+                    boolean terminal = false; //TODO final episode iteration
 
 //                dq[a] = PRI * action[a] * (
 //                            reward +
@@ -102,12 +110,12 @@ public class QPolicy extends PredictorPolicy {
 //                            //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
 //                ) - qPrevA;
 
-                dq[a] = PRI * (
-                        action[a] * reward +
-                                m_alpha * clampSafe(mPrev, lo, 0) +
-                                (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)))
-                        //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
-                ) - qPrevA;
+                    dq[a] = PRI * (
+                            action[a] * reward +
+                                    m_alpha * clampSafe(mPrev, lo, 0) +
+                                    (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)))
+                            //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
+                    ) - qPrevA;
 
 //                dq[a] = PRI * action[a] *(
 //                     reward +
@@ -116,15 +124,15 @@ public class QPolicy extends PredictorPolicy {
 //                    //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
 //                ) - qPrevA;
 
-            } else {
-                /* estimate of optimal future value */
-                double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
+                } else {
+                    /* estimate of optimal future value */
+                    double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
 
-                dq[a] = PRI * action[a] * reward + gq - qPrevA;
-                //dq[a] = PRI * Fuzzy.polarize(action[a]) * Fuzzy.polarize(reward) + gq - qPrevA;
+                    //dq[a] = PRI * action[a] * reward + gq - qPrevA;
+                    dq[a] = PRI * (action[a] * (reward + gq - qPrevA));
+//
 
-
-                //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
+                    //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
 
 //                double ar =
 //                    (reward >= 0.5f ? (action[a] * polarize(reward)) : ((1-action[a]) * -polarize(reward)));
@@ -149,30 +157,31 @@ public class QPolicy extends PredictorPolicy {
 //                        + gq
 //                ) - qPrevA;
 
-                //dq[a] = action[a] * reward + gq - qPrev[a]);
+                    //dq[a] = action[a] * reward + gq - qPrev[a]);
 
-                //dq[a] = action[a] * (reward + gq - qPrev[a]);
+                    //dq[a] = action[a] * (reward + gq - qPrev[a]);
+
+                }
 
             }
 
+            //LOSS
+            //https://github.com/jlow2499/LinearRegressionByStochasitcGradientDescent/blob/master/SGD.R
+            /* nothing, as-is */ //MSE
+            //Util.mul(2, dq); //L2
+            //Util.mul(1.0/Util.sumAbs(dq), dq); //L1
+
+            if (tdErrClamp == tdErrClamp) {
+                clampSafe(dq, -tdErrClamp, +tdErrClamp);
+                //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
+            }
+
+            if (p instanceof jcog.predict.DeltaPredictor)
+                ((jcog.predict.DeltaPredictor) p).putDelta(dq, learn.floatValue());
+            else
+                throw new TODO("d.put(plus(q,dq), learnRate) ?");
+
         }
-
-        //LOSS
-        //https://github.com/jlow2499/LinearRegressionByStochasitcGradientDescent/blob/master/SGD.R
-        /* nothing, as-is */ //MSE
-        //Util.mul(2, dq); //L2
-        //Util.mul(1.0/Util.sumAbs(dq), dq); //L1
-
-        if (tdErrClamp==tdErrClamp) {
-            clampSafe(dq, -tdErrClamp, +tdErrClamp);
-            //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
-        }
-
-        if (p instanceof jcog.predict.DeltaPredictor)
-            ((jcog.predict.DeltaPredictor)p).putDelta(dq,  learn.floatValue());
-        else
-            throw new TODO("d.put(plus(q,dq), learnRate) ?");
-
 
         return qNext;
     }

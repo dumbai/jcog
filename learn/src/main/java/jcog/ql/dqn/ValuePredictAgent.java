@@ -172,9 +172,9 @@ public class ValuePredictAgent extends Agent {
 //        layers.add(new MLP.Output(o));
 
         layers.add(new MLP.Dense(o,
+                        ReluActivation.the
                         //SigmoidActivation.the
                         //LinearActivation.the
-                        ReluActivation.the
                 //new SigLinearActivation()
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
@@ -188,8 +188,8 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                        //new AdamOptimizer()
                         new SGDOptimizer(0)
+                        //new AdamOptimizer()
                         //new SGDOptimizer(0).minibatches(8)
                         //new SGDOptimizer(0.9f).minibatches(8)
                         //new SGDOptimizer(0.9f)
