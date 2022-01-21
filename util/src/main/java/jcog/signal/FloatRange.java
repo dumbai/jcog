@@ -39,6 +39,12 @@ public class FloatRange extends MutableFloat {
         setLerp(x, min, max);
     }
 
+    public void setSafe(float x) {
+        if (x > max) throw new NumberException("above max", x);
+        if (x < min) throw new NumberException("below min", x);
+        set(x);
+    }
+
 //    public static FloatRange mapRange(float mapMin, float mapMax) {
 //        throw new TODO();
 //    }

@@ -24,7 +24,7 @@ public enum Config {
     }
 
 
-    public static String get(String key, @Nullable Object def) {
+    @Nullable public static String get(String key, @Nullable Object def) {
         return get(key, def, false);
     }
 
@@ -34,7 +34,7 @@ public enum Config {
      * @param def   default value
      * @param quiet log or not
      */
-    public static String get(String key, @Nullable Object def, boolean quiet) {
+    @Nullable public static String get(String key, @Nullable Object def, boolean quiet) {
 
         String defString = def != null ? def.toString() : null;
         //Intrinsics.checkParameterIsNotNull(configKey, "configKey");
