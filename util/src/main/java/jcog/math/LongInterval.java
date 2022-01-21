@@ -25,6 +25,7 @@ public interface LongInterval extends LongIntervalArray {
     int MIN = -1;
     int MEAN = 0;
     int MAX = 1;
+    int SUM = 2;
 
     static int compare(long as, long ae, long bs, long be) {
         //return Long.compare(as + ae, bs + be);
@@ -447,6 +448,7 @@ public interface LongInterval extends LongIntervalArray {
                 case MIN -> min(ds, de);
                 case MEAN -> mean(ds, de);
                 case MAX -> max(ds, de);
+                case SUM -> ds + de;
                 default -> throw new UnsupportedOperationException();
             };
         }

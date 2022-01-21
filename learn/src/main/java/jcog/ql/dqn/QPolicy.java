@@ -4,6 +4,7 @@ import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
+import jcog.decide.Decide;
 import jcog.decide.DecideSoftmax;
 import jcog.predict.Predictor;
 import jcog.signal.FloatRange;
@@ -63,14 +64,13 @@ public class QPolicy extends PredictorPolicy {
     @Override public double[] learn(double[] xPrev, double[] action, double reward, double[] i, float pri) {
         if (dq == null || dq.length!=action.length) dq = new double[action.length];
 
-        double[] qPrev = predict(xPrev);
-        double[] qNext = predict(i);
+        double[] qPrev = predict(xPrev).clone();
+        double[] qNext = predict(i).clone();
 
         double gamma = plan.doubleValue();
         int n = action.length;
 
-        boolean m = munchausen.getOpaque();
-        if (m) sarsaOrQ.set(false); //HACK
+        boolean m = munchausen.getOpaque(); if (m) sarsaOrQ.set(false); //HACK
 
         boolean sarsaOrQ = this.sarsaOrQ.getOpaque();
         double qNextMax = sarsaOrQ ?
@@ -89,19 +89,19 @@ public class QPolicy extends PredictorPolicy {
 
         //int a = new DecideSoftmax(0.1f, ThreadLocalRandom.current()).applyAsInt(action);
         for (int a = 0; a < n; a++) {
-            Arrays.fill(dq, 0);
+        //int a = Decide.Greedy.applyAsInt(action); {
+            //Arrays.fill(dq, 0);
             /*for (int a = 0; a < n; a++)*/
-            {
 
-                double qPrevA = qPrev[a], qNextA = qNext[a];
+            double qPrevA = qPrev[a], qNextA = qNext[a];
 
-                if (m) {
-                    // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
-                    double mNext = qNextA - qNextMax - logsumNext;
+            if (m) {
+                // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
+                double mNext = qNextA - qNextMax - logsumNext;
 
-                    double mPrev = qPrevA - qPrevMax - logsumPrev;
+                double mPrev = qPrevA - qPrevMax - logsumPrev;
 
-                    boolean terminal = false; //TODO final episode iteration
+                boolean terminal = false; //TODO final episode iteration
 
 //                dq[a] = PRI * action[a] * (
 //                            reward +
@@ -110,12 +110,12 @@ public class QPolicy extends PredictorPolicy {
 //                            //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
 //                ) - qPrevA;
 
-                    dq[a] = PRI * (
-                            action[a] * reward +
-                                    m_alpha * clampSafe(mPrev, lo, 0) +
-                                    (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)))
-                            //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
-                    ) - qPrevA;
+                dq[a] = PRI * (
+                        action[a] * reward +
+                                m_alpha * clampSafe(mPrev, lo, 0) +
+                                (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)))
+                        //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
+                ) - qPrevA;
 
 //                dq[a] = PRI * action[a] *(
 //                     reward +
@@ -124,15 +124,15 @@ public class QPolicy extends PredictorPolicy {
 //                    //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
 //                ) - qPrevA;
 
-                } else {
-                    /* estimate of optimal future value */
-                    double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
+            } else {
+                /* estimate of optimal future value */
+                double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
 
-                    //dq[a] = PRI * action[a] * reward + gq - qPrevA;
-                    dq[a] = PRI * (action[a] * (reward + gq - qPrevA));
+                //dq[a] = PRI * action[a] * reward + gq - qPrevA;
+                dq[a] = PRI * (action[a] * (reward + gq - qPrevA));
 //
 
-                    //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
+                //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
 
 //                double ar =
 //                    (reward >= 0.5f ? (action[a] * polarize(reward)) : ((1-action[a]) * -polarize(reward)));
@@ -157,11 +157,9 @@ public class QPolicy extends PredictorPolicy {
 //                        + gq
 //                ) - qPrevA;
 
-                    //dq[a] = action[a] * reward + gq - qPrev[a]);
+                //dq[a] = action[a] * reward + gq - qPrev[a]);
 
-                    //dq[a] = action[a] * (reward + gq - qPrev[a]);
-
-                }
+                //dq[a] = action[a] * (reward + gq - qPrev[a]);
 
             }
 
@@ -171,17 +169,17 @@ public class QPolicy extends PredictorPolicy {
             //Util.mul(2, dq); //L2
             //Util.mul(1.0/Util.sumAbs(dq), dq); //L1
 
+
+        }
+
+        if (p instanceof jcog.predict.DeltaPredictor) {
             if (tdErrClamp == tdErrClamp) {
                 clampSafe(dq, -tdErrClamp, +tdErrClamp);
                 //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
             }
-
-            if (p instanceof jcog.predict.DeltaPredictor)
-                ((jcog.predict.DeltaPredictor) p).putDelta(dq, learn.floatValue());
-            else
-                throw new TODO("d.put(plus(q,dq), learnRate) ?");
-
-        }
+            ((jcog.predict.DeltaPredictor) p).putDelta(dq, learn.floatValue());
+        } else
+            throw new TODO("d.put(plus(q,dq), learnRate) ?");
 
         return qNext;
     }

@@ -6,8 +6,9 @@ import jcog.nn.layer.DenseLayer;
 import static jcog.Util.lerpSafe;
 
 /**
- * 'vanilla' SGD with momentum and L1 regularization
- * TODO impl weight decay
+ * 'vanilla' stochastic gradient descent (SGD), with optional:
+ *      momentum
+ *      L1-regularization weight decay
  */
 public class SGDOptimizer extends BatchWeightUpdater {
 
