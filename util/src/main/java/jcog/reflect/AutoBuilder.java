@@ -105,14 +105,15 @@ public class AutoBuilder<X, Y> {
 //                                (Iterable<Y>)(builders.stream().map(b ->
 //                                    b.apply(x, relation)).filter(Objects::nonNull)::iterator)))
 //                    .forEach(target::add);
-//        }/* else if (obj instanceof List) {
+//        }
+//        if (obj instanceof List) {
 //            ((List<?>)obj).stream()
 //                    .map((Object x) ->
-//                            Tuples.pair(obj, (Iterable<Y>)(builders.stream().map(b ->
+//                            pair(obj, (Iterable<Y>)(builders.stream().map(b ->
 //                                            b.apply(x, relation)).filter(Objects::nonNull)::iterator)))
 //                    .forEach(target::add);
 //
-//        }*/
+//        }
 
 
             return building.build(root, target, obj);

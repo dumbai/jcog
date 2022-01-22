@@ -29,7 +29,10 @@ public class CircularArrayList<X> extends AbstractList<X> implements RandomAcces
     public CircularArrayList(int capacity) {
         clear(capacity);
     }
-
+    public CircularArrayList(X[] array) {
+        this.array = array;
+        this.n = array.length;
+    }
     public void clear(int resize) {
         resize = Math.max(1, resize);
         if (n!=resize) {

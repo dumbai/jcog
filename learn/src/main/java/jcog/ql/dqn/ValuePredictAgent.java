@@ -3,14 +3,12 @@ package jcog.ql.dqn;
 import jcog.Fuzzy;
 import jcog.Util;
 import jcog.activation.LeakyReluActivation;
-import jcog.activation.LinearActivation;
 import jcog.activation.ReluActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
-import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -60,8 +58,8 @@ public class ValuePredictAgent extends Agent {
 
     private transient double[] iPrev;
 
-    public ValuePredictAgent(int numInputs, int numActions, IntIntToObjectFunction<? extends QPolicy> policy) {
-        this(numInputs, numActions, q(numInputs, numActions, policy));
+    public ValuePredictAgent(int numInputs, int numActions, IntIntToObjectFunction<? extends Policy> policy) {
+        this(numInputs, numActions, policy.value(numInputs, numActions));
     }
 
     public ValuePredictAgent(int numInputs, int numActions, Policy policy) {
@@ -79,7 +77,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-                Util.PHI_min_1f /*0.5f*/, 7);
+                0 /*Util.PHI_min_1f*/ /*0.5f*/, 7);
     }
 
     public static Agent DQNmunch(int inputs, int actions) {
@@ -107,10 +105,15 @@ public class ValuePredictAgent extends Agent {
     public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean precise, float brainsScale, int replays) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
 
-        ValuePredictAgent a = new ValuePredictAgent(inputs, actions, (i, o) -> {
-            MLP p = mlpBrain(i, o, brains, precise, inputAE);
-            return new QPolicy(p);
-        });
+        ValuePredictAgent a = new ValuePredictAgent(inputs, actions,
+            //THIS ISNT GOOD:
+//            (i, o) ->
+//                new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
+            (i, o) ->
+                new QPolicyBranched(i, o,
+                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
+                )
+        );
 
         if (replays > 0)
             a.replay(
@@ -122,6 +125,8 @@ public class ValuePredictAgent extends Agent {
     }
 
     private static MLP mlpBrain(int i, int o, int brains, boolean precise, boolean inputAE) {
+        brains = Math.max(brains, o);
+
         //  int actionDigitization = 2; return new DigitizedPredictAgent(actionDigitization, inputs, actions, (i, o) -> {
         List<MLP.LayerBuilder> layers = new Lst(4);
 
@@ -277,11 +282,6 @@ public class ValuePredictAgent extends Agent {
         return this;
     }
 
-    protected static QPolicy q(int numInputs, int numActions, IntIntToObjectFunction<? extends QPolicy> policy) {
-        QPolicy p = policy.value(numInputs, numActions);
-        return p;
-    }
-
     /**
      * TODO parameter to choose individual, or batch
      */
@@ -305,9 +305,10 @@ public class ValuePredictAgent extends Agent {
 
     public void run(ReplayMemory e, float alpha, @Nullable double[] qNextCopy) {
 
-        DeltaPredictor p = (DeltaPredictor) ((policy instanceof DirectPolicy) ? ((DirectPolicy) policy).p : ((QPolicy) policy).p);
+        @Nullable DeltaPredictor p = (DeltaPredictor) ((policy instanceof DirectPolicy) ? ((DirectPolicy) policy).p :
+                (policy instanceof QPolicy ? ((QPolicy) policy).p : null));
 
-        double errBefore = p.deltaSum;
+        double errBefore = p!=null ? p.deltaSum : Double.NaN;
 
         double[] qNext = e.learn(policy, alpha);
 
@@ -316,7 +317,7 @@ public class ValuePredictAgent extends Agent {
 
             if (policy instanceof QPolicy)
                 err(((QPolicy) policy).dq);
-            else if (policy instanceof DirectPolicy) {
+            else if (p!=null && policy instanceof DirectPolicy) {
                 double errAfter = p.deltaSum;
                 double err = errAfter - errBefore;
                 errMean = err;
