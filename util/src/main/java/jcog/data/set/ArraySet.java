@@ -37,6 +37,8 @@
  */
 package jcog.data.set;
 
+import jcog.random.RandomBits;
+
 import java.util.ListIterator;
 import java.util.Random;
 import java.util.Set;
@@ -71,7 +73,8 @@ public interface ArraySet<X> extends Set<X> {
         };
 	}
 
-	X remove(Random random);
+	X remove(RandomBits random);
+
 
 
 //	default X roulette(FloatFunction<X> rank, Random rng) {

@@ -41,6 +41,7 @@ import jcog.TODO;
 import jcog.Util;
 import jcog.WTF;
 import jcog.data.list.Lst;
+import jcog.random.RandomBits;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -207,14 +208,21 @@ public class ArrayHashSet<X> extends AbstractSet<X> implements ArraySet<X> {
     public boolean add(X x) {
         if (x == null)
             throw new NullPointerException();
+
         if (list.isEmpty()) {
-            (set = newSet(DEFAULT_SET_CAPACITY /*list.capacity()*/)).add(x);
-        } else {
-            if (!set.add(x))
-                return false;
+            if (set instanceof UnifiedSet) {
+                //assert(set.isEmpty());
+            } else {
+                set = newSet(DEFAULT_SET_CAPACITY /*list.capacity()*/);
+            }
         }
-        addedUnique(x);
-        return true;
+
+        if (set.add(x)) {
+            addedUnique(x);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     void addedUnique(X x) {
@@ -293,7 +301,7 @@ public class ArrayHashSet<X> extends AbstractSet<X> implements ArraySet<X> {
 
 
     @Override
-    public X remove(Random random) {
+    public X remove(RandomBits random) {
         int s = size();
         if (s == 0) return null;
         int index = s == 1 ? 0 : random.nextInt(s);
