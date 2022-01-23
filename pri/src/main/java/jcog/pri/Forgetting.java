@@ -8,8 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-import static jcog.Util.assertFinite;
-import static jcog.Util.unitizeSafe;
+import static jcog.Util.*;
 import static jcog.pri.Prioritized.EPSILON;
 
 public enum Forgetting {
@@ -33,24 +32,17 @@ public enum Forgetting {
                 if (m <= EPSILON)
                     return null;
 
-//                /** pressure upper limit */
-//                double pMax =
-//                    m;
-//                    //m * 0.5;
+                double ideal =
+                    0.5;
+                    //1f/sqrt(s);
+                    //1f/c;
+                    //0.1f;
+                    //1;
 
-//                double mMax = c * 1.0;
-                double mIdeal = c * 0.5;
+                double massExcess = Util.max(0, m - c * ideal);
 
-                double pressureExcess =
-                    pressure;
-                    //pressure * (m/mMax);
-                    //Util.min(pressure, pMax) * (m / mMax);
 
-                double massExcess = Util.max(0, m - mIdeal);
-
-                double excess =
-                    pressureExcess + massExcess;
-                    //Math.max(pressureExcess, massExcess);
+                double excess = pressure + massExcess;
 
                 float excessEach = (float) (temperature * excess / s);
                 if (excessEach > EPSILON)
