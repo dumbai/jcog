@@ -99,23 +99,14 @@ public interface LongInterval extends LongIntervalArray {
         return cs <= xs && xe <= ce;
     }
 
-    //	static boolean containsRaw(double cs, double ce, double xs, double xe) {
-//		return xs >= cs && xe <= ce;
-//	}
-//	static boolean containsRaw(long cs, long ce, long x) {
-//		return x >= cs && x <= ce;
-//	}
-//    static long minTimeTo(long fs, long fe, long t) {
-//    	if (containsRaw(fs, fe, t)) return 0;
-//		else return min(abs(fe - t), abs(fs - t));
-//    }
     static long minTimeTo(long fs, long fe, long ts, long te) {
-        if (containsRaw(fs, fe, ts, te)) return 0;
-        else return minTimeToRaw(fs, fe, ts, te);
+        return intersectsRaw(fs, fe, ts, te) ? 0 :
+            minTimeToRaw(fs, fe, ts, te);
     }
 
     static double minTimeTo(double fs, double fe, double ts, double te) {
-        return intersectsRaw(fs, fe, ts, te) ? 0 : minTimeToRaw(fs, fe, ts, te);
+        return intersectsRaw(fs, fe, ts, te) ? 0 :
+            minTimeToRaw(fs, fe, ts, te);
     }
 
     static double diffTotal(double fs, double fe, double ts, double te) {
@@ -150,7 +141,9 @@ public interface LongInterval extends LongIntervalArray {
 //    }
 
     static double minTimeToRaw(double fs, double fe, double ts, double te) {
-        return Util.min(Util.min(abs(fe - ts), abs(fs - ts)), Util.min(abs(fe - te), abs(fs - te)));
+        return Util.min(
+                Util.min(abs(fe - ts), abs(fs - ts)),
+                Util.min(abs(fe - te), abs(fs - te)));
     }
 
     static long[] range(long center, float diameter) {
@@ -278,6 +271,11 @@ public interface LongInterval extends LongIntervalArray {
 
     private static boolean _during(long x, long start, long end) {
         return start <= x && end >= x;
+    }
+
+    static double dSepNorm(double[] a, double[] b) {
+        return minTimeTo(a[0], a[1], b[0], b[1]) /
+                (1 + Util.min(a[1] - a[0], b[1] - b[0]));
     }
 
     long start();

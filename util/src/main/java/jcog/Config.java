@@ -49,9 +49,8 @@ public enum Config {
             y = System.getProperty(javapropname);
             if (y == null) {
                 y = System.getenv(javapropname);
-                if (y == null) {
+                if (y == null)
                     y = System.getProperty(key);
-                }
             }
         }
 
@@ -60,14 +59,14 @@ public enum Config {
             y = Str.unquote(y);
 
             System.setProperty(javapropname, y);
-            if (!quiet) {
+            if (!quiet)
                 report(javapropname, y);
-            }
+
             return y;
 
         } else {
-            if (defString == null)
-                throw new RuntimeException("configuration unknown: " + key);
+//            if (defString == null)
+//                throw new RuntimeException("configuration unknown: " + key);
 
             return defString;
         }
