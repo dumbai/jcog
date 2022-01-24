@@ -274,8 +274,10 @@ public interface LongInterval extends LongIntervalArray {
     }
 
     static double dSepNorm(double[] a, double[] b) {
-        return minTimeTo(a[0], a[1], b[0], b[1]) /
-                (1 + Util.min(a[1] - a[0], b[1] - b[0]));
+        return
+            (abs(a[0] - b[0]) + abs(a[1] - b[1]))
+            //minTimeTo(a[0], a[1], b[0], b[1])
+             / (1 + Util.max(a[1] - a[0], b[1] - b[0]));
     }
 
     long start();
