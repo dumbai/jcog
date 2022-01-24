@@ -28,16 +28,15 @@ public interface FromTo<N, E> /* extends Triple<F,X,F> */ {
         return outOrIn ? from() : to();
     }
 
-
-    /** other by equality */
-    default @Nullable N otherEquality(N x) {
-        N f = from(), t = to();
-        //TODO maybe this needs to be .equals()
-        if (f.equals(x)) return t;
-        else if (t.equals(x)) return f;
-        else
-            return null;
-    }
+//    /** other by equality */
+//    default @Nullable N otherEquality(N x) {
+//        N f = from(), t = to();
+//        //TODO maybe this needs to be .equals()
+//        if (f.equals(x)) return t;
+//        else if (t.equals(x)) return f;
+//        else
+//            return null;
+//    }
 
     /** other by identity */
     default @Nullable N other(N x) {
