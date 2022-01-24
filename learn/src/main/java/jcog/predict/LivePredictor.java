@@ -8,6 +8,7 @@ import jcog.nn.ntm.NTM;
 import jcog.nn.ntm.learn.RMSPropWeightUpdater;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 import org.eclipse.collections.api.block.function.primitive.LongToFloatFunction;
+import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -36,6 +37,8 @@ public class LivePredictor {
         /** clones / copies the state to a new or existing Framer instance */
         Framer copyTo(@Nullable Framer projecting);
 
+        void reset();
+
         Predictor build(IntIntToObjectFunction<Predictor> model);
 
     }
@@ -52,6 +55,8 @@ public class LivePredictor {
         private final int history;
         private final FloatSupplier dur;
 
+        final LongObjectHashMap<double[]> cache;
+
         /**
          * temporary buffers, re-used
          */
@@ -63,8 +68,16 @@ public class LivePredictor {
             this.outs = outs;
             this.history = history;
             this.dur = dur;
-            past = new double[history * ins.length];
-            present = new double[outs.length];
+
+            int I = ins.length;
+            int O = outs.length;
+            past = new double[history * I];
+            present = new double[O];
+            cache = new LongObjectHashMap<>();
+        }
+
+        @Override public void reset() {
+            cache.clear();
         }
 
         @Override
@@ -95,7 +108,7 @@ public class LivePredictor {
             return past;
         }
 
-        public void loadPresent(long now) {
+        void loadPresent(long now) {
             int k = 0;
             for (LongToFloatFunction o : outs)
                 present[k++] = o.valueOf(now);
@@ -104,14 +117,31 @@ public class LivePredictor {
         private void loadPast(final long now) {
             int p = 0;
             float dur = this.dur.asFloat();
-            float ago = 0;
             for (int t = 0; t < history; t++) {
-                ago += dur;
-                long then = now - Math.round(ago);
+                long then = now - Math.round(dur * (t+1));
 
-                for (LongToFloatFunction i : ins)
-                    past[p++] = i.valueOf(then);
+                for (int j = 0; j < ins.length; j++)
+                    past[p++] = load(j, then);
             }
+        }
+
+        private double load(int j, long then) {
+            var v = cache.getIfAbsentPut(then,
+                    () -> emptyValuesArray());
+            double x = v[j];
+            return x == x ?
+                    x :
+                    (v[j] = _load(j, then));
+        }
+
+        @Deprecated private double[] emptyValuesArray() {
+            double[] x = new double[ins.length];
+            Arrays.fill(x, Double.NaN);
+            return x;
+        }
+
+        private float _load(int j, long then) {
+            return ins[j].valueOf(then);
         }
 
 //        /** TODO test this may not be correct */
@@ -296,6 +326,7 @@ public class LivePredictor {
 
     public double[] put(long when) {
         synchronized (p) {
+            framer.reset();
             return p.put(framer.input(when), framer.outputs(), learningRate);
         }
     }
