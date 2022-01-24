@@ -142,14 +142,16 @@ public class LSTM implements Predictor {
 
 		double[] in = this.in;
 
-		int loc = 0;
-		for (double i : input)
-			in[loc++] = i;
+		{
+			int loc = 0;
+			for (double i : input)
+				in[loc++] = i;
 
-		for (double c : context)
-			in[loc++] = c;
+			for (double c : context)
+				in[loc++] = c;
 
-		in[loc++] = 1.0;
+			in[loc] = 1;
+		}
 
 		if ((sumF == null) || (sumF.length != cells)) {
 			sumF = new double[cells];
@@ -164,6 +166,7 @@ public class LSTM implements Predictor {
 		}
 
 		double[] hidden = this.full_hidden;
+		double[] dh = this.deltaH, ah = this.actH;
 
 
 		for (int j = 0; j < cells; j++) {
@@ -182,11 +185,10 @@ public class LSTM implements Predictor {
 		for (int j = 0; j < cells; j++) {
 			double actfj = actF[j] = F.valueOf(sumF[j]);
 			double actgj = actG[j] = G.valueOf(sumG[j]);
-			hidden[j] = actH[j] = fma(actfj, context[j], (1 - actfj) * actgj);
+			hidden[j] = ah[j] = fma(actfj, context[j], (1 - actfj) * actgj);
 		}
 
 		hidden[cells] = 1;
-
 
 		for (int k = 0; k < outputs; k++) {
 			double[] wk = weightsOut[k];
@@ -209,8 +211,7 @@ public class LSTM implements Predictor {
 			double h = context[j];
 			double udf = (h - g) * df;
 
-			double[] dsg = dSdG[j];
-			double[] dsf = dSdF[j];
+			double[] dsg = dSdG[j], dsf = dSdF[j];
 
 			for (int i = 0; i < inputs; i++) {
 				double ii = in[i];
@@ -221,10 +222,7 @@ public class LSTM implements Predictor {
 
 		if (target_output != null) {
 
-
-
-
-			Arrays.fill(deltaH, 0);
+			Arrays.fill(dh, 0);
 
 			for (int k = 0; k < outputs; k++) {
 
@@ -233,28 +231,24 @@ public class LSTM implements Predictor {
 
 				double[] wk = weightsOut[k];
 
-				double[] dh = this.deltaH;
-				double[] ah = this.actH;
 				double dokLearn = dok * pri;
 				for (int j = cells - 1; j >= 0; j--) {
 					dh[j] = fma(dok, wk[j], dh[j]);
 					wk[j] = fma(dokLearn, ah[j], wk[j]);
 				}
-
-				wk[cells] += dok /* * 1.0 */ * pri;
+				wk[cells] += dokLearn;
 			}
 
 
 			for (int j = 0; j < cells; j++) {
-				double dhj = deltaH[j];
+				double dhj = dh[j];
 				double pdhj = pri * dhj;
 				updateWeights(pdhj, inputs, dSdF[j], weightsF[j]);
 				updateWeights(pdhj, inputs, dSdG[j], weightsG[j]);
 			}
 		}
 
-
-		System.arraycopy(actH, 0, context, 0, cells);
+		System.arraycopy(ah, 0, context, 0, cells);
 
 		return out;
 	}

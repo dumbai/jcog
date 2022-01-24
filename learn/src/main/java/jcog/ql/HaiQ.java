@@ -2,12 +2,10 @@ package jcog.ql;
 
 import jcog.agent.Agent;
 import jcog.decide.Decide;
-import jcog.decide.DecideEpsilonGreedy;
 import jcog.decide.DecideSoftmax;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.signal.FloatRange;
 
-import java.util.Arrays;
 import java.util.Random;
 
 /**

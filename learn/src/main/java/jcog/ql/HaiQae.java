@@ -3,9 +3,6 @@ package jcog.ql;
 import jcog.decide.Decide;
 import jcog.decide.DecideSoftmax;
 import jcog.deep.Autoencoder;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.function.BiFunction;
 

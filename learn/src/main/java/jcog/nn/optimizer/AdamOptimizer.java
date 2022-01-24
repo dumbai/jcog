@@ -12,9 +12,12 @@ public class AdamOptimizer extends BatchWeightUpdater {
 
 
     public double beta1 = 0.9;
-    public double beta2 = 0.999;
+    public double beta2 =
+        0.99f;
+        //0.999;
+
     //        private double beta1PowerT = Double.NaN, beta2PowerT = Double.NaN;
-    public static final double epsilon = 1.0E-8;
+    public static final double epsilon = 1.0E-12;
     public float lr;
 
     /** mean - running estimate of gradient */
@@ -36,9 +39,9 @@ public class AdamOptimizer extends BatchWeightUpdater {
             //1;
             //0.5f;
             //0.1f;
-            0.05f;
+            //0.05f;
             //0.001f;
-            //0;
+            0;
 
 
     //        protected void minimizeDeltas(Map<VariableNode, TensorNode> var) {

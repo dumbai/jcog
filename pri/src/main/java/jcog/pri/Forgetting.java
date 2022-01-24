@@ -8,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-import static jcog.Util.*;
+import static jcog.Util.assertFinite;
+import static jcog.Util.unitizeSafe;
 import static jcog.pri.Prioritized.EPSILON;
 
 public enum Forgetting {

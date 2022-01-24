@@ -22,7 +22,6 @@ import jcog.Util;
 import jcog.data.array.IntComparator;
 import jcog.data.bit.MetalBitSet;
 import jcog.data.list.Lst;
-import jcog.random.Rand;
 import jcog.random.RandomBits;
 import org.eclipse.collections.api.block.procedure.primitive.IntIntProcedure;
 import org.jetbrains.annotations.Nullable;

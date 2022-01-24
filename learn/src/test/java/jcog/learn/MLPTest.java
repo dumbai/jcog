@@ -74,7 +74,7 @@ class MLPTest {
 
 	private static void mlpIrisTest(WeightUpdater u) {
 		MLP predictor = new MLP(4,
-				new MLP.Dense(9, ReluActivation.the),
+				new MLP.Dense(8, ReluActivation.the),
 					new MLP.Dense(3, SigmoidActivation.the)
 		).optimizer(u);
 
@@ -144,7 +144,7 @@ class MLPTest {
 			if (t > minIterations && err < errGoal)
 				break;
 		}
-		System.out.println(p + " " + t);
+		System.out.println(errMean.mean() + " " + p + " " + t);
 		assertTrue(t < maxIter-cases-1);
 	}
 

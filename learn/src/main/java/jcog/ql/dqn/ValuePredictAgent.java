@@ -1,7 +1,6 @@
 package jcog.ql.dqn;
 
 import jcog.Fuzzy;
-import jcog.Util;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.ReluActivation;
 import jcog.activation.SigmoidActivation;

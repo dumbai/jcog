@@ -20,7 +20,7 @@ import java.util.Random;
  */
 public class LivePredictor {
 
-    public float learningRate = 0.02f;
+    public float learningRate = 0.05f;
 
     /** TODO use or rewrite with Tensor api */
     @Deprecated public interface Framer {
@@ -28,8 +28,8 @@ public class LivePredictor {
         /** computes training vector from current observations */
         double[] input(long now);
 
-        /** projections, hypothetical */
-        double[] input(long when, double[] hypotheticalInput);
+//        /** projections, hypothetical */
+//        double[] input(long when, double[] hypotheticalInput);
 
         double[] outputs();
 
@@ -101,23 +101,27 @@ public class LivePredictor {
                 present[k++] = o.valueOf(now);
         }
 
-        private void loadPast(long now) {
+        private void loadPast(final long now) {
             int p = 0;
-            int dur = Math.round(this.dur.asFloat());
-            for (int t = 1; t <= history; t++) {
-                now -= dur; //go further back in time
+            float dur = this.dur.asFloat();
+            float ago = 0;
+            for (int t = 0; t < history; t++) {
+                ago += dur;
+                long then = now - Math.round(ago);
 
                 for (LongToFloatFunction i : ins)
-                    past[p++] = i.valueOf(now);
+                    past[p++] = i.valueOf(then);
             }
         }
 
-        @Override public double[] input(long when, double[] projectedInput) {
-            assert(projectedInput.length == present.length);
-            loadPast(when);
-            System.arraycopy(projectedInput, 0, present, 0, projectedInput.length);
-            return past;
-        }
+//        /** TODO test this may not be correct */
+//        @Override public double[] input(long when, double[] projectedInput) {
+//            assert(projectedInput.length == present.length);
+//            loadPast(when);
+//            //System.arraycopy( projectedInput, 0, projectedInput, present.length, projectedInput.length - present.length); //shift
+//            System.arraycopy(projectedInput, 0, present, 0, present.length);
+//            return past;
+//        }
 
         @Override
         public double[] outputs() {
@@ -290,23 +294,22 @@ public class LivePredictor {
         this.p = framer.build(model);
     }
 
-
-    public double[] next(long when) {
+    public double[] put(long when) {
         synchronized (p) {
             return p.put(framer.input(when), framer.outputs(), learningRate);
         }
     }
 
-    /** applies the vector as new hypothetical present inputs,
-     * after shifting the existing data (destructively)
-     * down one time slot.
-     * then prediction can proceed again
-     *
-     * typically this will need done in a cloned copy so as not to modify the learning model
-     */
-    public double[] project(long when, double[] hypotheticalInput) {
+//    /** applies the vector as new hypothetical present inputs,
+//     * after shifting the existing data (destructively)
+//     * down one time slot.
+//     * then prediction can proceed again
+//     *
+//     * typically this will need done in a cloned copy so as not to modify the learning model
+//     */
+    public double[] get(long when) {
         synchronized (p) {
-            return p.get(framer.input(when, hypotheticalInput));
+            return p.get(framer.input(when));
         }
     }
 

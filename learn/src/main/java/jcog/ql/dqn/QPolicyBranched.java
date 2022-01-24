@@ -3,12 +3,10 @@ package jcog.ql.dqn;
 import jcog.Util;
 import jcog.data.list.Lst;
 import jcog.predict.Predictor;
-import org.jetbrains.annotations.Nullable;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 
 import java.util.List;
 import java.util.Random;
-import java.util.function.Supplier;
 
 import static jcog.Util.unitizeSafe;
 

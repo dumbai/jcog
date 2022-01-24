@@ -1,6 +1,7 @@
 package jcog.learn;
 
 import com.google.common.math.PairedStatsAccumulator;
+import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.lstm.LSTM;
 import jcog.nn.MLP;
@@ -27,7 +28,7 @@ class LivePredictorTest {
         LivePredictor l = new LivePredictor(ih, model);
         l.learningRate = 0.01f;
 
-        int numSnapshots = 16;
+        int numSnapshots = 6;
         assert (totalTime > numSnapshots * 2);
         int errorWindow = totalTime / numSnapshots;
 
@@ -36,7 +37,7 @@ class LivePredictorTest {
 
         for (int t = 0; t < totalTime; t++, m++) {
 
-            double[] prediction = l.next(m);
+            double[] prediction = l.put(m);
 
             double predicted = prediction[0];
             assertFinite(predicted);
@@ -46,11 +47,9 @@ class LivePredictorTest {
             double e = Math.abs(actual - predicted);
             error.addValue(e);
 
-            System.out.println(e);
-            if (t % errorWindow == errorWindow - 1) {
+            System.out.println(e + "\t" + error.getMean());
+            if (t % errorWindow == errorWindow - 1)
                 errortime.add(t, error.getMean());
-            }
-
         }
 
         double eMean = error.getMean();
@@ -71,41 +70,39 @@ class LivePredictorTest {
         IntToFloatFunction ii = x -> (float) (0.5f + 0.5f * Math.sin(x / 4f));
         IntToFloatFunction oo = x -> (float) (0.5f + 0.5f * Math.cos(x / 4f));
         IntIntToObjectFunction<Predictor> model = (i, o) -> {
-            LSTM l = new LSTM(i, o, 4);
+            LSTM l = new LSTM(i, o, 8);
             l.clear(new XoRoShiRo128PlusRandom(1));
-            l.alpha(40);
+            l.alpha(20);
             return l;
         };
 
         int iHistory = 1;
         int totalTime = 64 * 2;
-        float maxMeanError = 0.2f;
+        float maxMeanError = 0.15f;
         assertCorrect(ii, oo, model, iHistory, totalTime, maxMeanError);
     }
 
     @Test
     void test21_LSTM() {
-        IntToFloatFunction ii = x -> (float) (0.5f + 0.5f * Math.sin(x / 4f));
+        IntToFloatFunction ii = x -> (float) (0.5f + 0.5f * Math.sin(x / 3f));
         IntToFloatFunction oo = x -> (float) (0.5f + 0.5f * Math.cos(x / 8f));
         IntIntToObjectFunction<Predictor> model = (i, o) -> {
-            final LSTM l = new LSTM(i, o, 4);
+            LSTM l = new LSTM(i, o, 8);
             l.alpha(20);
             l.clear(new XoRoShiRo128PlusRandom(1));
             return l;
         };
-        int iHistory = 1;
-        int totalTime = 64 * 2;
+        int iHistory = 2;
+        int totalTime = 64 * 8;
         float maxMeanError = 0.1f;
-
-
         assertCorrect(ii, oo, model, iHistory, totalTime, maxMeanError);
     }
 
     @Test
     void test12_MLP() {
 
-        IntToFloatFunction ii = x -> (1 + (float) Math.sin(x / 6f)) / 2;
-        IntToFloatFunction oo = x -> (1 + (float) Math.cos(x / 9f)) / 2;
+        IntToFloatFunction ii = x -> (1 + (float) Math.sin(x / 2f)) / 2;
+        IntToFloatFunction oo = x -> (1 + (float) Math.cos(x / 5f)) / 2;
         IntIntToObjectFunction<Predictor> model = (i, o) ->
         {
             MLP m = new MLP(i,
@@ -113,15 +110,15 @@ class LivePredictorTest {
                     //new MLP.FC((i+o), SigmoidActivation.the),
                     //new MLP.FC(i, SigmoidActivation.the),
                     new MLP.Dense(i + o, SigmoidActivation.the),
-                    new MLP.Dense(o, SigmoidActivation.the)
+                    new MLP.Dense(o, new SigLinearActivation())
             );
             m.clear(new XoRoShiRo128PlusRandom(1));
 //            m.momentum = 0f;
             return m;
         };
         int iHistory = 4;
-        int totalTime = 1024 * 64;
-        float maxMeanError = 0.13f;
+        int totalTime = 1024 * 2;
+        float maxMeanError = 0.07f;
 
         assertCorrect(ii, oo, model, iHistory, totalTime, maxMeanError);
     }

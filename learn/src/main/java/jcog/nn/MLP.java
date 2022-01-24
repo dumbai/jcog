@@ -45,9 +45,9 @@ import java.util.stream.Stream;
 public class MLP extends DeltaPredictor {
 
     private final int weightCount;
-    WeightUpdater updater =
+    private WeightUpdater updater =
         new AdamOptimizer();
-        //new SGDLayer.Momentum();
+        //new SGDOptimizer(0.5f);
         //new SGDLayer.RMSProp();
         //new SGDLayer.RMSPropGraves();
 
