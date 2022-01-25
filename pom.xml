@@ -74,7 +74,7 @@
                 <configuration>
                     <source>16</source>
                     <target>16</target>
-                    <useIncrementalCompilation>true</useIncrementalCompilation>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
                     <!--                    <release>16</release>-->
                     <!--                    <multiReleaseOutput>true</multiReleaseOutput>-->
                     <!--                    <compilerArgument>&#45;&#45;enable-preview</compilerArgument>-->
