@@ -274,10 +274,14 @@ public interface LongInterval extends LongIntervalArray {
     }
 
     static double dSepNorm(double[] a, double[] b) {
-        return
-            (abs(a[0] - b[0]) + abs(a[1] - b[1]))
-            //minTimeTo(a[0], a[1], b[0], b[1])
-             / (1 + Util.max(a[1] - a[0], b[1] - b[0]));
+        return dSepNorm(a[0], a[1], b[0], b[1]);
+    }
+
+    static double dSepNorm(double a0, double a1, double b0, double b1) {
+        return (abs(a0 - b0) + abs(a1 - b1))
+                //minTimeTo(a[0], a[1], b[0], b[1])
+                /// (1 + Util.max(a[1] - a[0], b[1] - b[0]));
+                / (1 + Util.mean(a1 - a0, b1 - b0));
     }
 
     long start();
