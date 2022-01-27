@@ -22,14 +22,17 @@ import jcog.Util;
 import jcog.data.array.IntComparator;
 import jcog.data.bit.MetalBitSet;
 import jcog.data.list.Lst;
-import jcog.random.RandomBits;
 import org.eclipse.collections.api.block.procedure.primitive.IntIntProcedure;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.function.*;
+import java.util.random.RandomGenerator;
 
 /**
  * <p>Operations on arrays, primitive arrays (like {@code int[]}) and
@@ -39,10 +42,6 @@ import java.util.function.*;
  * An exception will not be thrown for a {@code null}
  * array input. However, an Object array that contains a {@code null}
  * element may throw an exception. Each method documents its behaviour.
- *
- * <p>#ThreadSafe#
- *
- * @since 2.0
  */
 public enum ArrayUtil {
 	;
@@ -3686,14 +3685,9 @@ public enum ArrayUtil {
 	 *
 	 * @param array  the array to shuffle
 	 * @param rng the source of randomness used to permute the elements
-	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(Object[] array, Random rng) {
-		for (int i = array.length; i > 1; i--)
-			swap(array, i - 1, rng.nextInt(i));
-	}
-	public static void shuffle(Object[] array, RandomBits rng) {
+	public static void shuffle(Object[] array, RandomGenerator rng) {
 		int n = array.length;
 		switch (n) {
 			case 0, 1 -> { }
@@ -3711,7 +3705,7 @@ public enum ArrayUtil {
 	/**
 	 * from,to is an inclusive range which is non-standard wrt the other shuffle methods
 	 */
-	public static void shuffle(int from, int to, IntIntProcedure swapper, Random rng) {
+	public static void shuffle(int from, int to, IntIntProcedure swapper, RandomGenerator rng) {
 		int range = 1 + (to - from);
 		for (int i = to; i > from; i--) {
 			int a = i - 1;
@@ -3730,7 +3724,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(boolean[] array, Random random) {
+	public static void shuffle(boolean[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swapBool(array, i - 1, random.nextInt(i));
 	}
@@ -3743,12 +3737,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(byte[] array, Random random) {
-		for (int i = array.length; i > 1; i--)
-			swapByte(array, i - 1, random.nextInt(i));
-	}
-
-	public static void shuffle(byte[] array, RandomBits random) {
+	public static void shuffle(byte[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swapByte(array, i - 1, random.nextInt(i));
 	}
@@ -3761,7 +3750,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(char[] array, Random random) {
+	public static void shuffle(char[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swap(array, i - 1, random.nextInt(i), 1);
 	}
@@ -3774,16 +3763,11 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(short[] array, Random random) {
-		for (int i = array.length; i > 1; i--)
-			swapShort(array, i - 1, random.nextInt(i));
-	}
-
-	public static void shuffle(short[] array, RandomBits random) {
+	public static void shuffle(short[] array, RandomGenerator random) {
 		shuffle(array, array.length, random);
 	}
 
-	public static void shuffle(short[] array, int to, RandomBits random) {
+	public static void shuffle(short[] array, int to, RandomGenerator random) {
 		for (int i = to; i > 1; i--)
 			swapShort(array, i - 1, random.nextInt(i));
 	}
@@ -3796,7 +3780,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(long[] array, Random random) {
+	public static void shuffle(long[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swapLong(array, i - 1, random.nextInt(i));
 	}
@@ -3809,7 +3793,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(float[] array, Random random) {
+	public static void shuffle(float[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swapFloat(array, i - 1, random.nextInt(i));
 	}
@@ -3822,7 +3806,7 @@ public enum ArrayUtil {
 	 * @see <a href="https:
 	 * @since 3.6
 	 */
-	public static void shuffle(double[] array, Random random) {
+	public static void shuffle(double[] array, RandomGenerator random) {
 		for (int i = array.length; i > 1; i--)
 			swapDouble(array, i - 1, random.nextInt(i));
 	}
@@ -3919,20 +3903,16 @@ public enum ArrayUtil {
 	}
 
 
-	public static void shuffle(int[] array, Random random) {
+	public static void shuffle(int[] array, RandomGenerator random) {
 		shuffle(array, array.length, random);
 	}
 
-	public static void shuffle(int[] array, int len, Random random) {
+	public static void shuffle(int[] array, int len, RandomGenerator random) {
 		for (int i = len; i > 1; i--)
 			swapInt(array, i - 1, random.nextInt(i));
 	}
 
-	public static void shuffle(byte[] array, int len, Random random) {
-		for (int i = len; i > 1; i--)
-			swapByte(array, i - 1, random.nextInt(i));
-	}
-	public static void shuffle(byte[] array, int len, RandomBits random) {
+	public static void shuffle(byte[] array, int len, RandomGenerator random) {
 		for (int i = len; i > 1; i--)
 			swapByte(array, i - 1, random.nextInt(i));
 	}
@@ -4154,12 +4134,12 @@ public enum ArrayUtil {
 
 
 	/** shuffle spans of equivalent items. use after sorting */
-	 public static void shuffleTiered(IntToDoubleFunction rank, IntIntProcedure swapper, int s, Supplier<Random> _rng) {
+	 public static void shuffleTiered(IntToDoubleFunction rank, IntIntProcedure swapper, int s, Supplier<RandomGenerator> _rng) {
 	 	if (s < 2) return;
 
 		int contig = 0;
 		double last = rank.applyAsDouble(0);
-		Random rng = null;
+		RandomGenerator rng = null;
 		for (int i = 1; i <= s; i++) {
             double ei = i < s ? rank.applyAsDouble(i) : Double.NaN;
             if (ei == last) {

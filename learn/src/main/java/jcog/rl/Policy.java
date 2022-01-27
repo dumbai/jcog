@@ -1,4 +1,4 @@
-package jcog.ql.dqn;
+package jcog.rl;
 
 import org.jetbrains.annotations.Nullable;
 

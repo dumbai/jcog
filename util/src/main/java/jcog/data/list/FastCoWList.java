@@ -10,9 +10,13 @@ import org.eclipse.collections.api.block.procedure.Procedure2;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -554,10 +558,8 @@ public class FastCoWList<X> /*extends ~AbstractList<X>*/ /*implements ~List<X>*/
         });
     }
 
-	public @Nullable X get(Random random) {
+	public @Nullable X get(RandomGenerator random) {
         X[] c = array();
-        if (c.length == 0)
-            return null;
-        return c[random.nextInt(c.length)];
-	}
+        return c.length == 0 ? null : c[random.nextInt(c.length)];
+    }
 }

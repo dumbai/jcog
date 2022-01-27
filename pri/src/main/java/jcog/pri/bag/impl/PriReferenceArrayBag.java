@@ -5,8 +5,6 @@ import jcog.pri.op.PriMerge;
 
 public class PriReferenceArrayBag<X,Y extends PriReference<X>> extends ArrayBag<X, Y> {
 
-
-
     public PriReferenceArrayBag(PriMerge mergeFunction) {
         this(mergeFunction, 0);
     }

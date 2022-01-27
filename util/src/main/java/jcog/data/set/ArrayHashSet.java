@@ -41,13 +41,13 @@ import jcog.TODO;
 import jcog.Util;
 import jcog.WTF;
 import jcog.data.list.Lst;
-import jcog.random.RandomBits;
 import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 import static java.util.Collections.EMPTY_SET;
@@ -301,7 +301,7 @@ public class ArrayHashSet<X> extends AbstractSet<X> implements ArraySet<X> {
 
 
     @Override
-    public X remove(RandomBits random) {
+    public X remove(RandomGenerator random) {
         int s = size();
         if (s == 0) return null;
         int index = s == 1 ? 0 : random.nextInt(s);
@@ -312,7 +312,7 @@ public class ArrayHashSet<X> extends AbstractSet<X> implements ArraySet<X> {
     }
 
     @Override
-    public void shuffle(Random random) {
+    public void shuffle(RandomGenerator random) {
         list.shuffleThis(random);
         //Collections.shuffle(list, random);
     }

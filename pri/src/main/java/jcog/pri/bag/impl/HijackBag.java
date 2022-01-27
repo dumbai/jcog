@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -570,7 +571,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 
 
     @Override
-    public void sample(Random random, Function<? super V, SampleReaction> each) {
+    public void sample(RandomGenerator random, Function<? super V, SampleReaction> each) {
         int s;
 
         //System.out.println(); System.out.println();

@@ -7,26 +7,19 @@ import jcog.data.DistanceFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.data.list.Lst;
 import jcog.random.RandomBits;
-import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.util.ArrayUtil;
 import org.roaringbitmap.PeekableIntIterator;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.random.RandomGenerator;
 
 /**
  * adapted from https://github.com/Hipparchus-Math/hipparchus/blob/master/hipparchus-clustering/src/main/java/org/hipparchus/clustering/KMeansPlusPlusClusterer.java
  */
 @Is("Determining_the_number_of_clusters_in_a_data_set")
 public abstract class KMeansPlusPlus<X> {
-    private final DistanceFunction distance;
-
-    // The resulting list of initial centers.
-    public final Lst<CentroidCluster<X>> clusters = new Lst<>(EmptyCentroidClustersArray);
-    private final Lst<CentroidCluster<X>> clustersNext = new Lst<>(EmptyCentroidClustersArray);
-    private static final CentroidCluster[] EmptyCentroidClustersArray = new CentroidCluster[0];
-
     /**
      * The number of clusters.
      */
@@ -34,17 +27,10 @@ public abstract class KMeansPlusPlus<X> {
 
     private final int dims;
 
+    private final DistanceFunction distance;
 
-    /**
-     * Random generator for choosing initial centers.
-     */
-    @Deprecated public Random random;
-
-    /**
-     * Selected strategy for empty clusters.
-     */
-    private final EmptyClusterStrategy emptyStrategy;
-
+    public final Lst<CentroidCluster<X>> clusters = new Lst<>(CentroidCluster.EmptyCentroidClustersArray);
+    private final Lst<CentroidCluster<X>> clustersNext = new Lst<>(CentroidCluster.EmptyCentroidClustersArray);
 
     public transient Lst<X> values;
     private transient double[][] coords = ArrayUtil.EMPTY_DOUBLE_DOUBLE;
@@ -52,23 +38,14 @@ public abstract class KMeansPlusPlus<X> {
     private transient double[] minDistSquared;
 
     /**
-     * Build a clusterer.
-     * <p>
-     * The default strategy for handling empty clusters that may appear during
-     * algorithm iterations is to split the cluster with largest distance variance.
-     * <p>
-     * The euclidean distance will be used as default distance measure.
-     *
-     * @param k the number of clusters to split the data into
-     *          https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
+     * Random generator for choosing initial centers.
      */
-    public KMeansPlusPlus(int k, int dims) {
-        this(k, dims, DistanceFunction::distanceCartesianSq);
-    }
+    @Deprecated public RandomGenerator random;
 
-    public KMeansPlusPlus(int k, int dims, DistanceFunction measure) {
-        this(k, dims, measure, new XoRoShiRo128PlusRandom());
-    }
+    /**
+     * Selected strategy for empty clusters.
+     */
+    private final EmptyClusterStrategy emptyStrategy;
 
     /**
      * Build a clusterer.
@@ -82,7 +59,7 @@ public abstract class KMeansPlusPlus<X> {
      */
     public KMeansPlusPlus(int k, int dims,
                           DistanceFunction measure,
-                          Random random) {
+                          RandomGenerator random) {
         this(k, dims, measure, random,
             //EmptyClusterStrategy.MOST_POINTS
             EmptyClusterStrategy.FARTHEST_POINT
@@ -101,7 +78,7 @@ public abstract class KMeansPlusPlus<X> {
      */
     public KMeansPlusPlus(int k, int dims,
                           DistanceFunction measure,
-                          Random random,
+                          RandomGenerator random,
                           EmptyClusterStrategy emptyStrategy) {
         if (k < 2)
             throw new UnsupportedOperationException("clusters must be > 1");
@@ -110,7 +87,9 @@ public abstract class KMeansPlusPlus<X> {
         this.k = k;
         this.dims = dims;
 
-        this.random = random;
+        this.random = random instanceof Random ?
+                new RandomBits((Random)random) :
+                random;
         this.emptyStrategy = emptyStrategy;
     }
 
@@ -491,7 +470,7 @@ public abstract class KMeansPlusPlus<X> {
         return clusters.get(c).size();
     }
 
-    public void valuesSampleN(int c, int n, Consumer<X> each, RandomBits rng) {
+    public void valuesSampleN(int c, int n, Consumer<X> each, RandomGenerator rng) {
         clusters.get(c).sampleN(this, n, each, rng);
     }
 
@@ -505,6 +484,11 @@ public abstract class KMeansPlusPlus<X> {
 
     public void sortClustersRandom() {
         clusters.shuffleThis(random);
+    }
+
+    public void close() {
+        clusters.delete();
+        clear();
     }
 
     /**
@@ -664,6 +648,9 @@ public abstract class KMeansPlusPlus<X> {
     }
 
     private static final class CentroidCluster<X> {
+
+        private static final CentroidCluster[] EmptyCentroidClustersArray = new CentroidCluster[0];
+
         public final RoaringBitmap values = new RoaringBitmap();
         public final double[] center;
 
@@ -724,7 +711,7 @@ public abstract class KMeansPlusPlus<X> {
         }
 
 
-        public void sampleN(KMeansPlusPlus<X> k, int max, Consumer<X> each, RandomBits rng) {
+        public void sampleN(KMeansPlusPlus<X> k, int max, Consumer<X> each, RandomGenerator rng) {
             int s = size();
             if (s < max) {
                 values(k, each);

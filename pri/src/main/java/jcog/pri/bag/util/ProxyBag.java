@@ -5,10 +5,10 @@ import jcog.signal.NumberX;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 /**
@@ -98,17 +98,17 @@ public class ProxyBag<X,Y> extends Bag<X,Y> {
     }
 
     @Override
-    public @Nullable Y sample(Random rng) {
+    public @Nullable Y sample(RandomGenerator rng) {
         return bag.sample(rng);
     }
 
     @Override
-    public final void sample(Random rng, Function<? super Y, SampleReaction> each) {
+    public final void sample(RandomGenerator rng, Function<? super Y, SampleReaction> each) {
         bag.sample(rng, each);
     }
 
     @Override
-    public Iterator<Y> sampleUnique(Random rng) {
+    public Iterator<Y> sampleUnique(RandomGenerator rng) {
         return bag.sampleUnique(rng);
     }
 

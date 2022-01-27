@@ -7,7 +7,7 @@ import jcog.math.FloatSupplier;
 import jcog.pri.Prioritized;
 import org.eclipse.collections.api.block.function.primitive.IntToFloatFunction;
 
-import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * roulette select
@@ -19,8 +19,8 @@ import java.util.Random;
         return selectRoulette(x.length, n -> x[n], rng);
     }
 
-    public static int selectRoulette(int weightCount, IntToFloatFunction weight, Random rng) {
-        return selectRoulette(weightCount, weight, rng::nextFloat);
+    public static int selectRoulette(int weightCount, IntToFloatFunction weight, RandomGenerator rng) {
+        return selectRoulette(weightCount, weight, (FloatSupplier) rng::nextFloat);
     }
 
     /**
@@ -45,8 +45,8 @@ import java.util.Random;
         return Util.bin(rng.asFloat() * weightCount, weightCount);
     }
 
-    public static int selectRouletteCached(int weightCount, IntToFloatFunction weight, Random rng) {
-        return selectRouletteCached(weightCount, weight, rng::nextFloat);
+    public static int selectRouletteCached(int weightCount, IntToFloatFunction weight, RandomGenerator rng) {
+        return selectRouletteCached(weightCount, weight, ((FloatSupplier)(rng::nextFloat)));
     }
 
     /** returns -1 if no option (not any weight==NaN, or non-positive) */

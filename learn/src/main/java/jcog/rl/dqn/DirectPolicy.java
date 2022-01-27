@@ -1,8 +1,9 @@
-package jcog.ql.dqn;
+package jcog.rl.dqn;
 
 import jcog.Util;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.Predictor;
+import jcog.rl.PredictorPolicy;
 import org.jetbrains.annotations.Nullable;
 
 /** trains a model:

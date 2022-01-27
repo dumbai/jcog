@@ -37,11 +37,10 @@
  */
 package jcog.data.set;
 
-import jcog.random.RandomBits;
-
 import java.util.ListIterator;
 import java.util.Random;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 
 /**
  * A {@link Set} interface enriched with random access methods and a list iterator.
@@ -73,7 +72,7 @@ public interface ArraySet<X> extends Set<X> {
         };
 	}
 
-	X remove(RandomBits random);
+	X remove(RandomGenerator random);
 
 
 
@@ -88,7 +87,7 @@ public interface ArraySet<X> extends Set<X> {
 //	}
 
 	/** shuffles the list */
-	void shuffle(Random random);
+	void shuffle(RandomGenerator random);
 
 
 }

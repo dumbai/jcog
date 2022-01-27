@@ -1,4 +1,4 @@
-package jcog.ql.dqn;
+package jcog.rl;
 
 import jcog.predict.Predictor;
 import jcog.signal.FloatRange;

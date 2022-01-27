@@ -4,12 +4,12 @@ import jcog.Fuzzy;
 import jcog.activation.DiffableFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.nn.optimizer.WeightUpdater;
-import jcog.random.RandomBits;
 import org.hipparchus.analysis.function.Gaussian;
 
 import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 
 import static jcog.Util.fma;
 
@@ -131,7 +131,7 @@ public class DenseLayer extends AbstractLayer {
      * forward prop
      */
     @Override
-    public double[] forward(double[] x, RandomBits rng) {
+    public double[] forward(double[] x, RandomGenerator rng) {
         double[] in = this.in, W = this.W, out = this.out;
         System.arraycopy(x, 0, in, 0, x.length);
         int I = in.length;

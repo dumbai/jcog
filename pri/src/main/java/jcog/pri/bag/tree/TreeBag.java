@@ -1,6 +1,5 @@
 package jcog.pri.bag.tree;
 
-import jcog.random.RandomBits;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -9,6 +8,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 /** a node and possible root of n-ary tree of prioritized items.
@@ -36,7 +36,7 @@ public abstract class TreeBag<X,Y> {
 //    @Nullable abstract public TreeBag<X,Y> find(X next, boolean createIfMissing);
 
     /** sample an item; deciding whether it is from the local or which recursive branch. do not retain the list, as it mutates, without cloning */
-    public abstract void sampleOrPop(RandomBits p, boolean sampleOrPop, BiPredicate<List<X>, Y> each);
+    public abstract void sampleOrPop(RandomGenerator p, boolean sampleOrPop, BiPredicate<List<X>, Y> each);
 
     /** do not retain the list, as it mutates, without cloning */
     public abstract void forEach(BiConsumer<List<X>, Y> each);

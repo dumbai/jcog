@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** TODO add actual tests */
+/** TODO add actual tests
+ * @noinspection ALL*/
 class ThingTest {
 
     private Thing<Object, Object> s;
@@ -49,24 +50,22 @@ class ThingTest {
     }
 
 
-    private static class DummyPartWithContextConstructor extends DummyPart {
-        DummyPartWithContextConstructor(String context) {
+    public static class DummyPartWithContextConstructor extends DummyPart {
+        public DummyPartWithContextConstructor(String context) {
             super(new StringBuilder("parts=" + context));
         }
     }
 
-    private static class DummyPart extends Part<Object> {
+    public static class DummyPart extends Part<Object> {
         private final StringBuilder sb;
 
-        DummyPart() {
+        public DummyPart() {
             this(new StringBuilder("no-arg_constructor"));
         }
 
-        DummyPart(StringBuilder sb) {
+        public DummyPart(StringBuilder sb) {
             this.sb = sb;
         }
-
-
 
         @Override
         protected void start(Object x) {

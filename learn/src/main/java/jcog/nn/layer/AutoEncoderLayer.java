@@ -5,10 +5,10 @@ import jcog.Util;
 import jcog.deep.AbstractAutoencoder;
 import jcog.deep.Autoencoder;
 import jcog.nn.optimizer.WeightUpdater;
-import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * TODO weightUpdater?
@@ -37,7 +37,7 @@ public class AutoEncoderLayer extends AbstractLayer {
     }
 
     @Override
-    public double[] forward(double[] x, RandomBits rng) {
+    public double[] forward(double[] x, RandomGenerator rng) {
         System.arraycopy(x, 0, in, 0, x.length);
         if (ae instanceof Autoencoder) {
             ae.put(((Autoencoder) ae).x = Util.toFloat(this.in, ((Autoencoder) ae).x), learningRate); //HACK

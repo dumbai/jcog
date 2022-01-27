@@ -412,17 +412,15 @@ public class Thing<T/* context */, P /* service key */> {
                     args = ArrayUtil.EMPTY_OBJECT_ARRAY;
                 }
             }
-
-            if (args != null) {
+            if (constructor>=0) {
                 try {
                     Constructor cc = constructors[constructor];
                     if (cc.trySetAccessible())
                         return (X) cc.newInstance(args);
-                } catch ( InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
             }
-
             throw new TODO();
         }
     }

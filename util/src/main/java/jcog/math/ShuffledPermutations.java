@@ -1,10 +1,10 @@
 package jcog.math;
 
 import jcog.data.list.Lst;
-import jcog.random.RandomBits;
 import jcog.util.ArrayUtil;
 
 import java.util.Collection;
+import java.util.random.RandomGenerator;
 
 /**
  * Created by me on 11/1/15.
@@ -15,7 +15,7 @@ public class ShuffledPermutations extends Permutations {
     byte[] shuffle;
 
 
-    public ShuffledPermutations restart(int size, RandomBits random) {
+    public ShuffledPermutations restart(int size, RandomGenerator random) {
         assert(size < 127);
 
         super.restart(size);
@@ -50,7 +50,7 @@ public class ShuffledPermutations extends Permutations {
     /** TODO improve the buffering characteristics of this
      *  TODO make re-shuffling optional on each new iteration, currently this will shuffle once and it will get repeated if re-iterated
      * */
-    public static <X> Iterable<X> shuffle(Iterable<X> i, RandomBits rng) {
+    public static <X> Iterable<X> shuffle(Iterable<X> i, RandomGenerator rng) {
         if (i instanceof Collection) {
             int s = ((Collection)i).size();
             if (s < 2) return i;

@@ -27,11 +27,15 @@ import org.roaringbitmap.RoaringBitmap;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.random.RandomGenerator;
 
 import static jcog.Util.clamp;
 import static jcog.Util.emptyIterator;
@@ -320,7 +324,7 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
      * immediate sample
      */
     @Override
-    public @Nullable Y sample(@Nullable Random rng) {
+    public @Nullable Y sample(@Nullable RandomGenerator rng) {
         float r = rng != null ? randomCurve(rng) : 0;
 
 //        long l = lock.readLock();
@@ -345,7 +349,7 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
      * it will be helpful to call this in batches << the size of the bag.
      */
     @Override
-    public void sample(Random rng, Function<? super Y, SampleReaction> each) {
+    public void sample(RandomGenerator rng, Function<? super Y, SampleReaction> each) {
 
         Y y;
         while ((y = sample(rng)) != null) {
@@ -369,7 +373,7 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
      * warning: not thread-safe
      */
     @Override
-    public final Iterator<Y> sampleUnique(Random rng) {
+    public final Iterator<Y> sampleUnique(RandomGenerator rng) {
         int s = size();
         if (s > 0) {
             short[] items = items();
@@ -381,7 +385,7 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
         return emptyIterator;
     }
 
-    private float randomCurve(Random rng) {
+    private float randomCurve(RandomGenerator rng) {
         return (float) Math.pow(rng.nextFloat(), sharp);
     }
 

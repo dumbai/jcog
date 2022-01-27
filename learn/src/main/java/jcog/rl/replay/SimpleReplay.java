@@ -1,12 +1,12 @@
-package jcog.ql.dqn;
+package jcog.rl.replay;
 
 import jcog.data.list.Lst;
-import jcog.random.RandomBits;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
-class SimpleReplay extends Replay {
+public class SimpleReplay extends Replay {
 
     final Lst<ReplayMemory> memory;
 
@@ -37,7 +37,7 @@ class SimpleReplay extends Replay {
     }
 
     @Override
-    protected void pop(RandomBits rng) {
+    protected void pop(RandomGenerator rng) {
         memory.removeRandom(rng);
     }
 

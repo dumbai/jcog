@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.random.RandomGenerator;
 
 import static com.google.common.math.IntMath.factorial;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,7 +70,7 @@ class PermutationsTest {
         Set<String> sequences = new HashSet();
         Set<String> arrays = new TreeSet();
 
-        RandomBits rng =
+        RandomGenerator rng =
                 new RandomBits(new XorShift128PlusRandom(2));
 
         int[] n = new int[size];

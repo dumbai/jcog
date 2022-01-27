@@ -1,8 +1,10 @@
-package jcog.ql.dqn;
+package jcog.rl.dqn;
 
 import jcog.Util;
 import jcog.data.list.Lst;
 import jcog.predict.Predictor;
+import jcog.rl.Policy;
+import jcog.rl.PredictorPolicy;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 
 import java.util.List;
@@ -17,7 +19,7 @@ public class QPolicyBranched implements Policy {
 
     final int actionDiscretization = 2;
 
-    protected QPolicyBranched(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
+    public QPolicyBranched(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
         this.inputs = inputs;
         this.actions = actions;
         this.predictors = new Lst<>( Util.arrayOf(z -> new QPolicy(p.value(inputs, actionDiscretization)), new PredictorPolicy[actions]));

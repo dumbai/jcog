@@ -1,4 +1,4 @@
-package jcog.ql.dqn;
+package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.activation.LeakyReluActivation;
@@ -13,6 +13,12 @@ import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
+import jcog.rl.ac.A2C;
+import jcog.rl.dqn.DirectPolicy;
+import jcog.rl.dqn.QPolicy;
+import jcog.rl.replay.Replay;
+import jcog.rl.replay.ReplayMemory;
+import jcog.rl.replay.SimpleReplay;
 import jcog.signal.FloatRange;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 import org.jetbrains.annotations.Nullable;
@@ -28,8 +34,8 @@ public class ValuePredictAgent extends Agent {
 
 
     public final Policy policy;
-    final Random rng = new XoRoShiRo128PlusRandom();
-    final RandomBits RNG = new RandomBits(rng);
+    public final Random rng = new XoRoShiRo128PlusRandom();
+    public final RandomBits RNG = new RandomBits(rng);
 
     /** "epsilon" curiosity/exploration parameter.
      * note: this is in addition to curiosity which is applied in AbstractGoalConcept */
@@ -109,9 +115,10 @@ public class ValuePredictAgent extends Agent {
 //            (i, o) ->
 //                new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
             (i, o) ->
-                new QPolicyBranched(i, o,
-                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
-                )
+//                new QPolicyBranched(i, o,
+//                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
+//                )
+                new A2C(i,o, o)
         );
 
         if (replays > 0)

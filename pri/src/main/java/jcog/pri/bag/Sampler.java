@@ -4,10 +4,10 @@ import jcog.TODO;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
-import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 
 import static jcog.pri.bag.Sampler.SampleReaction.*;
 
@@ -18,7 +18,7 @@ public interface Sampler<X> {
     /* sample the bag, optionally removing each visited element as decided by the visitor's
      * returned value */
     @SuppressWarnings("LambdaUnfriendlyMethodOverload")
-    void sample(Random rng, Function<? super X, SampleReaction> each);
+    void sample(RandomGenerator rng, Function<? super X, SampleReaction> each);
 
 
     /**
@@ -27,7 +27,7 @@ public interface Sampler<X> {
      * gets the next value without removing changing it or removing it from any index.  however
      * the bag is cycled so that subsequent elements are different.
      */
-    default @Nullable X sample(Random rng) {
+    default @Nullable X sample(RandomGenerator rng) {
         Object[] result = new Object[1];
         sample(rng, ((Predicate<? super X>) (x) -> {
             result[0] = x;
@@ -36,19 +36,18 @@ public interface Sampler<X> {
         return (X) result[0];
     }
 
-
     @SuppressWarnings("LambdaUnfriendlyMethodOverload")
-    default Sampler<X> sample(Random rng, Predicate<? super X> each) {
+    default Sampler<X> sample(RandomGenerator rng, Predicate<? super X> each) {
         sample(rng, (Function<X, SampleReaction>) (x -> each.test(x) ? Next : Stop));
         return this;
     }
 
-    default Sampler<X> sample(Random rng, int max, Consumer<? super X> each) {
+    default Sampler<X> sample(RandomGenerator rng, int max, Consumer<? super X> each) {
         sampleOrPop(rng, false, max, each);
         return this;
     }
 
-    default Sampler<X> sampleOrPop(Random rng, boolean pop, int max, Consumer<? super X> each) {
+    default Sampler<X> sampleOrPop(RandomGenerator rng, boolean pop, int max, Consumer<? super X> each) {
         if (max > 0) {
             sample(rng, new Function<>() {
 
@@ -73,7 +72,7 @@ public interface Sampler<X> {
      * continues while either the predicate hasn't returned false and
      * < max true's have been returned
      */
-    default Sampler<X> sample(Random rng, int max, Predicate<? super X> kontinue) {
+    default Sampler<X> sample(RandomGenerator rng, int max, Predicate<? super X> kontinue) {
         if (max > 0) {
             sample(rng, new LimitedSample(max, kontinue));
         }
@@ -89,11 +88,11 @@ public interface Sampler<X> {
      * <p>
      * the iteration will end early if the container has been exhaustively iterated, if this is possible to know.
      */
-    default Iterator<X> sampleUnique(Random rng) {
+    default Iterator<X> sampleUnique(RandomGenerator rng) {
         throw new TODO();
     }
 
-    default @Nullable X sampleUniqueFirst(Predicate<X> filter, Random rng) {
+    default @Nullable X sampleUniqueFirst(Predicate<X> filter, RandomGenerator rng) {
         Iterator<X> i = sampleUnique(rng);
         while (i.hasNext()) {
             X x = i.next();

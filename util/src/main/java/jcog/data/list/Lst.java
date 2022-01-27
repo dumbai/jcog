@@ -4,7 +4,6 @@ import jcog.TODO;
 import jcog.Util;
 import jcog.data.bit.MetalBitSet;
 import jcog.data.iterator.ArrayIterator;
-import jcog.random.RandomBits;
 import jcog.sort.QuickSort;
 import jcog.util.ArrayUtil;
 import jcog.util.SingletonIterator;
@@ -25,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.IntFunction;
 import java.util.function.*;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 import static java.lang.System.arraycopy;
@@ -350,7 +350,7 @@ public class Lst<X> implements List<X>, RandomAccess {
 //    }
 
 
-    public @Nullable X get(RandomBits random) {
+    public @Nullable X get(RandomGenerator random) {
         X[] ii = this.items;
         int s = this.size;
         return switch (Math.min(s, ii.length)) {
@@ -451,12 +451,7 @@ public class Lst<X> implements List<X>, RandomAccess {
         return max(this.items, this.size, comparator);
     }
 
-    public Lst<X> shuffleThis(Random rng) {
-
-        return shuffleThis(new RandomBits(rng));
-    }
-
-    public Lst<X> shuffleThis(RandomBits rng) {
+    public Lst<X> shuffleThis(RandomGenerator rng) {
         //return size > 1 ? (FasterList<X>) super.shuffleThis(rnd) : this;
         int s = this.size;
         if (s > 1) {
@@ -833,7 +828,7 @@ public class Lst<X> implements List<X>, RandomAccess {
     }
 
 
-    @Nullable public X removeRandom(RandomBits r) {
+    @Nullable public X removeRandom(RandomGenerator r) {
         final int s = this.size;
         return s > 0 ? remove(r.nextInt(s)) : null;
     }

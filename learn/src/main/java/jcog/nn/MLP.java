@@ -16,6 +16,7 @@ import org.eclipse.collections.api.block.function.primitive.IntToObjectFunction;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 /**
@@ -162,7 +163,7 @@ public class MLP extends DeltaPredictor {
 //        return this;
 //    }
 
-    final RandomBits rng = new RandomBits(new XoRoShiRo128PlusRandom());
+    final RandomGenerator rng = new RandomBits(new XoRoShiRo128PlusRandom());
 
     @Override public double[] get(double[] x) {
         for (AbstractLayer layer : layers)

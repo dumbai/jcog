@@ -4,6 +4,7 @@ import jcog.data.bit.FixedPoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Float.MIN_NORMAL;
 
@@ -14,9 +15,9 @@ import static java.lang.Float.MIN_NORMAL;
  *
  *  also provides extra utility methods not present in java.util.Random
  */
-public class RandomBits {
+public class RandomBits implements RandomGenerator {
 
-    public final Random rng;
+    private final Random rng;
 
     /** up to 64 bits to be dequeued */
     private long buffer;
@@ -38,7 +39,7 @@ public class RandomBits {
         return _next(bits);
     }
 
-    public boolean nextBoolean() {
+    @Override public boolean nextBoolean() {
         return _next(1) != 0;
     }
 
@@ -56,7 +57,7 @@ public class RandomBits {
         bit = 64;
     }
 
-    public int nextInt(int i) {
+    @Override public int nextInt(int i) {
         return nextBits(bits(i)) % i;
     }
 
@@ -69,9 +70,6 @@ public class RandomBits {
         bit = 0; //force refresh
     }
 
-    public float nextFloat() {
-        return rng.nextFloat(); //TODO
-    }
 
     /** lower-precision boolean probability */
     public final boolean nextBooleanFast(float probTrue, int bits) {
@@ -145,4 +143,27 @@ public class RandomBits {
 
         return a + s;
     }
+
+
+    @Override
+    public long nextLong() {
+        return rng.nextLong();
+    }
+
+    @Override
+    public int nextInt() {
+        return rng.nextInt();
+    }
+
+
+
+    @Override
+    public double nextDouble() {
+        return rng.nextDouble();
+    }
+
+    @Override public float nextFloat() {
+        return rng.nextFloat();
+    }
+
 }

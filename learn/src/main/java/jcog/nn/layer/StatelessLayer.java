@@ -1,6 +1,4 @@
-package jcog.ql.dqn;
-
-import jcog.nn.layer.AbstractLayer;
+package jcog.nn.layer;
 
 import java.util.Random;
 

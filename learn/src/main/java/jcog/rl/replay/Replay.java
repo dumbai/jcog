@@ -1,8 +1,9 @@
-package jcog.ql.dqn;
+package jcog.rl.replay;
 
-import jcog.random.RandomBits;
+import jcog.rl.ValuePredictAgent;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * experience replay buffer
@@ -12,7 +13,7 @@ public abstract class Replay {
     float replayAlpha;
     float rememberProb;
     int trainIters;
-    long t;
+    public long t;
 
     public Replay(float replayAlpha, float rememberProb, int trainIters) {
         this.replayAlpha = replayAlpha;
@@ -85,7 +86,7 @@ public abstract class Replay {
 
     protected abstract void add(ReplayMemory m, double[] qNext);
 
-    protected abstract void pop(RandomBits rng);
+    protected abstract void pop(RandomGenerator rng);
 
 
 }

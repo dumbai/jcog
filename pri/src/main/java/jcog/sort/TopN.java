@@ -6,8 +6,8 @@ import jcog.math.FloatSupplier;
 import org.eclipse.collections.api.block.function.primitive.FloatFunction;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Random;
 import java.util.function.IntFunction;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Float.NEGATIVE_INFINITY;
 
@@ -159,11 +159,11 @@ public class TopN<X> extends SortedArray<X> implements FloatFunction<X>, TopFilt
     }
 
 
-    public final @Nullable X getRoulette(Random rng) {
+    public final @Nullable X getRoulette(RandomGenerator rng) {
         return switch (this.size) {
             case 0 -> null;
             case 1 -> first();
-            default -> getRoulette(rng::nextFloat);
+            default -> getRoulette((FloatSupplier)rng::nextFloat);
         };
     }
 

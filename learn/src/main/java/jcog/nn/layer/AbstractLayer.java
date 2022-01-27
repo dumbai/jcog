@@ -1,9 +1,9 @@
 package jcog.nn.layer;
 
 import jcog.nn.optimizer.WeightUpdater;
-import jcog.random.RandomBits;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 public abstract class AbstractLayer {
     public double[] out;
@@ -22,7 +22,7 @@ public abstract class AbstractLayer {
     /** https://intoli.com/blog/neural-network-initialization/ */
     public abstract void randomize(Random r);
 
-    public abstract double[] forward(double[] x, RandomBits rng);
+    public abstract double[] forward(double[] x, RandomGenerator rng);
 
     //public abstract double[] reverse(double[] dx, float learningRate);
 

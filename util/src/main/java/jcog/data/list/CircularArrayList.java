@@ -1,12 +1,12 @@
 package jcog.data.list;
 
 import jcog.Util;
-import jcog.random.RandomBits;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.random.RandomGenerator;
 
 /* High-performance Circular (Ring) Buffer. Not thread safe, and sacrifices safety for speed in other ways. */
 public class CircularArrayList<X> extends AbstractList<X> implements RandomAccess, Deque<X>, Serializable {
@@ -384,7 +384,7 @@ public class CircularArrayList<X> extends AbstractList<X> implements RandomAcces
     }
 
     @Nullable
-    public X pollRandom(RandomBits rng) {
+    public X pollRandom(RandomGenerator rng) {
         int s = size();
         if (s == 0) return null;
         else if (s == 1) return removeFirst();

@@ -1,13 +1,16 @@
-package jcog.ql.dqn;
+package jcog.rl.dqn;
 
 import jcog.Util;
 import jcog.pri.PLink;
 import jcog.pri.bag.impl.PriReferenceArrayBag;
 import jcog.pri.op.PriMerge;
-import jcog.random.RandomBits;
+import jcog.rl.ValuePredictAgent;
+import jcog.rl.replay.Replay;
+import jcog.rl.replay.ReplayMemory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * prioritized replay using a Bag<></>
@@ -75,7 +78,7 @@ public class BagReplay extends Replay {
     }
 
     @Override
-    protected void pop(RandomBits rng) {
+    protected void pop(RandomGenerator rng) {
 //        ReplayMemory last = memory.get(memory.size() - 1).get();
 //        memory.remove(last);
         //System.out.println(memory.mass());

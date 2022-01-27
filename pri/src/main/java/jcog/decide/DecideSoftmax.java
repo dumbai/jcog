@@ -3,7 +3,7 @@ package jcog.decide;
 import jcog.Util;
 import jcog.signal.FloatRange;
 
-import java.util.Random;
+import java.util.random.RandomGenerator;
 
 /**
  * https:
@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public class DecideSoftmax implements Decide {
 
-    public final Random random;
+    public final RandomGenerator random;
     /**
      * whether to exclude negative values
      */
@@ -33,11 +33,11 @@ public class DecideSoftmax implements Decide {
     private float[] mot;
     private float conf;
 
-    public DecideSoftmax(float constantTemp, Random random) {
+    public DecideSoftmax(float constantTemp, RandomGenerator random) {
         this(constantTemp, 0, 1f, random);
     }
 
-    private DecideSoftmax(float initialTemperature, float minTemperature, float decay, Random random) {
+    private DecideSoftmax(float initialTemperature, float minTemperature, float decay, RandomGenerator random) {
         this.temperature = new FloatRange(initialTemperature, 0.01f, 1);
         this.minTemperature = minTemperature;
         this.temperatureDecay = decay;

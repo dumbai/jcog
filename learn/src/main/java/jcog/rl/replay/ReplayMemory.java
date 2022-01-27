@@ -1,4 +1,6 @@
-package jcog.ql.dqn;
+package jcog.rl.replay;
+
+import jcog.rl.Policy;
 
 /** a replay experience */
 public class ReplayMemory {
@@ -10,7 +12,7 @@ public class ReplayMemory {
      * https://cs.stanford.edu/people/karpathy/reinforcejs/lib/rl.js
      * learnFromTuple: function(s0, a0, r0, s1, a1)
      */
-    ReplayMemory(long t, double[] s0, double[] a, float r, double[] s) {
+    public ReplayMemory(long t, double[] s0, double[] a, float r, double[] s) {
         this.s0 = s0;
         this.a = a;
         this.r = r;

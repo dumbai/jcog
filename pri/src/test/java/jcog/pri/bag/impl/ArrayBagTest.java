@@ -419,7 +419,8 @@ public class ArrayBagTest {
         });
         List<PLink<String>> l = Streams.stream(s).limit(4).collect(toList());
         assertEquals(
-                "[$0.7 x6, $0.6 x5, $0.8 x7, $0.5 x4]"
+                "[$0.6 x5, $0.5 x4, $0.7 x6, $0.4 x3]"
+                //"[$0.7 x6, $0.6 x5, $0.8 x7, $0.5 x4]"
                 //"[$0.4 x3, $0.3 x2, $0.5 x4, $0.2 x1]"
                 //"[$0.5 x4, $0.4 x3, $0.6 x5, $0.3 x2]"
                 , l.toString());

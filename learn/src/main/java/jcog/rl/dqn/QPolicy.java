@@ -1,9 +1,10 @@
-package jcog.ql.dqn;
+package jcog.rl.dqn;
 
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
 import jcog.predict.Predictor;
+import jcog.rl.PredictorPolicy;
 import jcog.signal.FloatRange;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,10 +41,10 @@ public class QPolicy extends PredictorPolicy {
             0.03f;
     private static final float lo = -1;
 
-    transient double[] dq;
+    public transient double[] dq;
     private double[] qNext;
 
-    protected QPolicy(Predictor p) {
+    public QPolicy(Predictor p) {
         super(p);
     }
 

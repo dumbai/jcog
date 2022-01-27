@@ -11,6 +11,7 @@ import org.eclipse.collections.api.block.procedure.primitive.IntProcedure;
 
 import java.util.Random;
 import java.util.function.IntPredicate;
+import java.util.random.RandomGenerator;
 
 /**
  * efficient embeddable roulette decision executor.
@@ -32,7 +33,7 @@ import java.util.function.IntPredicate;
      * weights of each choice
      */
     private float[] w;
-    private final Random rng;
+    private final RandomGenerator rng;
     /**
      * weight update function applied between selections to the last selected index's weight
      */
@@ -54,30 +55,30 @@ import java.util.function.IntPredicate;
     /**
      * with no weight modification
      */
-    public MutableRoulette(int count, IntToFloatFunction initialWeights, Random rng) {
+    public MutableRoulette(int count, IntToFloatFunction initialWeights, RandomGenerator rng) {
         this(count, initialWeights, (x -> x), rng);
     }
 
-    private MutableRoulette(int count, IntToFloatFunction initialWeights, FloatToFloatFunction weightUpdate, Random rng) {
+    private MutableRoulette(int count, IntToFloatFunction initialWeights, FloatToFloatFunction weightUpdate, RandomGenerator rng) {
         this(Util.floatArrayOf(initialWeights, count), count, weightUpdate, rng);
     }
 
-    private MutableRoulette(float[] w, FloatToFloatFunction weightUpdate, Random rng) {
+    private MutableRoulette(float[] w, FloatToFloatFunction weightUpdate, RandomGenerator rng) {
         this(w, w.length, weightUpdate, rng);
     }
 
-    public MutableRoulette(FloatToFloatFunction weightUpdate, Random rng) {
+    public MutableRoulette(FloatToFloatFunction weightUpdate, RandomGenerator rng) {
         this(ArrayUtil.EMPTY_FLOAT_ARRAY, 0, weightUpdate, rng);
     }
 
-    private MutableRoulette(float[] w, int n, FloatToFloatFunction weightUpdate, Random rng) {
+    private MutableRoulette(float[] w, int n, FloatToFloatFunction weightUpdate, RandomGenerator rng) {
         this.rng = rng;
         this.weightUpdate = weightUpdate;
         reset(w, n);
     }
 
     /** constructs and runs entirely in constructor */
-    private MutableRoulette(float[] weights, int n, FloatToFloatFunction weightUpdate, Random rng, IntPredicate choose) {
+    private MutableRoulette(float[] weights, int n, FloatToFloatFunction weightUpdate, RandomGenerator rng, IntPredicate choose) {
         this(weights, n, weightUpdate, rng);
         chooseWhile(choose);
     }

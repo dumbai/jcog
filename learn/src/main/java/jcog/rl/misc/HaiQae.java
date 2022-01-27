@@ -1,4 +1,4 @@
-package jcog.ql;
+package jcog.rl.misc;
 
 import jcog.decide.Decide;
 import jcog.decide.DecideSoftmax;

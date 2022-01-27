@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.random.RandomGenerator;
 
 import static java.lang.System.arraycopy;
 import static org.eclipse.collections.impl.tuple.Tuples.pair;
@@ -239,7 +240,7 @@ public class MyRadixTree<X> /* TODO extends ReentrantReadWriteLock */ implements
 		return random(current, parent, parentParent, descendProb, rng);
 	}
 
-	public static SearchResult random(ByteNode current, ByteNode parent, ByteNode parentParent, float descendProb, Random rng) {
+	public static SearchResult random(ByteNode current, ByteNode parent, ByteNode parentParent, float descendProb, RandomGenerator rng) {
 
 
 		while (true) {
@@ -821,11 +822,11 @@ public class MyRadixTree<X> /* TODO extends ReentrantReadWriteLock */ implements
 		    forEach(l.get(i), action);
 	}
 
-	public SearchResult random(float descendProb, Random rng) {
+	public SearchResult random(float descendProb, RandomGenerator rng) {
 		return random(root, null, null, descendProb, rng);
 	}
 
-	public SearchResult random(ByteNode subRoot, float descendProb, Random rng) {
+	public SearchResult random(ByteNode subRoot, float descendProb, RandomGenerator rng) {
 		return random(subRoot, root, null, descendProb, rng);
 	}
 

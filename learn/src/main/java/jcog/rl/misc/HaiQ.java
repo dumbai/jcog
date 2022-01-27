@@ -1,4 +1,4 @@
-package jcog.ql;
+package jcog.rl.misc;
 
 import jcog.agent.Agent;
 import jcog.decide.Decide;

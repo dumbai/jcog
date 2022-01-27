@@ -3,7 +3,6 @@ package jcog.pri.bag.tree;
 import jcog.TODO;
 import jcog.data.list.Lst;
 import jcog.data.map.UnifriedMap;
-import jcog.random.RandomBits;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -131,7 +131,7 @@ public class DefaultTreeBag<X, Y> extends TreeBag<X, Y> {
     }
 
     @Override
-    public void sampleOrPop(RandomBits p, boolean sampleOrPop, BiPredicate<List<X>, Y> each) {
+    public void sampleOrPop(RandomGenerator p, boolean sampleOrPop, BiPredicate<List<X>, Y> each) {
         throw new TODO();
     }
 
