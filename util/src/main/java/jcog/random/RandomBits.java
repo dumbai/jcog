@@ -23,11 +23,10 @@ public class RandomBits implements RandomGenerator {
     private long buffer;
 
     /** bits remaining */
-    byte bit;
+    byte bit = 0;
 
     public RandomBits(Random rng) {
         this.rng = rng;
-        this.bit = 0;
     }
 
     @Override public String toString() {
