@@ -5,6 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 
 public enum Config {
     ;
@@ -29,6 +32,8 @@ public enum Config {
     }
 
 
+    private static final Map<String,Object> config = new ConcurrentHashMap();
+
     /**
      * @param key
      * @param def   default value
@@ -41,28 +46,30 @@ public enum Config {
 
         //Intrinsics.checkExpressionValueIsNotNull(var10000, "(this as java.lang.String).toLowerCase()");
 
-        String javapropname = key.toLowerCase().replace('_', '.');//, false, 4, (Object)null);
+        String k = key.toLowerCase().replace('_', '.');//, false, 4, (Object)null);
 
-        String y = System.getenv(key); //HACK
+        String v = System.getenv(key); //HACK
 
-        if (y == null) {
-            y = System.getProperty(javapropname);
-            if (y == null) {
-                y = System.getenv(javapropname);
-                if (y == null)
-                    y = System.getProperty(key);
+        if (v == null) {
+            v = System.getProperty(k);
+            if (v == null) {
+                v = System.getenv(k);
+                if (v == null)
+                    v = System.getProperty(key);
             }
         }
 
-        if (y != null) {
+        if (v != null) {
 
-            y = Str.unquote(y);
+            v = Str.unquote(v);
 
-            System.setProperty(javapropname, y);
+            System.setProperty(k, v);
+
+            config.put(k,v);
             if (!quiet)
-                report(javapropname, y);
+                report(k, v);
 
-            return y;
+            return v;
 
         } else {
 //            if (defString == null)
@@ -109,4 +116,7 @@ public enum Config {
         };
     }
 
+    public static void forEach(BiConsumer<String,Object> o) {
+        config.forEach(o);
+    }
 }
