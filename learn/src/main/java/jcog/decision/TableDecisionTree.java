@@ -13,6 +13,8 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static jcog.math.Discretize1D.BooleanDiscretization;
+
 /**
  * computes a decision tree from DataTable
  * <p>
@@ -30,6 +32,10 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
      */
     final IntToFloatFunction depthToPrecision;
 
+
+    public TableDecisionTree(Table table, String predictCol, int maxDepth, int discretization) {
+        this(table, table.columnIndex(predictCol), maxDepth, discretization);
+    }
 
     public TableDecisionTree(Table table, int predictCol, int maxDepth, int discretization) {
         super();
@@ -51,7 +57,8 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
         this.col = IntStream.range(0, columns).mapToObj(c -> {
             Column<?> C = table.column(c);
             String name = C.name();
-            return switch (C.type().name()) {
+            String colType = C.type().name();
+            return switch (colType) {
                 case "STRING" -> new EnumFeature(c, name) {
                     @Override
                     public void learn(Row r) {
@@ -70,7 +77,19 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
                         learn((Float) C.get(r.getRowNumber()));
                     }
                 };
-                default -> throw new UnsupportedOperationException();
+                case "INTEGER" -> new QuantizedScalarFeature(c, name, discretization, new QuantileDiscretize1D()) {
+                    @Override
+                    public void learn(Row r) {
+                        learn(((Integer) (C.get(r.getRowNumber()))).floatValue());
+                    }
+                };
+                case "BOOLEAN" -> new QuantizedScalarFeature(c, name, 2, BooleanDiscretization) {
+                    @Override
+                    public void learn(Row r) {
+                        //learn( (Double) ((Boolean) C.get(r.getRowNumber())) ? 1.0 : 0.0);
+                    }
+                };
+                default -> throw new UnsupportedOperationException(colType + " unsupported");
             };
         }).toArray(DiscreteFeature[]::new);
 
@@ -99,7 +118,7 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
             Stream.of(col).
                 filter(x -> x.id != column).
                 flatMap((Function<DiscreteFeature, Stream<Function<Function<Integer, Object>, Object>>>)
-                        DiscreteFeature::classifiers),
+                        discreteFeature -> discreteFeature.classifiers()),
 
             depthToPrecision
         );

@@ -18,7 +18,9 @@ public class QuantizedScalarFeature extends DiscreteFeature<Float> implements Fu
         super(id, name);
         this.arity = arity;
         this.discretizer = d;
-        this.rangeLabels = rangeLabels(arity);
+        this.rangeLabels = d==Discretize1D.BooleanDiscretization ?
+                Discretize1D.BooleanLabels :
+                rangeLabels(arity);
 
         assert (rangeLabels == null || rangeLabels.length == 0 || rangeLabels.length == arity);
         this.centroid = IntStream.range(0, arity).mapToObj(
@@ -48,8 +50,11 @@ public class QuantizedScalarFeature extends DiscreteFeature<Float> implements Fu
 
     @Override
     public Object apply(Function rr) {
-        Number n = (Number) rr.apply(id);
-        return centroid[discretizer.index(n.floatValue())];
+        Object x = rr.apply(id);
+        Number n =
+            x instanceof Boolean ? (((Boolean) x).booleanValue() ? 1 : 0) :
+            (Number) x;
+        return centroid[discretizer.index(n.doubleValue())];
     }
 
     public class CentroidMatch {
