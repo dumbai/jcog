@@ -61,8 +61,8 @@ import static jcog.Util.emptyIterator;
 public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
 
     public static final float SHARP_DEFAULT =
-        2;
-        //1;
+        1;
+        //2;
 
     private static final int HISTOGRAM_THRESH = 4;
 
