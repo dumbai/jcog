@@ -1,7 +1,9 @@
 package jcog.rl.dqn;
 
 import jcog.Util;
+import jcog.pri.NLink;
 import jcog.pri.PLink;
+import jcog.pri.Prioritized;
 import jcog.pri.bag.impl.PriReferenceArrayBag;
 import jcog.pri.op.PriMerge;
 import jcog.rl.ValuePredictAgent;
@@ -47,7 +49,7 @@ public class BagReplay extends Replay {
     protected double importance(double[] q) {
         double qMean = Util.sumAbs(q) / q.length;
         //return Math.log(1 + qMean);
-        return qMean/2;
+        return Prioritized.EPSILON + qMean;
     }
 
     @Override
@@ -58,23 +60,24 @@ public class BagReplay extends Replay {
     @Override
     protected void rerun(ReplayMemory m, float pri, ValuePredictAgent agent) {
         double[] qTmp = new double[agent.actions];
-        agent.run(m, pri, qTmp);
+        double[] dq = agent.run(m, pri, qTmp);
 
-        float nextPri = (float) importance(qTmp);
+        float nextPri = (float) importance(dq);
         memory.get(m).pri(nextPri);
     }
 
     @Override
     protected void playback(ValuePredictAgent agent) {
         super.playback(agent);
-        //System.out.println(memory.size() + " " + memory.pressure() + " " + memory.mass());
-        //memory.commit(null);
-        memory.commit(); //with forget
+        memory.commit();
+
+        System.out.println(memory.size() + " " + memory.pressure() + " " + memory.mass());
+        memory.print();
+        System.out.println();
     }
 
     private void put(ReplayMemory m, double[] qNext) {
-        memory.put(new PLink<>(m, importance(qNext)));
-        //memory.commit(null);
+        memory.put(new PLink<>(m, (float)importance(qNext)));
     }
 
     @Override

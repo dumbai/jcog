@@ -173,7 +173,8 @@ public enum QuickSort { ;
 	@SuppressWarnings("LambdaUnfriendlyMethodOverload")
     public static <X> void sort(X[] x, int left, int right /* inclusive */, IntToDoubleFunction v) {
 		quickSort(left, right, (a, b)->a==b ? 0 :
-				Double.compare(v.valueOf(a), v.valueOf(b)), ArrayUtil.objSwapper(x));
+				Double.compare(v.valueOf(a), v.valueOf(b)),
+				ArrayUtil.swapper(x));
 	}
 
 	/**
@@ -183,7 +184,7 @@ public enum QuickSort { ;
     public static <X> void sort(X[] x, int left, int right /* inclusive */, FloatFunction<X> v) {
 		quickSort(left, right, (a, b) -> a == b ? 0 :
 			Float.compare(v.floatValueOf(x[a]), v.floatValueOf(x[b])),
-			ArrayUtil.objSwapper(x));
+			ArrayUtil.swapper(x));
 	}
 
 	/** modifies order of input array */

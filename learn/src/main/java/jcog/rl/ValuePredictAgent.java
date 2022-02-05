@@ -3,19 +3,23 @@ package jcog.rl;
 import jcog.Fuzzy;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.ReluActivation;
+import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.rl.ac.A2C;
+import jcog.rl.dqn.BagReplay;
 import jcog.rl.dqn.DirectPolicy;
 import jcog.rl.dqn.QPolicy;
+import jcog.rl.dqn.QPolicySimul;
 import jcog.rl.replay.Replay;
 import jcog.rl.replay.ReplayMemory;
 import jcog.rl.replay.SimpleReplay;
@@ -73,17 +77,18 @@ public class ValuePredictAgent extends Agent {
         this.policy.clear(rng);
     }
 
+
+    public static Agent DQN(int inputs, int actions) {
+        return DQN(inputs, false, actions,
+                false,
+                0/*Util.PHI_min_1f*/ /*0.5f*/, 128);
+    }
+
     public static Agent DQNmini(int inputs, int actions) {
         return DQN(inputs, false, actions, false,
                 0.25f, 7);
     }
 
-
-    public static Agent DQN(int inputs, int actions) {
-        return DQN(inputs, false, actions,
-                false,
-                0 /*Util.PHI_min_1f*/ /*0.5f*/, 7);
-    }
 
     public static Agent DQNmunch(int inputs, int actions) {
         final ValuePredictAgent v = DQN(inputs, false, actions,
@@ -112,13 +117,15 @@ public class ValuePredictAgent extends Agent {
 
         ValuePredictAgent a = new ValuePredictAgent(inputs, actions,
             //THIS ISNT GOOD:
-//            (i, o) ->
-//                new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
             (i, o) ->
+                //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
+                new QPolicySimul( i, o,
+                        (ii,oo)->mlpBrain(ii, oo, brains, precise, inputAE))
+//            (i, o) ->
 //                new QPolicyBranched(i, o,
 //                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
 //                )
-                new A2C(i,o, o)
+//                new A2C(i,o, o)
         );
 
         if (replays > 0)
@@ -183,10 +190,10 @@ public class ValuePredictAgent extends Agent {
 //        layers.add(new MLP.Output(o));
 
         layers.add(new MLP.Dense(o,
-                        ReluActivation.the
-                        //SigmoidActivation.the
+                        //ReluActivation.the
+                        SigmoidActivation.the
                         //LinearActivation.the
-                //new SigLinearActivation()
+                        //new SigLinearActivation()
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
 //                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
@@ -199,8 +206,8 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                        new SGDOptimizer(0)
-                        //new AdamOptimizer()
+                        //new SGDOptimizer(0)
+                        new AdamOptimizer()
                         //new SGDOptimizer(0).minibatches(8)
                         //new SGDOptimizer(0.9f).minibatches(8)
                         //new SGDOptimizer(0.9f)
@@ -309,7 +316,8 @@ public class ValuePredictAgent extends Agent {
 
 
 
-    public void run(ReplayMemory e, float alpha, @Nullable double[] qNextCopy) {
+    /** @return dq[] */
+    public double[] run(ReplayMemory e, float alpha, @Nullable double[] qNextCopy) {
 
         @Nullable DeltaPredictor p = (DeltaPredictor) ((policy instanceof DirectPolicy) ? ((DirectPolicy) policy).p :
                 (policy instanceof QPolicy ? ((QPolicy) policy).p : null));
@@ -318,18 +326,25 @@ public class ValuePredictAgent extends Agent {
 
         double[] qNext = e.learn(policy, alpha);
 
+        double[] dq = null;
         if (qNextCopy != null) {
             System.arraycopy(qNext, 0, qNextCopy, 0, qNext.length);
 
-            if (policy instanceof QPolicy)
-                err(((QPolicy) policy).dq);
-            else if (p!=null && policy instanceof DirectPolicy) {
+            if (policy instanceof QPolicy) {
+                dq = ((QPolicy) policy).dq;
+                err(dq);
+            } else if (policy instanceof QPolicySimul Q) {
+                dq = Q.q.dq;
+                err(dq);
+            } else if (p!=null && policy instanceof DirectPolicy) {
                 double errAfter = p.deltaSum;
                 double err = errAfter - errBefore;
                 errMean = err;
+                dq = null;
             }
         }
 
+        return dq;
 
     }
     @Override

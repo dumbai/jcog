@@ -3007,9 +3007,6 @@ public enum Util {
 		return (int) x;
 	}
 
-	/**
-	 * faster than cartesian distance
-	 */
 	public static void normalizeHamming(float[] v, float target, float epsilon) {
 		float current = 0;
 		for (float value : v)

@@ -1479,10 +1479,19 @@ public enum ArrayUtil {
 		if (a != b)
 			_swap(o, a, b);
 	}
+	public static void swap(short[] o, int a, int b) {
+		if (a != b)
+			_swap(o, a, b);
+	}
 
 	/** see: Arrays.swap */
 	private static void _swap(Object[] o, int a, int b) {
 		Object aux = o[a];
+		o[a] = o[b];
+		o[b] = aux;
+	}
+	private static void _swap(short[] o, int a, int b) {
+		short aux = o[a];
 		o[a] = o[b];
 		o[b] = aux;
 	}
@@ -4232,7 +4241,10 @@ public enum ArrayUtil {
 		return true;
 	}
 
-    public static IntIntProcedure objSwapper(Object[] x) {
+    public static IntIntProcedure swapper(Object[] x) {
         return (a, b) -> swap(x, a, b);
     }
+	public static IntIntProcedure swapper(short[] x) {
+		return (a, b) -> swap(x, a, b);
+	}
 }

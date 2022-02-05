@@ -14,6 +14,7 @@ import jcog.pri.bag.Sampler;
 import jcog.pri.op.PriMerge;
 import jcog.signal.NumberX;
 import jcog.sort.IntifySmoothSort2;
+import jcog.sort.QuickSort;
 import jcog.sort.SortedIntArray;
 import jcog.util.ArrayUtil;
 import jcog.util.SingletonIterator;
@@ -205,7 +206,15 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
         }
 
         if ((to = clamp(to, from, s)) - (from = Math.max(0, from)) > 1)
-            new IntifySmoothSort2(items(), model.priInt).sort(from, to);
+            _sort(from, to);
+    }
+
+    private void _sort(int from, int to) {
+        new IntifySmoothSort2(items(), model.priInt).sort(from, to);
+//        QuickSort.quickSort(from, to, (a,b)->
+//            Integer.compare(model.priInt((short)a),model.priInt((short)b)),
+//            ArrayUtil.swapper(items())
+//        );
     }
 
     /**

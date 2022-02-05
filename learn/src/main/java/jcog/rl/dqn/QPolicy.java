@@ -3,10 +3,12 @@ package jcog.rl.dqn;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
+import jcog.decide.Decide;
 import jcog.predict.Predictor;
 import jcog.rl.PredictorPolicy;
 import jcog.signal.FloatRange;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static jcog.Util.clampSafe;
@@ -18,13 +20,14 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.1f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.9f, 0, 1);
 
 
     /** TODO move into separate impls of the update function */
-    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(true);
+    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(false);
 
-    static final float tdErrClamp =
+    /** NaN to disable */
+    private static final float tdErrClamp =
         Float.NaN;
         //10;
         //1;
@@ -58,8 +61,8 @@ public class QPolicy extends PredictorPolicy {
     @Override public double[] learn(double[] xPrev, double[] action, double reward, double[] i, float pri) {
         if (dq == null || dq.length!=action.length) dq = new double[action.length];
 
-        double[] qPrev = predict(xPrev).clone();
-        double[] qNext = predict(i).clone();
+        double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
+        double[] qNext = predict(i).clone(); //TODO is clone() necessary?
 
         double gamma = plan.doubleValue();
         int n = action.length;
@@ -81,11 +84,8 @@ public class QPolicy extends PredictorPolicy {
         double logsumPrev = m ? Util.logsumexp(qPrev, -qPrevMax, 1/entropy_tau)*entropy_tau : Double.NaN;
 
 
-        //int a = new DecideSoftmax(0.1f, ThreadLocalRandom.current()).applyAsInt(action);
         for (int a = 0; a < n; a++) {
-        //int a = Decide.Greedy.applyAsInt(action); {
-            //Arrays.fill(dq, 0);
-            /*for (int a = 0; a < n; a++)*/
+        //Arrays.fill(dq, 0); int a = Decide.Greedy.applyAsInt(action); {
 
             double qPrevA = qPrev[a], qNextA = qNext[a];
 
