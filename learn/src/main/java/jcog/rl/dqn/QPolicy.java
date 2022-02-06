@@ -1,15 +1,12 @@
 package jcog.rl.dqn;
 
-import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
-import jcog.decide.Decide;
 import jcog.predict.Predictor;
 import jcog.rl.PredictorPolicy;
 import jcog.signal.FloatRange;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static jcog.Util.clampSafe;

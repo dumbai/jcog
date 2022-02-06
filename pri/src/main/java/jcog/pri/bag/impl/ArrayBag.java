@@ -14,7 +14,6 @@ import jcog.pri.bag.Sampler;
 import jcog.pri.op.PriMerge;
 import jcog.signal.NumberX;
 import jcog.sort.IntifySmoothSort2;
-import jcog.sort.QuickSort;
 import jcog.sort.SortedIntArray;
 import jcog.util.ArrayUtil;
 import jcog.util.SingletonIterator;

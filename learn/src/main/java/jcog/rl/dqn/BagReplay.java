@@ -1,7 +1,6 @@
 package jcog.rl.dqn;
 
 import jcog.Util;
-import jcog.pri.NLink;
 import jcog.pri.PLink;
 import jcog.pri.Prioritized;
 import jcog.pri.bag.impl.PriReferenceArrayBag;

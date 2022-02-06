@@ -4,7 +4,6 @@ import jcog.TODO;
 import jcog.Util;
 import jcog.data.DistanceFunction;
 import jcog.decide.Decide;
-import jcog.decide.DecideRoulette;
 import jcog.decide.DecideSoftmax;
 import jcog.predict.Predictor;
 import jcog.random.XoRoShiRo128PlusRandom;
@@ -13,9 +12,7 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
-import static java.lang.Math.sqrt;
 import static jcog.Util.sqr;
-import static jcog.Util.unitizeSafe;
 
 public class QPolicySimul implements Policy {
 
