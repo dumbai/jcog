@@ -37,7 +37,7 @@ public class QPolicy extends PredictorPolicy {
      * https://github.com/BY571/Munchausen-RL/blob/master/M-DQN.ipynb
      * experimental
      */
-    public final AtomicBoolean munchausen = new AtomicBoolean(false);
+    public final AtomicBoolean munchausen = new AtomicBoolean(true);
     private static final float m_alpha = 0.9f;
     private static final float entropy_tau =
             //1;
@@ -89,6 +89,8 @@ public class QPolicy extends PredictorPolicy {
 
             double qPrevA = qPrev[a], qNextA = qNext[a];
 
+            double gq;
+
             if (m) {
                 // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
                 double mNext = qNextA - qNextMax - logsumNext;
@@ -104,12 +106,9 @@ public class QPolicy extends PredictorPolicy {
 //                            //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
 //                ) - qPrevA;
 
-                dq[a] = PRI * (
-                        action[a] * reward +
-                                m_alpha * clampSafe(mPrev, lo, 0) +
-                                (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)))
-                        //(gamma * qNextA * (qNextA - mNext))//*(1 - dones)
-                ) - qPrevA;
+                gq = m_alpha * clampSafe(mPrev, lo, 0) +
+                        (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)));
+
 
 //                dq[a] = PRI * action[a] *(
 //                     reward +
@@ -120,10 +119,11 @@ public class QPolicy extends PredictorPolicy {
 
             } else {
                 /* estimate of optimal future value */
-                double gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
+                gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
 
+
+                //dq[a] = PRI * action[a] * (reward + gq - qPrevA);
                 //dq[a] = PRI * action[a] * reward + gq - qPrevA;
-                dq[a] = PRI * (action[a] * (reward + gq - qPrevA));
 //
 
                 //dq[a] = PRI * action[a] * (reward + gq) - qPrevA;
@@ -157,12 +157,7 @@ public class QPolicy extends PredictorPolicy {
 
             }
 
-            //LOSS
-            //https://github.com/jlow2499/LinearRegressionByStochasitcGradientDescent/blob/master/SGD.R
-            /* nothing, as-is */ //MSE
-            //Util.mul(2, dq); //L2
-            //Util.mul(1.0/Util.sumAbs(dq), dq); //L1
-
+            dq[a] = PRI * action[a] * (reward + gq - qPrevA);
 
         }
 

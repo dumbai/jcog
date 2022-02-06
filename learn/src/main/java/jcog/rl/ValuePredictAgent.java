@@ -81,7 +81,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                0.25f /*Util.PHI_min_1f*/ /*0.5f*/, 8);
+                0.5f /*Util.PHI_min_1f*/ /*0.5f*/, 8);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -89,14 +89,6 @@ public class ValuePredictAgent extends Agent {
                 0.25f, 7);
     }
 
-
-    public static Agent DQNmunch(int inputs, int actions) {
-        final ValuePredictAgent v = DQN(inputs, false, actions,
-                false,
-                0.5f, 7);
-        ((QPolicy)v.policy).munchausen.set(true);
-        return v;
-    }
 
     public static Agent DQNae(int inputs, int actions) {
         return DQN(inputs, true, actions, false,
