@@ -265,7 +265,7 @@ public class v3 implements Serializable, Cloneable, Tensor {
      */
     public final float angle(v3 v1) {
         double div = this.length() * v1.length();
-        if (Util.equals(div, 0, Float.MIN_NORMAL))
+        if (Util.equals(div, 0))
             return Float.NaN;
 
         double vDot = this.dot(v1) / div;

@@ -794,7 +794,7 @@ public enum Util {
 	}
 
 	public static boolean equals(float a, float b) {
-		return equals(a, b, Float.MIN_NORMAL * 2);
+		return equals(a, b, Float.MIN_NORMAL);
 	}
 
 	public static boolean equals(long a, long b, int tolerance) {
@@ -814,20 +814,25 @@ public enum Util {
 ////            return (a != a) && (b != b); //both NaN
 //	}
 
+
 	public static boolean equals(double a, double b) {
-		return equals(a, b, Double.MIN_NORMAL * 2);
+		return equals(a, b, Double.MIN_NORMAL);
 	}
 
 	/**
 	 * tests equivalence (according to epsilon precision)
 	 */
 	public static boolean equals(double a, double b, double epsilon) {
+		return abs(a - b) < epsilon;
 //		if (a == b)
 //			return true;
 //        if (Double.isFinite(a) && Double.isFinite(b))
-		return Math.abs(a - b) < epsilon;
 //        else
 //            return (a != a) && (b != b); //both NaN
+	}
+
+	public static boolean equals(float a, float b, float epsilon) {
+		return abs(a - b) < epsilon;
 	}
 
 
