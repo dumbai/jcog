@@ -13,6 +13,7 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
+import static java.lang.Math.sqrt;
 import static jcog.Util.sqr;
 import static jcog.Util.unitizeSafe;
 
@@ -63,7 +64,7 @@ public class QPolicySimul implements Policy {
     public static class BinaryActionEncoder implements ActionEncoder {
 
         private final Decide decide =
-            new DecideSoftmax(0.1f, new XoRoShiRo128PlusRandom());
+            new DecideSoftmax(0.05f, new XoRoShiRo128PlusRandom());
             //new DecideRoulette(new XoRoShiRo128PlusRandom());
 
 
@@ -108,23 +109,27 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
+                        Math.max(0, 1-d);
+                        //Math.max(0, 1-d*2);
                         //1 / (1 + d);
-                        1 / sqr(1 + d);
-                        //Math.max(0, 1-d);
+                        //1 / sqr(1 + d);
+                        //1 / sqr(1 + d * actionsInternal);
                         //1 / (1 + d * actionsInternal);
                 z[i] = weight;
                 zSum += weight;
             }
             //Util.normalizeCartesian(z, z.length, Float.MIN_NORMAL);
 
-            if (zSum > Float.MIN_NORMAL) Util.mul(1/zSum, z);
+            if (zSum > Float.MIN_NORMAL)
+                Util.mul(1/zSum, z);
 
             return z;
         }
 
         /** TODO abstract for distance function parameter */
         private double dist(double[] x, double[] y) {
-            return DistanceFunction.distanceManhattan(x,y);
+            //return DistanceFunction.distanceManhattan(x,y);
+            return sqrt(DistanceFunction.distanceCartesianSq(x,y));
         }
 
 
