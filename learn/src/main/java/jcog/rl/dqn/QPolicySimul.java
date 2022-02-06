@@ -22,17 +22,21 @@ public class QPolicySimul implements Policy {
     final int inputs, actions;
     public final QPolicy q;
 
-    final int actionDiscretization = 2;
-    private final int actionsInternal;
+    /** TODO returned by ActionEncoder method  */
+    @Deprecated private final int actionDiscretization = 2;
 
+    /** TODO returned by ActionEncoder method  */
+    @Deprecated private final int actionsInternal;
+
+    /** maps action vector to a distribution of virtual d^n basis vectors */
     interface ActionEncoder {
         double[] actionEncode(double[] x, int actionsInternal);
         double[] actionDecode(double[] x, int actions);
     }
 
     private ActionEncoder c =
-        new BinaryActionEncoder();
-        //new DistanceActionEncoder();
+        //new BinaryActionEncoder();
+        new DistanceActionEncoder();
 
 
     public QPolicySimul(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
@@ -109,16 +113,19 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
-                        Math.max(0, 1-d);
+                        //1 / (1 + d * actions);
+                        //Math.max(0, 1-d/actions);
+                        //sqr(Math.max(0, 1-d/actions));
+                        //Math.max(0, 1-sqr(d/actions));
+                        //Math.max(0, 1-d);
                         //Math.max(0, 1-d*2);
                         //1 / (1 + d);
                         //1 / sqr(1 + d);
-                        //1 / sqr(1 + d * actionsInternal);
-                        //1 / (1 + d * actionsInternal);
+                        //1 / sqr(1 + d * actions);
+                        1 / sqr(1 + d * actionsInternal);
                 z[i] = weight;
                 zSum += weight;
             }
-            //Util.normalizeCartesian(z, z.length, Float.MIN_NORMAL);
 
             if (zSum > Float.MIN_NORMAL)
                 Util.mul(1/zSum, z);
@@ -128,8 +135,8 @@ public class QPolicySimul implements Policy {
 
         /** TODO abstract for distance function parameter */
         private double dist(double[] x, double[] y) {
+            return DistanceFunction.distanceCartesian(x,y);
             //return DistanceFunction.distanceManhattan(x,y);
-            return sqrt(DistanceFunction.distanceCartesianSq(x,y));
         }
 
 
@@ -140,9 +147,9 @@ public class QPolicySimul implements Policy {
             double s = 0;
             for (int i = 0; i < z.length; i++) {
                 double zi = z[i];
-                double[] Z = idealDecode(i, actions);
+                double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
-                    y[a] += zi * Z[a];
+                    y[a] += zi * ideal[a];
                 s += zi;
             }
             if (s > Float.MIN_NORMAL)

@@ -60,11 +60,11 @@ public abstract class Parts<T extends Thing> extends Part<T>  {
 
     public final void add(SubPart x) {
         //if (!isOff())
-        if (isOn())
-            throw new UnsupportedOperationException(this + " is not in OFF or OFFtoON state to add sub-part " + x);
+//        if (isOn())
+//            throw new UnsupportedOperationException(this + " is not in OFF or OFFtoON state to add sub-part " + x);
 
         if (this.sub.add(x)) {
-//            local.startIn(this);
+            x.startIn(this);
         } else
             throw new UnsupportedOperationException("duplicate local: " + x);
     }

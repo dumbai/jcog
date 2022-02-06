@@ -1,5 +1,6 @@
 package jcog.rl.dqn;
 
+import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
@@ -29,8 +30,8 @@ public class QPolicy extends PredictorPolicy {
     /** NaN to disable */
     private static final float tdErrClamp =
         Float.NaN;
-        //10;
         //1;
+        //10;
 
     /**
      * https://medium.com/analytics-vidhya/munchausen-reinforcement-learning-9876efc829de
@@ -52,13 +53,15 @@ public class QPolicy extends PredictorPolicy {
     }
 
 
+    boolean rewardDelta = false;
+    private double rewardPrev = Double.NaN;
+
     /**
      * TD update policy
      * @see https://towardsdatascience.com/reinforcement-learning-temporal-difference-sarsa-q-learning-expected-sarsa-on-python-9fecfda7467e
      *
-     * @param dq - (output) this will be modified
      */
-    @Override public double[] learn(double[] xPrev, double[] action, double reward, double[] i, float pri) {
+    @Override public synchronized double[] learn(double[] xPrev, double[] action, double reward, double[] i, float pri) {
         if (dq == null || dq.length!=action.length) dq = new double[action.length];
 
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
@@ -79,37 +82,28 @@ public class QPolicy extends PredictorPolicy {
         double qPrevMax = m ? Util.max(qPrev) : Double.NaN;
         double logsumPrev = m ? Util.logsumexp(qPrev, -qPrevMax, 1/entropy_tau)*entropy_tau : Double.NaN;
 
+        double rewardPrev = this.rewardPrev;
+        this.rewardPrev = reward;
+        if (rewardDelta) {
+            reward = rewardPrev==rewardPrev ? reward - rewardPrev : 0;
+        } else {
+            ///*if (rewardPolarize)*/ reward = Fuzzy.polarize(reward);
+        }
 
         for (int a = 0; a < n; a++) {
-        //Arrays.fill(dq, 0); int a = Decide.Greedy.applyAsInt(action); {
-
             double qPrevA = qPrev[a], qNextA = qNext[a];
 
+            /** estimate of optimal future value */
             double gq;
-
             if (m) {
-                // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
-                double mNext = qNextA - qNextMax - logsumNext;
-
-                double mPrev = qPrevA - qPrevMax - logsumPrev;
-
-                boolean terminal = false; //TODO final episode iteration
-
-                gq = m_alpha * clampSafe(mPrev, lo, 0) +
-                        (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)));
-
-
+                gq = gqMunch(gamma, qNextMax, logsumNext, qPrevMax, logsumPrev, qPrevA, qNextA);
             } else {
-                /* estimate of optimal future value */
                 gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
-
-
             }
 
             dq[a] = action[a] * (reward + gq - qPrevA);
             //dq[a] = action[a] * reward + (gq - qPrevA);
             //dq[a] = action[a] * (reward + gq) - qPrevA;
-
         }
 
         if (p instanceof jcog.predict.DeltaPredictor) {
@@ -124,6 +118,19 @@ public class QPolicy extends PredictorPolicy {
         return qNext;
     }
 
+    private double gqMunch(double gamma, double qNextMax, double logsumNext, double qPrevMax, double logsumPrev, double qPrevA, double qNextA) {
+        double gq;
+        // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
+        double mNext = qNextA - qNextMax - logsumNext;
+
+        double mPrev = qPrevA - qPrevMax - logsumPrev;
+
+        boolean terminal = false; //TODO final episode iteration
+
+        gq = m_alpha * clampSafe(mPrev, lo, 0) +
+                (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)));
+        return gq;
+    }
 
 
     private static double qMax(double[] q) {

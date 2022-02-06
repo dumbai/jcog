@@ -2,6 +2,8 @@ package jcog.data;
 
 import jcog.Util;
 
+import static java.lang.Math.sqrt;
+
 @FunctionalInterface
 public interface DistanceFunction {
 
@@ -16,6 +18,10 @@ public interface DistanceFunction {
         for (int i = 0; i < l; i++)
             sum += Util.sqr(y[i] - x[i]);
         return sum;
+    }
+
+    static double distanceCartesian(double[] x, double[] y) {
+        return sqrt(distanceCartesianSq(x,y));
     }
 
     static double distanceCartesianSq(float[] x, float[] y) {
