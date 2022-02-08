@@ -751,8 +751,8 @@ public abstract class KMeansPlusPlus<X> {
         }
 
         public void clearValues() {
-            if (!values.isEmpty()) //HACK this prevents unnecessary container realloc
-                values.clear();
+            //if (!values.isEmpty()) //HACK this prevents unnecessary container realloc
+            values.clear();
         }
 
 
