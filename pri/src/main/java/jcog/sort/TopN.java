@@ -12,7 +12,7 @@ import java.util.random.RandomGenerator;
 import static java.lang.Float.NEGATIVE_INFINITY;
 
 /**
- * warning: this keeps duplicate insertions
+ * warning: this accepts and keeps duplicate insertions
  */
 public class TopN<X> extends SortedArray<X> implements FloatFunction<X>, TopFilter<X> {
 

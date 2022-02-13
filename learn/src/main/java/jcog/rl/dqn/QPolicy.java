@@ -1,5 +1,6 @@
 package jcog.rl.dqn;
 
+import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
@@ -18,7 +19,7 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.9f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
 
 
     /** TODO move into separate impls of the update function */
@@ -35,7 +36,7 @@ public class QPolicy extends PredictorPolicy {
      * https://github.com/BY571/Munchausen-RL/blob/master/M-DQN.ipynb
      * experimental
      */
-    public final AtomicBoolean munchausen = new AtomicBoolean(true);
+    public final AtomicBoolean munchausen = new AtomicBoolean(false);
     private static final float m_alpha = 0.9f;
     private static final float entropy_tau =
             //1;
@@ -51,6 +52,7 @@ public class QPolicy extends PredictorPolicy {
 
 
     boolean rewardDelta = false;
+    boolean rewardPolarize = false;
     private double rewardPrev = Double.NaN;
 
     /**
@@ -84,7 +86,7 @@ public class QPolicy extends PredictorPolicy {
         if (rewardDelta) {
             reward = rewardPrev==rewardPrev ? reward - rewardPrev : 0;
         } else {
-            ///*if (rewardPolarize)*/ reward = Fuzzy.polarize(reward);
+            if (rewardPolarize) reward = Fuzzy.polarize(reward);
         }
 
         for (int a = 0; a < n; a++) {

@@ -28,13 +28,12 @@ public class QPolicySimul implements Policy {
     /** maps action vector to a distribution of virtual d^n basis vectors */
     interface ActionEncoder {
         double[] actionEncode(double[] x, int actionsInternal);
-        double[] actionDecode(double[] x, int actions);
+        double[] actionDecode(double[] z, int actions);
     }
 
     private ActionEncoder c =
         //new BinaryActionEncoder();
         new DistanceActionEncoder();
-
 
     public QPolicySimul(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
         this.inputs = inputs;
@@ -65,7 +64,7 @@ public class QPolicySimul implements Policy {
     public static class BinaryActionEncoder implements ActionEncoder {
 
         private final Decide decide =
-            new DecideSoftmax(0.05f, new XoRoShiRo128PlusRandom());
+            new DecideSoftmax(0.1f, new XoRoShiRo128PlusRandom());
             //new DecideRoulette(new XoRoShiRo128PlusRandom());
 
 
@@ -84,18 +83,19 @@ public class QPolicySimul implements Policy {
         }
 
 
-        @Override public double[] actionDecode(double[] x, int actions) {
+        @Override public double[] actionDecode(double[] z, int actions) {
+            //System.out.println(n2(z));
             //HACK 2-ary thresholding
             //assert (actionDiscretization == 2);
-            double[] z = new double[actions];
+            double[] y = new double[actions];
             //x = Util.normalize(x);
-            int Z = decide.applyAsInt(x);
+            int Z = decide.applyAsInt(z);
             for (int i = 0; i < actions; i++) {
                 boolean a = (Z & (1 << i)) != 0;
                 if (a)
-                    z[i] = 1;
+                    y[i] = 1;
             }
-            return z;
+            return y;
         }
     }
 
@@ -138,8 +138,9 @@ public class QPolicySimul implements Policy {
 
 
         @Override public double[] actionDecode(double[] z, int actions) {
-            //HACK 2-ary thresholding
-            //assert (actionDiscretization == 2);
+            z = z.clone();Util.normalize(z);
+            //System.out.println(n2(z));
+
             double[] y = new double[actions];
             double s = 0;
             for (int i = 0; i < z.length; i++) {

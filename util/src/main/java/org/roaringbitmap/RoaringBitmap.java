@@ -7,6 +7,7 @@ package org.roaringbitmap;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MappeableContainerPointer;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+import org.roaringbitmap.longlong.LongUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -15,7 +16,6 @@ import java.util.NoSuchElementException;
 
 import static org.roaringbitmap.RoaringBitmapWriter.writer;
 import static org.roaringbitmap.Util.lowbitsAsInteger;
-import org.roaringbitmap.longlong.LongUtils;
 
 /**
  * MODIFIED FOR MEMORY EFFICIENCY

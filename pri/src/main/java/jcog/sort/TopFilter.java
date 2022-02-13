@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
+/** for filtering the 'top' ranking elements */
 public interface TopFilter<X> extends Consumer<X>, Iterable<X> {
 
     boolean add(X x);
@@ -16,16 +17,10 @@ public interface TopFilter<X> extends Consumer<X>, Iterable<X> {
 
     int size();
 
+    float minValueIfFull();
+
 	@Nullable default X poll() {
-	    if (isEmpty()) return null;
-	    else return pop();
+        return isEmpty() ? null : pop();
     }
 
-
-	float minValueIfFull();
-
-    default Iterable<X> apply(Iterable<X> values) {
-        values.forEach(this);
-        return this;
-    }
 }
