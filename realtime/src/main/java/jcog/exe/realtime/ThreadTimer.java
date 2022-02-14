@@ -17,7 +17,7 @@ public class ThreadTimer implements AbstractTimer, Runnable {
 
     @Nullable
     public transient TimedFuture exe;
-    private long periodNS;
+    private long periodNS = IDLE_MS;
 
     private transient Thread thread;
 
