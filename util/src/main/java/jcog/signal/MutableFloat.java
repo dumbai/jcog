@@ -110,7 +110,7 @@ public class MutableFloat extends PlainMutableFloat {
 
 
     @Override
-    public final float add(float y) {
+    public float add(float y) {
         return update(Float::sum, y);
     }
 
