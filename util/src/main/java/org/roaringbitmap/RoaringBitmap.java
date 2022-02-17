@@ -50,15 +50,15 @@ import static org.roaringbitmap.Util.lowbitsAsInteger;
  */
 
 
-public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>, Externalizable,
-    ImmutableBitmapDataProvider, BitmapDataProvider, AppendableStorage<Container> {
+public class RoaringBitmap implements Cloneable, Iterable<Integer>, Externalizable,
+        BitmapDataProvider, AppendableStorage<Container> {
 
   private final class RoaringIntIterator implements PeekableIntIterator {
-    private int hs = 0;
+    private int hs;
 
     private PeekableCharIterator iter;
 
-    private int pos = 0;
+    private int pos;
 
     private RoaringIntIterator() {
       nextContainer();
@@ -124,7 +124,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
 
   private final class RoaringReverseIntIterator implements IntIterator {
 
-    int hs = 0;
+    int hs;
 
     CharIterator iter;
 
@@ -326,7 +326,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap add(RoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      return add(rb, (long) rangeStart, (long) rangeEnd);
+      return add(rb, rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
@@ -624,7 +624,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap flip(RoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      return flip(rb, (long) rangeStart, (long) rangeEnd);
+      return flip(rb, rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
@@ -992,7 +992,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap remove(RoaringBitmap rb, final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      return remove(rb, (long) rangeStart, (long) rangeEnd);
+      return remove(rb, rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
@@ -1061,7 +1061,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
     return answer;
   }
 
-  RoaringArray highLowContainer = null;
+  RoaringArray highLowContainer;
 
   /**
    * Create an empty bitmap
@@ -1161,7 +1161,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public void add(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      add((long) rangeStart, (long) rangeEnd);
+      add(rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
@@ -1275,7 +1275,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap and(final Iterator<? extends RoaringBitmap> bitmaps,
       final int rangeStart, final int rangeEnd) {
-    return and(bitmaps, (long) rangeStart, (long) rangeEnd);
+    return and(bitmaps, rangeStart, (long) rangeEnd);
   }
 
 
@@ -1358,7 +1358,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap andNot(final RoaringBitmap x1, final RoaringBitmap x2,
           final int rangeStart, final int rangeEnd) {
-    return andNot(x1, x2, (long) rangeStart, (long) rangeEnd);
+    return andNot(x1, x2, rangeStart, (long) rangeEnd);
   }
 
   /**
@@ -1553,15 +1553,12 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
       // occur, in order to get the new cardinality
       Container newCont = c.add(Util.lowbits(x));
       highLowContainer.setContainerAtIndex(i, newCont);
-      if (newCont.getCardinality() > oldCard) {
-        return true;
-      }
+      return newCont.getCardinality() > oldCard;
     } else {
       final ArrayContainer newac = new ArrayContainer();
       highLowContainer.insertNewKeyValueAt(-i - 1, hb, newac.add(Util.lowbits(x)));
       return true;
     }
-    return false;
   }
 
   /**
@@ -1863,7 +1860,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public void flip(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      flip((long) rangeStart, (long) rangeEnd);
+      flip(rangeStart, (long) rangeEnd);
     } else {
       // rangeStart being -ve and rangeEnd being positive is not expected)
       // so assume both -ve
@@ -2159,11 +2156,11 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Override
   public Iterator<Integer> iterator() {
     return new Iterator<Integer>() {
-      private int hs = 0;
+      private int hs;
 
       private CharIterator iter;
 
-      private int pos = 0;
+      private int pos;
 
       private int x;
 
@@ -2401,7 +2398,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap or(final Iterator<? extends RoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
-    return or(bitmaps, (long) rangeStart, (long) rangeEnd);
+    return or(bitmaps, rangeStart, (long) rangeEnd);
   }
 
 
@@ -2567,7 +2564,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public void remove(final int rangeStart, final int rangeEnd) {
     if (rangeStart >= 0) {
-      remove((long) rangeStart, (long) rangeEnd);
+      remove(rangeStart, (long) rangeEnd);
     }
     // rangeStart being -ve and rangeEnd being positive is not expected)
     // so assume both -ve
@@ -3155,7 +3152,7 @@ public class RoaringBitmap implements Cloneable, Serializable, Iterable<Integer>
   @Deprecated
   public static RoaringBitmap xor(final Iterator<? extends RoaringBitmap> bitmaps,
           final int rangeStart, final int rangeEnd) {
-    return xor(bitmaps, (long) rangeStart, (long) rangeEnd);
+    return xor(bitmaps, rangeStart, (long) rangeEnd);
   }
 
 
