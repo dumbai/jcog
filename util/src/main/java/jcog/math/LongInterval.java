@@ -1,5 +1,6 @@
 package jcog.math;
 
+import jcog.Research;
 import jcog.Util;
 import jcog.WTF;
 import org.eclipse.collections.impl.block.factory.Comparators;
@@ -81,7 +82,7 @@ public interface LongInterval extends LongIntervalArray {
 
     private static double intersectLengthRaw(double as, double ae, double bs, double be) {
         double a = max(as, bs), b = min(ae, be);
-        return a <= b ? b - a : -1;
+        return a <= b ? b - a : 0;
     }
 
     private static boolean intersectsRaw(double as, double ae, double bs, double be) {
@@ -276,12 +277,19 @@ public interface LongInterval extends LongIntervalArray {
     static double dSepNorm(double[] a, double[] b) {
         return dSepNorm(a[0], a[1], b[0], b[1]);
     }
+    static double dSepFraction(double[] a, double[] b) {
+        return dSepFraction(a[0], a[1], b[0], b[1]);
+    }
 
     static double dSepNorm(double a0, double a1, double b0, double b1) {
         return (abs(a0 - b0) + abs(a1 - b1))
-                //minTimeTo(a[0], a[1], b[0], b[1])
-                /// (1 + Util.max(a[1] - a[0], b[1] - b[0]));
                 / (1 + Util.mean(a1 - a0, b1 - b0));
+    }
+
+    /** ratio of absolute extrema distance to intersection range */
+    @Research static double dSepFraction(double a0, double a1, double b0, double b1) {
+        return (abs(a0 - b0) + abs(a1 - b1))
+                / (1 + intersectLengthRaw(a0, a1, b0, b1));
     }
 
     long start();
