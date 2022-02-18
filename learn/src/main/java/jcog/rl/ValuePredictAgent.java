@@ -8,6 +8,7 @@ import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -76,7 +77,7 @@ public class ValuePredictAgent extends Agent {
 
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
-                false,
+                true,
                 1 /*Util.PHI_min_1f*/ /*0.5f*/, 8);
     }
 
@@ -153,9 +154,9 @@ public class ValuePredictAgent extends Agent {
 
             //brains
             layers.add(new MLP.Dense(brains,
-                 ReluActivation.the
+                 //ReluActivation.the
                     //SigmoidActivation.the
-                        //LeakyReluActivation.the
+                    LeakyReluActivation.the
                     //new SigLinearActivation()
                     //new SigLinearActivation(4, -1, +1)
                     //TanhActivation.the
@@ -163,14 +164,17 @@ public class ValuePredictAgent extends Agent {
         }
 
         if (precise) {
-            //action pre-filter
-            layers.add(new MLP.Dense(o,
-                    ReluActivation.the
-                    //SigmoidActivation.the
-                    //LeakyReluActivation.the
+            int precisionLayers = 1;
+            for (int p = 0; p < precisionLayers; p++) {
+                layers.add(new MLP.Dense(o,
+                        //ReluActivation.the
+                        //SigmoidActivation.the
+                        LeakyReluActivation.the
 //                    new SigLinearActivation()
-                    //TanhActivation.the
-            ));
+                        //TanhActivation.the
+                ));
+            }
+
         }
 
         //action output
@@ -193,8 +197,8 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                        new SGDOptimizer(0)
-                        //new AdamOptimizer()
+                        //new SGDOptimizer(0)
+                        new AdamOptimizer()
                         //new SGDOptimizer(0).minibatches(8)
                         //new SGDOptimizer(0.9f).minibatches(8)
                         //new SGDOptimizer(0.9f)

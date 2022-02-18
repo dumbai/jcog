@@ -32,8 +32,8 @@ public class QPolicySimul implements Policy {
     }
 
     private ActionEncoder c =
-        //new BinaryActionEncoder();
         new DistanceActionEncoder();
+        //new BinaryActionEncoder();
 
     public QPolicySimul(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
         this.inputs = inputs;
@@ -102,6 +102,8 @@ public class QPolicySimul implements Policy {
     /** HACK 2-ary thresholding */
     public static class DistanceActionEncoder implements ActionEncoder {
 
+        private float decodeSpecificity = 2;
+
         @Override public double[] actionEncode(double[] x, int actionsInternal) {
             //assert (actionDiscretization == 2);
             double[] z = new double[actionsInternal];
@@ -141,10 +143,11 @@ public class QPolicySimul implements Policy {
             z = z.clone();Util.normalize(z);
             //System.out.println(n2(z));
 
+
             double[] y = new double[actions];
             double s = 0;
             for (int i = 0; i < z.length; i++) {
-                double zi = z[i];
+                double zi = Math.pow(z[i], decodeSpecificity);
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];

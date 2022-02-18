@@ -52,7 +52,7 @@ public class QPolicy extends PredictorPolicy {
 
 
     boolean rewardDelta = false;
-    boolean rewardPolarize = false;
+    boolean rewardPolarize = true;
     private double rewardPrev = Double.NaN;
 
     /**
