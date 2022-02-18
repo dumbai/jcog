@@ -1,10 +1,7 @@
 package jcog.nn;
 
 import jcog.Util;
-import jcog.activation.DiffableFunction;
-import jcog.activation.LeakyReluActivation;
-import jcog.activation.LinearActivation;
-import jcog.activation.SigmoidActivation;
+import jcog.activation.*;
 import jcog.predict.DeltaPredictor;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.RealMatrix;
@@ -63,7 +60,8 @@ public class RecurrentNetwork extends DeltaPredictor {
         //TanhActivation.the;
 
     private DiffableFunction activationFnOutput =
-        SigmoidActivation.the;
+        new SigLinearActivation();
+        //SigmoidActivation.the;
         //ReluActivation.the;
 
     /*

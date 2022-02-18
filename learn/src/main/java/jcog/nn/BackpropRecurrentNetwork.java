@@ -32,8 +32,8 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
     /**
      * weight gradient clamp
      */
-    private float dwClamp =
-            Float.POSITIVE_INFINITY;
+    private double dwClamp =
+            Double.POSITIVE_INFINITY;
             //1;
             //initWeightRange*2;
             //initWeightRange;
@@ -135,7 +135,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
                 int F = neuronClass(f), T = neuronClass(t);
                 float FT = connect[F][T];
                 if (FT > 0 && RNG.nextBoolean(FT)) {
-                    weights.weightAdd(f, t, mutationStrength * initWeightRange * Fuzzy.polarize(rng.nextDouble()));
+                    weights.weightAdd(f, t, mutationStrength * initWeightRange * Fuzzy.polarize(RNG.nextDouble()));
                     changed++;
                 }
             }
@@ -243,7 +243,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
         updateWeights(/*priDelta*/ pri, momentum,
 
-                BackpropRecurrentNetwork.this.weightDecay * deltaL1
+                pri * BackpropRecurrentNetwork.this.weightDecay * deltaL1
 //                BackpropRecurrentNetwork.this.weightDecay * pri
                 );
 
@@ -397,34 +397,38 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
         double[] dWprev = this.dWprev;
 
 
+        boolean decaying = weightDecayRate!=0;
+        boolean dwClamping = dwClamp!=Double.POSITIVE_INFINITY;
+
         int ft = 0;
         for (int t = 0; t < n; t++) {
-            for (int f = 0; f < n; f++) {
+            for (int f = 0; f < n; f++, ft++) {
 
-                double dw = dwClamp(Util.lerpSafe(momentum, dW[ft], dWprev[ft]));
+                double dw = Util.lerpSafe(momentum, dW[ft], dWprev[ft]);
+
+                if (dwClamping) dw = dwClamp(dw);
 
                 dWprev[ft] = dw;
 
                 final double wPrev = weights.weight(f, t);
+
                 double wPrevDecayed;
-                if (wPrev!=0) {
-                    double decay = (1 - Math.abs(wPrev) / (1.0E-8 + wL1) * weightDecayRate);
+                if (wPrev!=0 && decaying) {
+                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
                     wPrevDecayed = wPrev * decay;
                 } else
                     wPrevDecayed = wPrev;
 
                 double wNext =
-                        //wPrevDecayed + pri * dw * weightDecay;
+                        // Util.lerpSafe(pri, wPrev, dw + wPrevDecayed)
+                        wPrevDecayed + pri * dw;
                         //Util.fma(pri, dw, wPrev)
-                        Util.lerpSafe(pri, wPrev, dw + wPrevDecayed)
                             //* (1 - Math.abs(wPrev) / (1.0E-8 + wL1) * weightDecayRate)
                             //- (wPrev / (1.0E-8 + wL1) * weightDecayRate)
                         ;
 
                 if (wPrev != wNext)
                     weights.weightSet(f, t, wNext);
-
-                ft++;
             }
         }
     }

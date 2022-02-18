@@ -52,8 +52,9 @@ public class QPolicy extends PredictorPolicy {
 
 
     boolean rewardDelta = false;
-    boolean rewardPolarize = true;
-    private double rewardPrev = Double.NaN;
+    boolean rewardPolarize = false;
+
+    private transient double rewardPrev = Double.NaN;
 
     /**
      * TD update policy

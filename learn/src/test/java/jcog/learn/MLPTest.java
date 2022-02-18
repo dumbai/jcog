@@ -43,6 +43,9 @@ class MLPTest {
 	@Test void IRIS_adam() {
 		mlpIrisTest(new AdamOptimizer());
 	}
+	@Test void IRIS_adam_minibatch8() {
+		mlpIrisTest(new AdamOptimizer().minibatches(8));
+	}
 
 	@Test void XOR2_sgd_momentum_half() {
 		mlpXor2Test(new SGDOptimizer(0.5f));
@@ -108,7 +111,7 @@ class MLPTest {
 
 		float alpha = 0.04f;
 
-		int maxIter = 10000*d.rowCount();
+		int maxIter = 8000*d.rowCount();
 		int minIterations = cases * 2;
 		double errGoal = 0.05;
 

@@ -60,14 +60,14 @@ public class SGDOptimizer extends BatchWeightUpdater {
             dWPrev[io] = dwNext;
 
             double wPrev = W[io];
-            double wDecay = weightDecaying ? 1 - Math.abs(wPrev) / (1.0E-16 + wL1) * weightDecayRate : 1;
+//            double wDecay = weightDecaying ? 1 - Math.abs(wPrev) / (1.0E-16 + wL1) * weightDecayRate : 1;
+//            double wNext = wPrev * wDecay + dwNext;
+//            W[io] = lerpSafe(lr, wPrev, wNext);
 
-            final double wNext = wPrev * wDecay + dwNext;
-            W[io] =
-                    lerpSafe(lr, wPrev, wNext);
-                    //lerpSafe(lr, wPrev, (wPrev + dwNext) * wDecay);
-                    //lerpSafe(lr, (wPrev*wDecay), ((wPrev*wDecay) + dwNext));
-                    //(wPrev * wDecay) + lr * dwNext;
+            if (weightDecaying)
+                wPrev *= 1 - weightDecayRate * lr * Math.abs(wPrev) / (1.0E-16 + wL1);
+
+            W[io] = wPrev + dwNext * lr;
         }
     }
 

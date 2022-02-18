@@ -17,7 +17,7 @@ public class SigLinearActivation implements DiffableFunction {
     private final float slope;
 
     public SigLinearActivation() {
-        this(-4, 4, 0, 1);
+        this(-1, 1, 0, 1);
     }
 
     public SigLinearActivation(float xMin, float xMax, float yMin, float yMax) {

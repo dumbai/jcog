@@ -21,16 +21,17 @@ public abstract class BatchWeightUpdater implements WeightUpdater {
 
         updateGrad(l, dOut);
 
-        if (iteration % minibatches == 0) {
-            double[] dW = l.dW;
-            double[] W = l.W;
-            double[] dWPrev = l.dWPrev;
-            updateWeights(l, dW, dWPrev, W);
-            Arrays.fill(dW, 0);
-        }
+        if (iteration % minibatches == 0)
+            commitGrad(l);
     }
 
-    protected final void updateGrad(DenseLayer l, double[] dOut) {
+    private void commitGrad(DenseLayer l) {
+        double[] dW = l.dW;
+        updateWeights(l, dW, l.dWPrev, l.W);
+        Arrays.fill(dW, 0);
+    }
+
+    private void updateGrad(DenseLayer l, double[] dOut) {
         int ii = l.ins(), oo = l.outs();
 
         double[] dW = l.dW;

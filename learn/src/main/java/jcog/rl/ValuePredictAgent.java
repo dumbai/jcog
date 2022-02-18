@@ -3,6 +3,7 @@ package jcog.rl;
 import jcog.Fuzzy;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.ReluActivation;
+import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
@@ -78,7 +79,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                1 /*Util.PHI_min_1f*/ /*0.5f*/, 8);
+                2 /*Util.PHI_min_1f*/ /*0.5f*/, 8);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -182,9 +183,9 @@ public class ValuePredictAgent extends Agent {
 
         layers.add(new MLP.Dense(o,
                         //ReluActivation.the
-                        SigmoidActivation.the
+                        //SigmoidActivation.the
                         //LinearActivation.the
-                        //new SigLinearActivation()
+                        new SigLinearActivation()
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
 //                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
@@ -197,10 +198,10 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
+                        //new AdamOptimizer()
                         //new SGDOptimizer(0)
-                        new AdamOptimizer()
                         //new SGDOptimizer(0).minibatches(8)
-                        //new SGDOptimizer(0.9f).minibatches(8)
+                        new SGDOptimizer(0.9f).minibatches(8)
                         //new SGDOptimizer(0.9f)
                         //new AdamOptimizer().minibatches(8)
                         //new AdamOptimizer().momentum(0.99, 0.99)
@@ -224,8 +225,8 @@ public class ValuePredictAgent extends Agent {
         //b.momentum = 0.9f;
         b.activationFn(
                 LeakyReluActivation.the,
-                SigmoidActivation.the
-                //new SigLinearActivation(-1, +1, -1, +1)
+                //SigmoidActivation.the
+                new SigLinearActivation()
                 //new SigLinearActivation(0, +10, 0, +1)
                 //LinearActivation.the
                 //new LeakyReluActivation(0.1f),
