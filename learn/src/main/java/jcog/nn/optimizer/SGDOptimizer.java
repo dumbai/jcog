@@ -2,6 +2,7 @@ package jcog.nn.optimizer;
 
 import jcog.Util;
 import jcog.nn.layer.DenseLayer;
+import jcog.signal.FloatRange;
 
 import static jcog.Util.lerpSafe;
 
@@ -22,10 +23,13 @@ public class SGDOptimizer extends BatchWeightUpdater {
 
     private transient float alpha;
 
-    /** TODO FloatRange */
-    private double weightDecay =
-            1.0E-3;
-            //0;
+    public static final float WEIGHT_DECAY_DEFAULT = 1.0E-5f;
+
+    public final FloatRange weightDecay = FloatRange.unit(WEIGHT_DECAY_DEFAULT);
+
+    public static final double wEpsilon = 1.0E-16;
+
+    //0;
             //1;
             //0.5;
             //1.0E-1;
@@ -47,10 +51,10 @@ public class SGDOptimizer extends BatchWeightUpdater {
     }
 
     @Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
-        double lr = this.alpha;
-        boolean weightDecaying = weightDecay > 0;
+        double pri = this.alpha;
+        double weightDecayRate = this.weightDecay.floatValue() * pri;
+        boolean weightDecaying = weightDecayRate > 0;
         double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
-        double weightDecayRate = this.weightDecay;
 
         float dwMomentum = this.dwMomentum;
 
@@ -64,10 +68,19 @@ public class SGDOptimizer extends BatchWeightUpdater {
 //            double wNext = wPrev * wDecay + dwNext;
 //            W[io] = lerpSafe(lr, wPrev, wNext);
 
-            if (weightDecaying)
-                wPrev *= 1 - weightDecayRate * lr * Math.abs(wPrev) / (1.0E-16 + wL1);
+            if (weightDecaying) {
+//                double decayFactor = 1 -
+//                        weightDecayRate * pri *
+//                                Math.abs(wPrev) / (wEpsilon + wL1);
+//                wPrev *= decayFactor;
 
-            W[io] = wPrev + dwNext * lr;
+                double decayed = weightDecayRate * wPrev / (wEpsilon + wL1);
+                wPrev -= decayed;
+            }
+
+            W[io] =
+                Util.fma(dwNext, pri, wPrev);
+                //wPrev + dwNext * pri;
         }
     }
 

@@ -2,12 +2,16 @@ package jcog.nn;
 
 import jcog.Fuzzy;
 import jcog.Util;
+import jcog.nn.optimizer.SGDOptimizer;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.IntToDoubleFunction;
+
+import static jcog.nn.optimizer.SGDOptimizer.WEIGHT_DECAY_DEFAULT;
+import static jcog.nn.optimizer.SGDOptimizer.wEpsilon;
 
 /**
  * "Freeform" (possibly-)Recurrent Network
@@ -42,15 +46,14 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
             //1;
             //wClamp / 8f /* steps */;
 
-
     /** -1 for auto */
     final int iterationsBackward =
             -1;
-    //0.9f;
+
     final Random rng = new XoRoShiRo128PlusRandom();
     final RandomBits RNG = new RandomBits(rng);
-    //    public SGDLayer.SGDWeightUpdater weightUpdater;
-    public float momentum = 0f;
+
+    public float momentum = 0;
 
     float mutationRate = 0.0005f;
 
@@ -59,45 +62,9 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
     public final double[][] deltaReverse;
     //transient double[][] deltaFwd = null;
-    transient double[] dW, dWprev;
-    transient double[] dA;
+    transient double[] dW, dWprev, dA;
 
-
-    //    public static void randomizeHe(RealMatrix W, int inputs, Random r) {
-//        double sigma =
-//                //1.0 / Fuzzy.meanGeo((float)a,b);
-//                //2.0 / Fuzzy.mean((float)a,b);
-//                //2.0/(a*b);
-//                1.0 / inputs;
-//        //2.0/(a*b);
-//        //(2.0 / (a + b));
-//        //2.0 / a;
-//
-//        boolean noSelfConnections = true;
-//        Gaussian g = new Gaussian(0, sigma);
-//        final int rows = W.getRowDimension();
-//        final int cols = W.getColumnDimension();
-//        for (int from = 0; from < rows; from++) {
-//            for (int to = 0; to < cols; to++) {
-//
-//                if (noSelfConnections && from == to)
-//                    continue;
-//
-//                double u = (r.nextFloat() - 0.5) * 2;
-//                boolean neg = (u < 0);
-//                if (neg) u = -u;
-//                double xy = g.value(u);
-//                if (neg) xy = -xy;
-//
-//                W.setEntry(from, to, xy);
-//            }
-//        }
-//    }
-    //@Deprecated private transient MetalBitSet visited = null;
-    private double weightDecay =
-            //1.0E-2;
-            1.0E-1;
-            //0;
+    private double weightDecay = WEIGHT_DECAY_DEFAULT;
 
     public BackpropRecurrentNetwork(int inputs, int outputs, int hiddens, int iterations) {
         super(inputs, outputs, hiddens, iterations);
@@ -414,14 +381,16 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
                 double wPrevDecayed;
                 if (wPrev!=0 && decaying) {
-                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
-                    wPrevDecayed = wPrev * decay;
+//                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
+//                    wPrevDecayed = wPrev * decay;
+                    double decayed = weightDecayRate * wPrev / (wEpsilon + wL1);
+                    wPrevDecayed = wPrev - decayed;
                 } else
                     wPrevDecayed = wPrev;
 
                 double wNext =
-                        // Util.lerpSafe(pri, wPrev, dw + wPrevDecayed)
                         wPrevDecayed + pri * dw;
+                        // Util.lerpSafe(pri, wPrev, dw + wPrevDecayed)
                         //Util.fma(pri, dw, wPrev)
                             //* (1 - Math.abs(wPrev) / (1.0E-8 + wL1) * weightDecayRate)
                             //- (wPrev / (1.0E-8 + wL1) * weightDecayRate)

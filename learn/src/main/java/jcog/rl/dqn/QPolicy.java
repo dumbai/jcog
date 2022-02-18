@@ -23,7 +23,7 @@ public class QPolicy extends PredictorPolicy {
 
 
     /** TODO move into separate impls of the update function */
-    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(false);
+    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(true);
 
     /** NaN to disable */
     private static final float tdErrClamp =

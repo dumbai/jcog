@@ -102,7 +102,7 @@ public class QPolicySimul implements Policy {
     /** HACK 2-ary thresholding */
     public static class DistanceActionEncoder implements ActionEncoder {
 
-        private float decodeSpecificity = 2;
+        private final float decodeSpecificity = 1;
 
         @Override public double[] actionEncode(double[] x, int actionsInternal) {
             //assert (actionDiscretization == 2);
@@ -116,12 +116,12 @@ public class QPolicySimul implements Policy {
                         //Math.max(0, 1-d/actions);
                         //sqr(Math.max(0, 1-d/actions));
                         //Math.max(0, 1-sqr(d/actions));
-                        //Math.max(0, 1-d);
+                        Math.max(0, 1-d);
                         //Math.max(0, 1-d*2);
                         //1 / (1 + d);
                         //1 / sqr(1 + d);
                         //1 / sqr(1 + d * actions);
-                        1 / sqr(1 + d * actionsInternal);
+                        //1 / sqr(1 + d * actionsInternal);
                 z[i] = weight;
                 zSum += weight;
             }
@@ -134,27 +134,38 @@ public class QPolicySimul implements Policy {
 
         /** TODO abstract for distance function parameter */
         private double dist(double[] x, double[] y) {
-            return DistanceFunction.distanceCartesian(x,y);
-            //return DistanceFunction.distanceManhattan(x,y);
+            return DistanceFunction.distanceManhattan(x,y);
+            //return DistanceFunction.distanceCartesian(x,y); //may be too far to reach max(0, 1-x) for all-in-between points
         }
 
 
         @Override public double[] actionDecode(double[] z, int actions) {
-            z = z.clone();Util.normalize(z);
+            //z = z.clone();Util.normalize(z);
             //System.out.println(n2(z));
 
+            double zMin = Util.min(z), zMax = Util.max(z);
+            double zRange = zMax - zMin;
 
             double[] y = new double[actions];
             double s = 0;
             for (int i = 0; i < z.length; i++) {
-                double zi = Math.pow(z[i], decodeSpecificity);
+                double zi = Math.pow(
+                        //z[i]
+                        //(z[i] - zMin)/zRange //NORMALIZATION to 0..1
+                        z[i] - zMin
+                        //(1 - zMax) + z[i]
+                        , decodeSpecificity);
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];
                 s += zi;
             }
-            if (s > Float.MIN_NORMAL)
+            if (s > Double.MIN_NORMAL)
                 Util.mul(1/s, y);
+            else {
+                //TODO randomize?
+            }
+
             return y;
         }
 

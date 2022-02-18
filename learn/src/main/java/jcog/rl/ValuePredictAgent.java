@@ -2,14 +2,11 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.activation.LeakyReluActivation;
-import jcog.activation.ReluActivation;
 import jcog.activation.SigLinearActivation;
-import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
-import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -79,14 +76,13 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                2 /*Util.PHI_min_1f*/ /*0.5f*/, 8);
+                2 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
         return DQN(inputs, false, actions, false,
                 0.25f, 7);
     }
-
 
     public static Agent DQNae(int inputs, int actions) {
         return DQN(inputs, true, actions, false,
@@ -198,13 +194,13 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                        //new AdamOptimizer()
-                        //new SGDOptimizer(0)
-                        //new SGDOptimizer(0).minibatches(8)
-                        new SGDOptimizer(0.9f).minibatches(8)
-                        //new SGDOptimizer(0.9f)
-                        //new AdamOptimizer().minibatches(8)
-                        //new AdamOptimizer().momentum(0.99, 0.99)
+                    new SGDOptimizer(0.5f)
+                    //new AdamOptimizer()
+                    //new SGDOptimizer(0)
+                    //new SGDOptimizer(0).minibatches(8)
+                    //new SGDOptimizer(0.9f).minibatches(8)
+                    //new AdamOptimizer().minibatches(8)
+                    //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 
         p.clear();

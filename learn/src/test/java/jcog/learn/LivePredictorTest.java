@@ -1,10 +1,7 @@
 package jcog.learn;
 
 import com.google.common.math.PairedStatsAccumulator;
-import jcog.activation.LeakyReluActivation;
 import jcog.activation.ReluActivation;
-import jcog.activation.SigLinearActivation;
-import jcog.activation.SigmoidActivation;
 import jcog.lstm.LSTM;
 import jcog.nn.MLP;
 import jcog.predict.LivePredictor;

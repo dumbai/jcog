@@ -1,7 +1,10 @@
 package jcog.nn;
 
 import jcog.Util;
-import jcog.activation.*;
+import jcog.activation.DiffableFunction;
+import jcog.activation.LeakyReluActivation;
+import jcog.activation.LinearActivation;
+import jcog.activation.SigLinearActivation;
 import jcog.predict.DeltaPredictor;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.RealMatrix;
