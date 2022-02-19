@@ -305,8 +305,10 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
 
 
     public final int capacity() {
-        return items.length;
+        var i = this.items;
+        return i!=null ? i.length : 0;
     }
+
     public final boolean isFull() {
         return size >= capacity();
     }
