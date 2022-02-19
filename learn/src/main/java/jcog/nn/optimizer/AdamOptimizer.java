@@ -73,10 +73,9 @@ public class AdamOptimizer extends BatchWeightUpdater {
         int pAbs = this.pAbs;
         double[] mm = this.momentM, vv = this.momentV;
 
-        double lr = this.lr;
-        int dir = minimizing ? -1 : +1;
+        double pri = this.lr;
         double alphaT =
-                lr * dir
+                pri * (minimizing ? -1 : +1)
                 //* Math.sqrt(1 - beta2) / (1 - beta1)
                 ;
 

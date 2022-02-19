@@ -93,7 +93,7 @@ public class QPolicy extends PredictorPolicy {
         for (int a = 0; a < n; a++) {
             double qPrevA = qPrev[a], qNextA = qNext[a];
 
-            /** estimate of optimal future value */
+            /* estimate of optimal future value */
             double gq;
             if (m) {
                 gq = gqMunch(gamma, qNextMax, logsumNext, qPrevMax, logsumPrev, qPrevA, qNextA);
