@@ -313,6 +313,12 @@ public class Lst<X> implements List<X>, RandomAccess {
             ii[i] = operator.apply(ii[i]);
     }
 
+    public void replaceAll(int n, UnaryOperator<X> operator) {
+        X[] ii = this.items;
+        for (int i = 0; i < n; i++)
+            ii[i] = operator.apply(ii[i]);
+    }
+
     @Override
     public final X set(int index, X next) {
         X prev = get(index);
