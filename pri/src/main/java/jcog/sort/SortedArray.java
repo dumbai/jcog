@@ -67,7 +67,7 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
 
     protected int size;
 
-    protected static int grow(int oldSize) {
+    private static int grow(int oldSize) {
         return 1 + (int) (oldSize * GROWTH_RATE);
     }
 
@@ -223,8 +223,11 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
     }
 
     protected int addEnd(X x, float elementRank) {
+        int c = capacity();
+        if (c == 0) return -1;
+
         int s = this.size;
-        if (capacity() <= s) {
+        if (c <= s) {
             if (!grows())
                 return -1;
 
@@ -244,7 +247,7 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
         //assert (newLen >= size);
         X[] ii = items;
         int c = ii.length;
-        final int SHRINK_FACTOR_THRESHOLD = 16;
+        int SHRINK_FACTOR_THRESHOLD = 16;
         if (newLen > c || c > newLen * SHRINK_FACTOR_THRESHOLD)
             this.items = Arrays.copyOf(ii, newLen);
     }
@@ -332,7 +335,7 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
     }
 
 
-    public final int indexOf(X element, float elementRank /* can be NaN for forFind */, FloatFunction<X> cmp, boolean eqByIdentity, boolean forInsertionOrFind) {
+    private int indexOf(X element, float elementRank /* can be NaN for forFind */, FloatFunction<X> cmp, boolean eqByIdentity, boolean forInsertionOrFind) {
 
         int s = size;
         if (s == 0)

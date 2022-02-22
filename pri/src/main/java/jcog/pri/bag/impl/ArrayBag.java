@@ -239,14 +239,10 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
                 Y y = model.get(x);
 
                 float p = pri(y);
-
                 if (p == p) {
 
-                    if (update != null) {
-                        update.accept(y);
-
-                        pri(x, p = pri(y));
-                    }
+                    if (update != null)
+                        p = commit(x, y, update);
 
                     m += p;
 
@@ -296,6 +292,13 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
         massSet((float) m);
     }
 
+    private float commit(short x, Y y,Consumer<? super Y> update) {
+        update.accept(y);
+        float p = pri(y);
+        pri(x, p);
+        return p;
+    }
+
     private int removeRemovals(int n, RoaringBitmap removals) {
         IntIterator rr = removals.getReverseIntIterator();
         while (rr.hasNext()) {
@@ -306,17 +309,19 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
     }
 
     @Deprecated private void commitHistogram(short[] sort, int n, DistributionApproximator h, float pRange, float pMin) {
-        //initialize with first value after applying the first update
         int bins = histogramBins(n);
         if (bins == 0)
             h.commitFlat(0, n);
-        else {
-            h.start(bins);
+        else
+            commitHistogram(sort, n, h, pRange, pMin, bins);
+    }
 
-            model.histogram(sort, n, pMin, pRange, h);
+    private void commitHistogram(short[] sort, int n, DistributionApproximator h, float pRange, float pMin, int bins) {
+        h.start(bins);
 
-            h.commit(0, n, Math.max(3, bins-1));
-        }
+        model.histogram(sort, n, pMin, pRange, h);
+
+        h.commit(0, n, Math.max(3, bins -1));
     }
 
     private void _free(int n) {
@@ -972,18 +977,21 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
         }
 
         @Override public void histogram(short[] items, int n, float pMin, float pRange, DistributionApproximator h) {
-            if (pRange < Prioritized.EPSILON) {
+            if (pRange < Prioritized.EPSILON)
                 h.commitFlat(0, n);
-            } else {
-                float[] pri = this.pri;
-                for (int i = 0; i < n; i++) {
-                    float p = pri[items[i]];
-                    if (p > 0)
-                        h.accept(Util.max(0,
-                                //1 - (p - pMin) / pRange //NORMALIZED TO RANGE
-                                1 - p                     //UNNORMALIZED
-                        ));
-                }
+            else
+                histogram(items, n, h);
+        }
+
+        private void histogram(short[] items, int n, DistributionApproximator h) {
+            float[] pri = this.pri;
+            for (int i = 0; i < n; i++) {
+                float p = pri[items[i]];
+                if (p > 0)
+                    h.accept(Util.max(0,
+                            //1 - (p - pMin) / pRange //NORMALIZED TO RANGE
+                            1 - p                     //UNNORMALIZED
+                    ));
             }
         }
 

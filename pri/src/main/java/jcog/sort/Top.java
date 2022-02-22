@@ -53,7 +53,7 @@ public class Top<X> implements TopFilter<X> {
     @Override
     public final boolean add(X x) {
         float xs = rank.rank(x, score);
-        if (xs==xs && xs > score) {
+        if (/*xs==xs && [covered]*/ xs > score) {
             the = x;
             score = xs;
             return true;
@@ -80,6 +80,6 @@ public class Top<X> implements TopFilter<X> {
     @Override
     public final Iterator<X> iterator() {
         X x = the;
-        return x == null ? Util.emptyIterator : new SingletonIterator(x);
+        return x == null ? Util.emptyIterator : new SingletonIterator<>(x);
     }
 }

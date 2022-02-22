@@ -180,6 +180,9 @@ class RealWorldTests {
 
             @Override
             public Expression resolveConstant(String name) {
+                if (Character.isAlphabetic(name.charAt(0)))
+                    return null; //dead-giveaway that it's not parseable as a number.
+
                 try {
                     return new Expression(Double.parseDouble(name));
                 } catch (NumberFormatException e) {

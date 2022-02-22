@@ -112,16 +112,17 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
+                        1 / sqr(1 + d * actionsInternal); //blur
+                        //Math.max(0, 1-d); //clean
                         //1 / (1 + d * actions);
                         //Math.max(0, 1-d/actions);
                         //sqr(Math.max(0, 1-d/actions));
                         //Math.max(0, 1-sqr(d/actions));
-                        Math.max(0, 1-d);
                         //Math.max(0, 1-d*2);
                         //1 / (1 + d);
                         //1 / sqr(1 + d);
                         //1 / sqr(1 + d * actions);
-                        //1 / sqr(1 + d * actionsInternal);
+
                 z[i] = weight;
                 zSum += weight;
             }

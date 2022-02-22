@@ -155,7 +155,7 @@ public class TopN<X> extends SortedArray<X> implements FloatFunction<X>, TopFilt
     /** for use only by sortedarray.  the value is negated for its default descending sort */
     @Deprecated @Override public final float floatValueOf(X x) {
         float r = this.rank.rank(x, min);
-        return r != r ? Float.POSITIVE_INFINITY : -r;
+        return r == r ? -r : Float.POSITIVE_INFINITY;
     }
 
 

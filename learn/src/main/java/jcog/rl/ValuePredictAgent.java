@@ -1,12 +1,15 @@
 package jcog.rl;
 
 import jcog.Fuzzy;
+import jcog.Util;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.SigLinearActivation;
+import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -76,7 +79,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                2 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
+                1 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -163,10 +166,10 @@ public class ValuePredictAgent extends Agent {
         if (precise) {
             int precisionLayers = 1;
             for (int p = 0; p < precisionLayers; p++) {
-                layers.add(new MLP.Dense(o,
+                layers.add(new MLP.Dense(Util.lerpInt((p+1f)/precisionLayers, brains, o),
+                        LeakyReluActivation.the
                         //ReluActivation.the
                         //SigmoidActivation.the
-                        LeakyReluActivation.the
 //                    new SigLinearActivation()
                         //TanhActivation.the
                 ));
@@ -178,10 +181,10 @@ public class ValuePredictAgent extends Agent {
 //        layers.add(new MLP.Output(o));
 
         layers.add(new MLP.Dense(o,
+                        //new SigLinearActivation()
                         //ReluActivation.the
-                        //SigmoidActivation.the
+                        SigmoidActivation.the
                         //LinearActivation.the
-                        new SigLinearActivation()
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
 //                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
@@ -194,7 +197,7 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0.5f)
+                    new SGDOptimizer(0.9f)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0)
                     //new SGDOptimizer(0).minibatches(8)

@@ -36,12 +36,12 @@ import java.util.function.IntSupplier;
  */
 public class MutableInteger extends NumberX implements Comparable, IntSupplier, FloatSupplier {
 
-    private static final VarHandle V = Util.VAR(MutableInteger.class, "value", int.class);
+    private static final VarHandle V = Util.VAR(MutableInteger.class, "v", int.class);
 
     /**
      * The mutable value.
      */
-    private volatile int value;
+    private volatile int v;
 
     /**
      * Constructs a new MutableDouble with the default value of zero.
@@ -56,7 +56,7 @@ public class MutableInteger extends NumberX implements Comparable, IntSupplier, 
      * @param value a value.
      */
     public MutableInteger(int value) {
-        this.value = value;
+        this.v = value;
     }
 
     /**
@@ -142,7 +142,7 @@ public class MutableInteger extends NumberX implements Comparable, IntSupplier, 
 
     @Override
     public final int getAsInt() {
-        return intValue();
+        return (int) V.getOpaque(this);
     }
 
     /**
@@ -210,22 +210,9 @@ public class MutableInteger extends NumberX implements Comparable, IntSupplier, 
         return (int) V.getAndSet(this, x);
     }
 
+    public int intValueFast() {
+        return v;
+    }
+
 
 }
-
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with this
- * work for additional information regarding copyright ownership. The ASF
- * licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http:
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */

@@ -124,11 +124,7 @@ public class SortedIntArray /*extends IntIterator*/ {
 //    }
 
     public final int insert(short item, float negPri, ShortToFloatFunction cmp) {
-        int y = insert(item, indexOf(item, negPri, cmp, true));
-//        //TEMPORARY
-//        if (_count(item) > 1)
-//            throw new WTF();
-        return y;
+        return insert(item, indexOf(item, negPri, cmp, true));
     }
 
     @Deprecated private int _count(short x) {

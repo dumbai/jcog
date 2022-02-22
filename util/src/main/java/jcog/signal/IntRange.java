@@ -33,4 +33,5 @@ public class IntRange extends MutableInteger {
     public void setLerp(float s) {
         set(Util.lerpSafe(s, min, max));
     }
+
 }

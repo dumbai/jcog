@@ -279,7 +279,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	}
 
 	public MyCMAESOptimizer(int maxIter, double stopFitness, int popSize, double[] sigma) {
-		this(maxIter, stopFitness, true, 0, 1, new XoRoShiRo128PlusRandom(), true, null, popSize, sigma);
+		this(maxIter, stopFitness, true, 0, 1, new XoRoShiRo128PlusRandom(), false, null, popSize, sigma);
 	}
 
 	/**
@@ -381,10 +381,21 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * @return the matrix where the elements of m and n are element-wise multiplied.
 	 */
 	private static RealMatrix times(RealMatrix m, RealMatrix n) {
-		int R = m.getRowDimension();
-		int C = m.getColumnDimension();
+		int R = m.getRowDimension(), C = m.getColumnDimension();
 		double[][] d = new double[R][C];
-		for (int r = 0; r < R; r++) for (int c = 0; c < C; c++) d[r][c] = m.getEntry(r, c) * n.getEntry(r, c);
+		for (int r = 0; r < R; r++)
+			for (int c = 0; c < C; c++)
+				d[r][c] = m.getEntry(r, c) * n.getEntry(r, c);
+		return new Array2DRowRealMatrix(d, false);
+	}
+
+	private static RealMatrix times(RealMatrix m, RealMatrix n, double f) {
+		int R = m.getRowDimension(), C = m.getColumnDimension();
+		double[][] d = new double[R][C];
+		for (int r = 0; r < R; r++)
+			for (int c = 0; c < C; c++)
+				d[r][c] = m.getEntry(r, c) * n.getEntry(r, c) * f;
+
 		return new Array2DRowRealMatrix(d, false);
 	}
 
@@ -1128,7 +1139,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
             for (int k = 0; k < lambda; k++) {
                 RealMatrix arzK = arz.getColumnMatrix(k);
-                RealMatrix xFactor = times(diagD, arzK).scalarMultiply(sigma);
+                RealMatrix xFactor = times(diagD, arzK, sigma);
 
                 RealMatrix arxk = null;
                 for (int i = 0; i < checkFeasableCount + 1; i++) {

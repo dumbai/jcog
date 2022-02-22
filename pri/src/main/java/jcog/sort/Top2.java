@@ -8,6 +8,7 @@ import org.eclipse.collections.api.block.function.primitive.FloatFunction;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.random.RandomGenerator;
 
 /**
  * @see com.google.common.collect.TopKSelector (guava)
@@ -84,7 +85,7 @@ public class Top2<T> extends AbstractCollection<T> implements Consumer<T> {
         if (a == null)
             return Util.emptyIterator;
         else if (b == null)
-            return new SingletonIterator(a);
+            return new SingletonIterator<>(a);
         else
             return Iterators.forArray(a, b);
     }
@@ -106,7 +107,7 @@ public class Top2<T> extends AbstractCollection<T> implements Consumer<T> {
         add(t);
     }
 
-    public void sample(Consumer<T> target, FloatFunction<T> value, Random random) {
+    public void sample(Consumer<T> target, FloatFunction<T> value, RandomGenerator random) {
         float wa = value.floatValueOf(a);
         float wb = value.floatValueOf(b);
         target.accept(
