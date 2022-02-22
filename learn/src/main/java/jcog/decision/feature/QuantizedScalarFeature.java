@@ -12,7 +12,7 @@ public class QuantizedScalarFeature extends DiscreteFeature<Float> implements Fu
     final Discretize1D discretizer;
     private final int arity;
     private final String[] rangeLabels;
-    private final CentroidMatch[] centroid;
+    public final CentroidMatch[] centroid;
 
     public QuantizedScalarFeature(int id, String name, int arity, Discretize1D d) {
         super(id, name);
@@ -54,7 +54,11 @@ public class QuantizedScalarFeature extends DiscreteFeature<Float> implements Fu
         Number n =
             x instanceof Boolean ? (((Boolean) x).booleanValue() ? 1 : 0) :
             (Number) x;
-        return centroid[discretizer.index(n.doubleValue())];
+        return centroid[discretize(n)];
+    }
+
+    public int discretize(Number n) {
+        return discretizer.index(n.doubleValue());
     }
 
     public class CentroidMatch {

@@ -187,7 +187,6 @@ import static org.eclipse.collections.impl.tuple.Tuples.pair;
      */
     @Nullable protected DecisionNode<V> put(K key, Supplier<Stream<Function<K,V>>> data, Stream<Function<Function<K,V>,Object>> features, int currentDepth, IntToFloatFunction depthToPrecision) {
 
-
         V currentNodeLabel;
         if ((currentNodeLabel = label(key, data.get(), depthToPrecision.valueOf(currentDepth))) != null)
             return new DecisionNode.LeafNode<>(currentNodeLabel);

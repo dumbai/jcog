@@ -23,11 +23,11 @@ class DecisionTreeFindBestSplitTest {
         String labelColumnName = "answer";
         
         String[] headers = {labelColumnName, "x1", "x2"};
-        List<Function<String,Object>> dataSet = Lists.newArrayList();
-        dataSet.add(data(headers, TRUE_LABEL, true, true));
-        dataSet.add(data(headers, FALSE_LABEL, true, false));
-        dataSet.add(data(headers, FALSE_LABEL, false, true));
-        dataSet.add(data(headers, FALSE_LABEL, false, false));
+        List<Function<String,Object>> d = Lists.newArrayList();
+        d.add(data(headers, TRUE_LABEL, true, true));
+        d.add(data(headers, FALSE_LABEL, true, false));
+        d.add(data(headers, FALSE_LABEL, false, true));
+        d.add(data(headers, FALSE_LABEL, false, false));
         
         List<Function<Function<String,Object>,Object>> features = List.of(
             feature("x1", true),
@@ -37,10 +37,10 @@ class DecisionTreeFindBestSplitTest {
         );
         
         
-        Function<Function<String,Object>,Object> bestSplit = tree.bestSplit(labelColumnName, dataSet::stream, features.stream());
+        Function<Function<String,Object>,Object> bestSplit = tree.bestSplit(labelColumnName, d::stream, features.stream());
         assertEquals("x1 = true", bestSplit.toString());
 
-        Map<Object, List<Function<String,Object>>> split = DecisionTree.split(bestSplit, dataSet::stream);
+        Map<Object, List<Function<String,Object>>> split = DecisionTree.split(bestSplit, d::stream);
         
         
         assertEquals(TRUE_LABEL, split.get(FALSE).get(0).apply(labelColumnName));

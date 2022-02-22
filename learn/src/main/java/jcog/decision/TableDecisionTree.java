@@ -5,13 +5,15 @@ import jcog.decision.feature.EnumFeature;
 import jcog.decision.feature.QuantizedScalarFeature;
 import jcog.math.QuantileDiscretize1D;
 import org.eclipse.collections.api.block.function.primitive.IntToFloatFunction;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
-import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static jcog.math.Discretize1D.BooleanDiscretization;
 
@@ -32,20 +34,20 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
      */
     final IntToFloatFunction depthToPrecision;
 
+    private final static boolean quantizeTargetColumn = true;
 
     public TableDecisionTree(Table table, String predictCol, int maxDepth, int discretization) {
         this(table, table.columnIndex(predictCol), maxDepth, discretization);
     }
 
-    public TableDecisionTree(Table table, int predictCol, int maxDepth, int discretization) {
+    public TableDecisionTree(Table t, int predictCol, int maxDepth, int discretization) {
         super();
 
-        int columns = table.columnCount();
+        int columns = t.columnCount();
         assert columns > 1;
         assert maxDepth > 1;
-        assert table.rowCount() > 0;
+        assert t.rowCount() > 0;
 
-        this.table = table;
 
         maxDepth(maxDepth);
 
@@ -55,7 +57,7 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
 
 
         this.col = IntStream.range(0, columns).mapToObj(c -> {
-            Column<?> C = table.column(c);
+            Column<?> C = t.column(c);
             String name = C.name();
             String colType = C.type().name();
             return switch (colType) {
@@ -98,7 +100,7 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
 //            for (int i = 0; i < columns; i++)
 //                col[i].learn(row);
 //        });
-        table.forEach(row -> {
+        t.forEach(row -> {
             //pre-train the classifiers
             for (int i = 0; i < columns; i++)
                 col[i].learn(row);
@@ -106,19 +108,45 @@ public class TableDecisionTree extends DecisionTree<Integer, Object> {
         for (DiscreteFeature c : col)
             c.commit();
 
+
+        this.table = quantizeTargetColumn && quantizableColumn(t.column(predictCol).type()) ?
+                quantizePredictedColumn(t, predictCol) :
+                t;
+
         update(IntStream.range(0, table.rowCount()).mapToObj(table::row), predictCol);
 
     }
 
+    private static boolean quantizableColumn(ColumnType type) {
+        return type == ColumnType.DOUBLE ||
+                type == ColumnType.INTEGER ||
+                type == ColumnType.LONG ||
+                type == ColumnType.FLOAT
+                //etc
+                ;
+    }
 
-    void update(Stream<Row> rows, int column) {
+    private Table quantizePredictedColumn(Table t, int predictCol) {
+        Column<?> P = t.column(predictCol);
+        var cc = col[predictCol].classifiers().toList();
+        if (cc.size() > 1) throw new UnsupportedOperationException();
+        QuantizedScalarFeature c = (QuantizedScalarFeature) cc.get(0);
+        return t.replaceColumn(predictCol, StringColumn.create(P.name(),
+                StreamSupport.stream(P.spliterator(),false)
+                        .map(z -> {
+                            int zz = c.discretize((Number) z);
+                            return c.centroid[zz].condition(true);
+                        })));
+    }
 
-        put(column, rows.map(r -> r::getObject), //TODO use direct column access this is slow string key lookup wtf
+
+    void update(Stream<Row> rows, int targetCol) {
+
+        put(targetCol, rows.map(r -> r::getObject), //TODO use direct column access this is slow string key lookup wtf
 
             Stream.of(col).
-                filter(x -> x.id != column).
-                flatMap((Function<DiscreteFeature, Stream<Function<Function<Integer, Object>, Object>>>)
-                        discreteFeature -> discreteFeature.classifiers()),
+                filter(x -> x.id != targetCol).
+                flatMap((var f) -> f.classifiers()),
 
             depthToPrecision
         );
