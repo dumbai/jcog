@@ -2,7 +2,6 @@ package jcog.nn;
 
 import jcog.Fuzzy;
 import jcog.Util;
-import jcog.nn.optimizer.SGDOptimizer;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 

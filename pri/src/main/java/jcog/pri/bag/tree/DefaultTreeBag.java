@@ -16,8 +16,6 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
-
 public class DefaultTreeBag<X, Y> extends TreeBag<X, Y> {
 
     private int cap = 0;
@@ -151,7 +149,7 @@ public class DefaultTreeBag<X, Y> extends TreeBag<X, Y> {
             return;
         }
 
-        List<Y> b = stream().collect(toList()); //HACK
+        List<Y> b = stream().toList(); //HACK
         root.clear();
         b.forEach(each); //HACK
 //            size = 0;

@@ -3,7 +3,7 @@ package jcog.decision;
 import com.google.common.collect.Streams;
 import jcog.data.list.Lst;
 import jcog.data.map.UnifriedMap;
-import jcog.decision.impurity.EntropyCalculator;
+import jcog.decision.impurity.GiniIndexImpurityCalculation;
 import jcog.decision.impurity.ImpurityCalculator;
 import org.eclipse.collections.api.block.function.primitive.IntToFloatFunction;
 import org.eclipse.collections.api.tuple.Pair;
@@ -41,8 +41,8 @@ import static org.eclipse.collections.impl.tuple.Tuples.pair;
      * Impurity calculation method.
      */
     private final ImpurityCalculator impurity =
-        //new GiniIndexImpurityCalculation();
-        new EntropyCalculator();
+        new GiniIndexImpurityCalculation();
+        //new EntropyCalculator();
 
     /**
      * Max depth parameter. Growth of the tree is stopped once this depth is reached. Limiting depth of the tree can

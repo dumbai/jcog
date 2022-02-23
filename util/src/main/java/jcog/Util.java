@@ -47,7 +47,6 @@ import static java.lang.Math.abs;
 import static java.lang.Math.ceil;
 import static java.lang.Thread.onSpinWait;
 import static java.lang.invoke.MethodHandles.lookup;
-import static java.util.stream.Collectors.toList;
 
 //import jcog.pri.Prioritizable;
 
@@ -2675,7 +2674,7 @@ public enum Util {
 	}
 
 	public static <X> Supplier<Stream<X>> buffer(Stream<X> x) {
-		List<X> buffered = x.collect(toList());
+		List<X> buffered = x.toList();
 		return buffered::stream;
 	}
 

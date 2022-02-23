@@ -3,7 +3,6 @@ package jcog.decision.impurity;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -15,23 +14,19 @@ import java.util.stream.Stream;
  */
 public class GiniIndexImpurityCalculation implements ImpurityCalculator {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <K, V> double impurity(K value, Supplier<Stream<Function<K , V>>> splitData) {
-        List<V> labels = splitData.get().map((x)->x.apply(value)).distinct().collect(Collectors.toList());
+        List<V> labels = splitData.get().map(x -> x.apply(value)).distinct().toList();
         int s = labels.size();
         if (s > 1) {
             return labels.stream().mapToDouble(l -> {
                 double p = ImpurityCalculator.empiricalProb(value, splitData.get(), l);
-                return 2.0 * p * (1 - p);
+                return 2 * p * (1 - p);
             }).sum();
-        } else if (s == 1) {
-            return 0.0; 
-        } else {
+        } else if (s == 1)
+            return 0;
+        else
             throw new IllegalStateException("This should never happen. Probably a bug.");
-        }
     }
 
 }

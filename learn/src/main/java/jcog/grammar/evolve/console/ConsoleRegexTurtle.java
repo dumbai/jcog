@@ -116,24 +116,18 @@ public enum ConsoleRegexTurtle {
 
     private static DataSet loadDataset(String dataSetFilename) throws IOException {
         FileInputStream fis = new FileInputStream(dataSetFilename);
-        InputStreamReader isr = new InputStreamReader(fis);
-        StringBuilder sb;
-        try (BufferedReader bufferedReader = new BufferedReader(isr)) {
-            sb = new StringBuilder();
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis))) {
+            var sb = new StringBuilder(fis.available());
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 sb.append(line);
             }
+            return loadDatasetJson(sb.toString());
         }
-        String json = sb.toString();
-        return loadDatasetJson(json);
     }
 
     private static DataSet loadDatasetJson(String jsonDataset) {
         return DataSet.json(jsonDataset);
-
-
-
     }
 
     private static void writeBestPerformances(FinalSolution solution, boolean isFlagging) {

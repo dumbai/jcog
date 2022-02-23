@@ -6,7 +6,10 @@ import jcog.Util;
 import jcog.util.SingletonIterator;
 import org.eclipse.collections.api.block.function.primitive.FloatFunction;
 
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.random.RandomGenerator;
 

@@ -1,5 +1,6 @@
 package jcog.table;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import jcog.TODO;
 import jcog.data.bit.MetalBitSet;
@@ -12,10 +13,7 @@ import tech.tablesaw.columns.Column;
 import tech.tablesaw.table.Rows;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -60,6 +58,37 @@ public class DataTable extends Table implements Externalizable {
 //        this.attribute_names = copyMetadataFrom.attribute_names;
 //        this.attrTypes = copyMetadataFrom.attrTypes;
         this.nominalCats = copyMetadataFrom.nominalCats;
+    }
+
+    public static Table collapseEqualColumns(Table d) {
+        var cols = d.columnNames();
+        for (String c : cols) {
+            if (!d.containsColumn(c))
+                continue;
+            var cc = d.column(c);
+
+            Set<String> equal = new TreeSet();
+            for (var y : cols) {
+                if (y == c) continue;
+                if (!d.containsColumn(y))
+                    continue;
+                var yy = d.column(y);
+                if (cc.type().equals(yy.type())) {
+                    if (Arrays.equals(cc.asObjectArray(), yy.asObjectArray())) {
+                        String yyn = yy.name();
+                        equal.add(yyn);
+                        d = d.removeColumns(yyn);
+                        //cols.remove(yyn);
+                    }
+                }
+            }
+            if (!equal.isEmpty()) {
+                equal.add(c);
+                String newName = Joiner.on("=").join(equal);
+                cc.setName(newName);
+            }
+        }
+        return d;
     }
 
     @Override
