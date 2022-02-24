@@ -341,16 +341,24 @@ public class DataTable extends Table implements Externalizable {
     }
 
 
-    public Instance instance(Row x) {
+    public static Instance instance(Row x, Table t) {
 
-        ColumnType[] ct = columnTypes();
+        ColumnType[] ct = t.columnTypes();
         List<Double> d = new Lst<>(ct.length);
-        for (int i1 = 0, ctLength = ct.length; i1 < ctLength; i1++) {
-//            ColumnType t = ct[i1];
+        for (int i = 0, ctLength = ct.length; i < ctLength; i++) {
+            ColumnType cti = ct[i];
+            if (cti == ColumnType.BOOLEAN)
+                d.add(x.getBoolean(i) ? +1.0 : -1.0);
+            else {
+                if (cti == ColumnType.STRING) {
+                    //ignore
+                    continue;
+                }
 //            if (t instanceof FloatColumnType)
 //                d.add((double)x.getFloat(i1));
 //            else if (t == DoubleColumnType)
-            d.add(x.getDouble(i1));
+                d.add(x.getDouble(i));
+            }
         }
         return new Instance(ImmutableList.copyOf(d));
     }
@@ -363,19 +371,17 @@ public class DataTable extends Table implements Externalizable {
     }
 
     @Deprecated
-    public class Instance {
+    public static class Instance {
         public final ImmutableList data;
 
         public Instance(ImmutableList data) {
-
             this.data = data;
         }
 
-
-        @Override
-        public String toString() {
-            return DataTable.this + " " + data;
-        }
+//        @Override
+//        public String toString() {
+//            return DataTable.this + " " + data;
+//        }
 
         @Override
         public int hashCode() {
@@ -401,16 +407,16 @@ public class DataTable extends Table implements Externalizable {
             return x;
         }
 
-        protected Table table() {
-            return DataTable.this;
-        }
+//        protected Table table() {
+//            return DataTable.this;
+//        }
 
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
             if (!(obj instanceof Instance i)) return false;
 
-            return i.data.equals(data) && table().equals(i.table());
+            return i.data.equals(data);// && table().equals(i.table());
         }
 
 
