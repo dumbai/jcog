@@ -59,7 +59,7 @@ public class ArrayTensor extends AbstractMutableTensor
     }
 
     @Override public void writeTo(float[] target, int offset) {
-        System.arraycopy(data, 0, target, offset, volume());
+        arraycopy(data, 0, target, offset, volume());
     }
 
     @Override
@@ -69,7 +69,7 @@ public class ArrayTensor extends AbstractMutableTensor
 
     @Override
     public void setAt(int linearCellStart, float[] values) {
-        System.arraycopy(values, 0, data, linearCellStart, values.length);
+        arraycopy(values, 0, data, linearCellStart, values.length);
     }
 
     @Override

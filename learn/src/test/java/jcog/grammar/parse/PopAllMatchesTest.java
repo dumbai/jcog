@@ -56,7 +56,7 @@ public class PopAllMatchesTest extends AbstractParsingTest {
 		result = bestMatch("abc hello,");
 		allMatches = result.popAllMatches();
 		assertEquals(2, allMatches.size());
-		Assertions.assertEquals(new Token("abc"), allMatches.get(0));
+		assertEquals(new Token("abc"), allMatches.get(0));
 		assertEquals(new Token("hello"), allMatches.get(1));
 		assertEquals(1, result.getStackSizesBeforeMatch().size());
 	}

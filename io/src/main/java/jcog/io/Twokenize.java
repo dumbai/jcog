@@ -200,7 +200,7 @@ public enum Twokenize {
 			}
 		}
 
-		Collections.sort(spans);
+		sort(spans);
 		return spans;
 
 

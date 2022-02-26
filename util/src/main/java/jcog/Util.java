@@ -798,7 +798,7 @@ public enum Util {
 
 	public static boolean equals(long a, long b, int tolerance) {
 		//assert(tolerance > 0);
-		return Math.abs(a - b) < tolerance;
+		return abs(a - b) < tolerance;
 	}
 
 //	/**
@@ -1876,7 +1876,7 @@ public enum Util {
 		double y = 0;
 		for (float f : x) {
 			if (f == f)
-				y += Math.abs(f);
+				y += abs(f);
 		}
 		return y;
 	}
@@ -1885,7 +1885,7 @@ public enum Util {
 		double y = 0;
 		for (double f : x) {
 			if (f == f)
-				y += Math.abs(f);
+				y += abs(f);
 		}
 		return y;
 	}
@@ -2310,7 +2310,7 @@ public enum Util {
 		if (n < 1) return false;
 
 		double p_of_2 = (Math.log(n) / log2);
-		return Math.abs(p_of_2 - Math.round(p_of_2)) == 0;
+		return abs(p_of_2 - Math.round(p_of_2)) == 0;
 	}
 
 	/**
@@ -3014,7 +3014,7 @@ public enum Util {
 	public static void normalizeHamming(float[] v, float target, float epsilon) {
 		float current = 0;
 		for (float value : v)
-			current += Math.abs(value);
+			current += abs(value);
 
 		if (current < epsilon) {
 			Arrays.fill(v, target / v.length);
@@ -3084,7 +3084,7 @@ public enum Util {
 	}
 
 	public static float sqrtBipolar(float d) {
-		return Math.signum(d) * sqrt(Math.abs(d));
+		return Math.signum(d) * sqrt(abs(d));
 	}
 
 

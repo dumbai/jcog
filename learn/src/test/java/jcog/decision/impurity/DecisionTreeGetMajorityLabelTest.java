@@ -25,7 +25,7 @@ class DecisionTreeGetMajorityLabelTest {
         data.add(new TestValue(TRUE_LABEL));
         data.add(new TestValue(FALSE_LABEL));
         data.add(new TestValue(FALSE_LABEL));
-        Assertions.assertEquals("false", DecisionTree.majority(null, (Stream) data.stream()).toString());
+        assertEquals("false", DecisionTree.majority(null, (Stream) data.stream()).toString());
     }
 
     @Test

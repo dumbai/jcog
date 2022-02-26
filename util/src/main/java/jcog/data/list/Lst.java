@@ -1349,7 +1349,7 @@ public class Lst<X> implements List<X>, RandomAccess {
         int n = xx.length;
         if (n > 0) {
             ensureCapacityForAdditional(n, false);
-            System.arraycopy(xx, 0, items, size, n);
+            arraycopy(xx, 0, items, size, n);
             size+=n;
         }
         return this;
@@ -1386,7 +1386,7 @@ public class Lst<X> implements List<X>, RandomAccess {
         if (cSize > 0) {
             ensureCapacityForAdditional(cSize + extraSpace, true);
             if (c instanceof Lst) {
-                System.arraycopy(((Lst)c).items, 0, items, size, cSize);
+                arraycopy(((Lst)c).items, 0, items, size, cSize);
                 size += cSize;
             } else {
                 for (X x : c) addFast(x);

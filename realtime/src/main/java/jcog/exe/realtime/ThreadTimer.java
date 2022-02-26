@@ -81,7 +81,7 @@ public class ThreadTimer implements AbstractTimer, Runnable {
                 if (i < 0)
                     break; //stopped
 
-                long now = System.nanoTime();
+                long now = nanoTime();
                 i -= (now - end);
 
                 if (i > 0)

@@ -9,16 +9,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FuzzyTest {
 
     @Test void eqNorm1() {
-        assertEquals(0.5f, Fuzzy.eqNorm(1, 0.5f), 0.01f);
-        assertEquals(0.5f, Fuzzy.eqNorm(0, 0.5f), 0.01f);
-        assertEquals(0, Fuzzy.eqNorm(1, 0), 0.01f);
-        assertEquals(1, Fuzzy.eqNorm(1, 1), 0.01f);
-        assertEquals(1, Fuzzy.eqNorm(0, 0), 0.01f);
+        assertEquals(0.5f, eqNorm(1, 0.5f), 0.01f);
+        assertEquals(0.5f, eqNorm(0, 0.5f), 0.01f);
+        assertEquals(0, eqNorm(1, 0), 0.01f);
+        assertEquals(1, eqNorm(1, 1), 0.01f);
+        assertEquals(1, eqNorm(0, 0), 0.01f);
 
-        assertEquals(0.5f, Fuzzy.eqNorm(0.75f, 0.5f), 0.01f);
-        assertEquals(0.75f, Fuzzy.eqNorm(1f, 0.75f), 0.01f);
+        assertEquals(0.5f, eqNorm(0.75f, 0.5f), 0.01f);
+        assertEquals(0.75f, eqNorm(1f, 0.75f), 0.01f);
 
-        assertEquals(0f, Fuzzy.eqNorm(0.5f-0.25f/2f, 0.5+0.25f/2f), 0.01f);
+        assertEquals(0f, eqNorm(0.5f-0.25f/2f, 0.5+0.25f/2f), 0.01f);
     }
 
     @Test void eq1() {

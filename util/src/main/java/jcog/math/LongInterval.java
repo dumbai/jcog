@@ -289,12 +289,12 @@ public interface LongInterval extends LongIntervalArray {
 
     /** ratio of absolute extrema distance to intersection range */
     @Research static double dSepFraction(double a0, double a1, double b0, double b1) {
-//        return (abs(a0 - b0) + abs(a1 - b1))
-//                / (1 + intersectLengthRaw(a0, a1, b0, b1));
-        return ((abs(a0 - b0) + abs(a1 - b1))
-                / (1 + intersectLengthRaw(a0, a1, b0, b1))
-                / (1 + Fuzzy.mean(a1-a0, b1-b0))) //normalize to mean range
-                ;
+        return (abs(a0 - b0) + abs(a1 - b1))
+                / (1 + intersectLengthRaw(a0, a1, b0, b1));
+//        return ((abs(a0 - b0) + abs(a1 - b1))
+//                / (1 + intersectLengthRaw(a0, a1, b0, b1))
+//                / (1 + Fuzzy.mean(a1-a0, b1-b0))) //normalize to mean range
+//                ;
     }
 
     long start();
