@@ -152,9 +152,9 @@ public class QPolicySimul implements Policy {
             double s = 0;
             for (int i = 0; i < z.length; i++) {
                 double zi = Math.pow(
-                        //z[i]
+                        z[i]
                         //(z[i] - zMin)/zRange //NORMALIZATION to 0..1
-                        z[i] - zMin
+                        //z[i] - zMin
                         //(1 - zMax) + z[i]
                         , decodeSpecificity);
                 double[] ideal = idealDecode(i, actions);
