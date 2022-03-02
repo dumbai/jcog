@@ -11,7 +11,7 @@ public class QuantileDiscretize1D implements Discretize1D {
     @Override
     public void reset(int levels, double min, double max) {
 //        assert(levels>1);
-        q = new Quantiler(8);
+        q = new Quantiler();
         updated = false;
         this.thresh = new float[levels-1];
     }
@@ -27,7 +27,7 @@ public class QuantileDiscretize1D implements Discretize1D {
             
             boolean difference = true;
             for (int i = 0; i < thresh.length; i++) {
-                float t = q.quantile((i +0.5f) / thresh.length);
+                float t = q.quantile((i + 0.5f) / thresh.length);
                 if (i > 0 && Math.abs(t - thresh[i-1]) < Float.MIN_NORMAL) {
                     difference = false; //collapsed
                 }

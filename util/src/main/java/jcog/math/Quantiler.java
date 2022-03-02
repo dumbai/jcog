@@ -43,6 +43,9 @@ public class Quantiler {
     private float qMin;
     private float qMax;
 
+    public Quantiler() {
+        this(1000);
+    }
 
     /**
      * Constructor.
@@ -63,7 +66,8 @@ public class Quantiler {
         qile = new float[nq];
         qileNext = new float[nq];
 
-        for (int j = 85; j <= 165; j++) pval[j] = (j - 75f) / 100f;
+        for (int j = 85; j <= 165; j++)
+            pval[j] = (j - 75f) / 100f;
 
         for (int j = 84; j >= 0; j--) {
             pval[j] = 0.87191909f * pval[j + 1];
@@ -99,7 +103,7 @@ public class Quantiler {
         float[] p = this.pval;
         p[0] = Math.min(0.5f / ntnd, 0.5f * p[1]);
         p[nq - 1] = Math.max(1f- 0.5f / ntnd, 0.5f * (1f + p[nq - 2]));
-        float tnew = 0f, told = 0f;
+        float tnew = 0, told = 0;
         int jq = 1, jd = 0;
         for (int iq = 1; iq < nq - 1; iq++) {
             float target = ntnd * p[iq];
