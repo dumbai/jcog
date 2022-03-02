@@ -42,10 +42,10 @@ import static java.lang.Float.NEGATIVE_INFINITY;
  * first a spinlock is acquired to ensure that only one thread is inserting or removing per hash id at any given time.  i use a global atomic long array to combine each HijackBag's instance with the current item's hash to get a ticket that can ensure this condition.
  * <p>
  * an insertion can happen in a given cell range defined by the 'reprobes' parameter.  usually a number like 3 or 4 is ok but it can be arbitrarily long, but generally much less than the total bag capacity.  the hash computes the starting cell and then reprobe numer of cells forward, modulo capacity and these are the potential cells that a get/put/remove works with.   a get and remove only need to find the first cell with equivalent key.  put is the most complicated operation: first it must see if a cell exists and if so then an overridable merge operation is possible.  otherwise, while doing the initial pass, it chooses a victim based on the weakest priority of the cells it encounters, preferring a null cell to all others (NEGATIVE_INFINITY).  but if it chooses a non-null cell as a victim then a replacement test is applied to see if the new insertion can replace the existing. this can be decided by a random number generator in proportion to the relative priorities of the competing cells.
- *
+ * <p>
  * HijackBag stores all items in an array and they aren't re-ordered,
  * unless the array is resized.
- *
+ * <p>
  * the sampling process slides a window of some size across the
  * indices of the array into a temporary sorting queue (by priority)
  * and then that sorted array is sampled.  the decision whether
@@ -53,7 +53,6 @@ import static java.lang.Float.NEGATIVE_INFINITY;
  * it decides by relative random probability if the incoming
  * object is able to 'hijack' the lowest ranked slot from
  * its potential hash probe targets.
- *
  */
 @Research
 @Is("Concurrent_computing")
@@ -64,11 +63,11 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 
     //final VarHandle TABLE = Util.VAR(HijackBag.class, "table", HijackTable.class)
     private static final AtomicReferenceFieldUpdater<HijackBag, HijackTable> TABLE =
-        AtomicReferenceFieldUpdater.newUpdater(HijackBag.class, HijackTable.class, "table");
+            AtomicReferenceFieldUpdater.newUpdater(HijackBag.class, HijackTable.class, "table");
 
     private static final SpinMutex mutex = new SpinMutexArray64(
-          /* TODO Tune */
-    Runtime.getRuntime().availableProcessors()*2, 2
+            /* TODO Tune */
+            Runtime.getRuntime().availableProcessors() * 2, 2
     );
 
     private static final AtomicInteger serial = new AtomicInteger();
@@ -97,7 +96,8 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
     protected HijackBag(int initialCapacity, int reprobes) {
         this.id = serial.getAndIncrement();
 
-        this.reprobes = reprobes; assert (reprobes >= 2 && reprobes < Byte.MAX_VALUE - 1);
+        this.reprobes = reprobes;
+        assert (reprobes >= 2 && reprobes < Byte.MAX_VALUE - 1);
 
         setCapacity(initialCapacity);
     }
@@ -113,7 +113,9 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 //        }
 //    }
 
-    /** default impl = x.hashCode() */
+    /**
+     * default impl = x.hashCode()
+     */
     protected static int hash(Object x) {
         int h = x.hashCode();
         if (h == 0) h = 1;
@@ -137,7 +139,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         return h;
     }
 
-    public static Random random() {
+    protected static Random random() {
         return ThreadLocalRandom.current();
     }
 
@@ -167,8 +169,8 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         newCap = Math.min(s, newCap);
 
         if (((oldCap < newCap && (s >= oldCap   /* should grow */)
-            ||
-            (newCap < space() /* must shrink */)))) {
+                ||
+                (newCap < space() /* must shrink */)))) {
             resize(newCap);
         }
 
@@ -220,9 +222,9 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         FastAtomicIntegerArray h = x.hashes;
         for (int i = 0; i < l; i++) {
             Object xi = m.getAndSet(i, null);
-            if (xi!=null) {
+            if (xi != null) {
                 h.setOpaque(i, 0);
-                onRemove((V)xi);
+                onRemove((V) xi);
             }
         }
         _clearMeta();
@@ -252,7 +254,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 
     private @Nullable HijackTable reset(int space) {
 
-        if ((int)SIZE.getAndSet(this, 0) != 0) {
+        if ((int) SIZE.getAndSet(this, 0) != 0) {
             HijackTable newTable = new HijackTable(space);
 
             HijackTable prevTable = TABLE.getAndSet(this, newTable);
@@ -284,12 +286,14 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         return ((float) filled) / mm;
     }
 
-    /** completes an add/remove operation */
+    /**
+     * completes an add/remove operation
+     */
     private void commit(V toAdd, V toRemove, @Nullable NumberX overflowing) {
-        if (toAdd!=null || toRemove!=null) {
+        if (toAdd != null || toRemove != null) {
             int dSize = (toAdd != null ? +1 : 0) + (toRemove != null ? -1 : 0);
             //only used if toAdd!=null
-            int sizeBefore = (int)SIZE.getAndAdd(this, dSize) /* hack */;
+            int sizeBefore = (int) SIZE.getAndAdd(this, dSize) /* hack */;
 
             if (toAdd != null) {
                 _onAdded(toAdd);
@@ -313,7 +317,9 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 
     }
 
-    /** allow duplicates and other unexpected phenomena resulting from disabling locking write access */
+    /**
+     * allow duplicates and other unexpected phenomena resulting from disabling locking write access
+     */
     protected boolean unsafe() {
         return false;
     }
@@ -394,7 +400,8 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         FastAtomicReferenceArray map = table.values;
         FastAtomicIntegerArray hashes = table.hashes;
 
-        int c = map.length(); if (c == 0)  return null;
+        int c = map.length();
+        if (c == 0) return null;
 
         int kHash = hash(k), start = index(kHash, c);
 
@@ -425,7 +432,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
             if (locking) mutex.end(mutexTicket);
         }
         commit(null, toRemove, null);
-        return (V)toReturn;
+        return (V) toReturn;
     }
 
     protected boolean hijackSoftmax2(float newPri, float oldPri, Random random) {
@@ -446,7 +453,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
      *
      */
     @Override
-    public final V put(V x,  @Nullable NumberX overflowing) {
+    public final V put(V x, @Nullable NumberX overflowing) {
 
         K k = key(x);
         if (k == null)
@@ -460,88 +467,89 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         return toReturn;
     }
 
-    private V _put(K k, V x,  @Nullable NumberX overflowing) {
-        HijackTable table = table();
+    private V _put(K k, V x, @Nullable NumberX overflowing) {
+        HijackTable table = this.table;
+
         FastAtomicReferenceArray map = table.values;
-        FastAtomicIntegerArray hashes = table.hashes;
 
-        int c = map.length(); if (c == 0)  return null;
-
-        int kHash = hash(k), start = index(kHash, c);
+        int c = map.length();
+        if (c == 0)
+            return null; //no capacity
 
         float incomingPri;
         if ((incomingPri = pri(x)) != incomingPri)
             return null; //deleted before insert
 
-        V toReturn = null, toRemove = null, toAdd = null;
+        FastAtomicIntegerArray hashes = table.hashes;
+
+        int kHash = hash(k), start = index(kHash, c);
+
+        V returning = null, removing = null, adding = null;
 
         boolean locking = !unsafe();
         int mutexTicket = locking ? mutex.start(id, start) : -1;
         try {
 
-            //int retriesRemain = PUT_ATTEMPTS;
-            //mainLoop: do {
-                int victimIndex = -1;
-                float victimPri = Float.POSITIVE_INFINITY;
-                V victimValue = null;
+            int victimIndex = -1;
+            float victimPri = Float.POSITIVE_INFINITY;
+            V victimValue = null;
 
-                for (int i = start, j = reprobes; j > 0; j--) {
-                    V y = (V) map.getOpaque(i);
-                    if (y == null) {
-                        //empty
+            for (int i = start, j = reprobes; j > 0; j--) {
+                V y = (V) map.getOpaque(i);
+                if (y == null) {
+                    //empty
+                    victimIndex = i;
+                    victimPri = NEGATIVE_INFINITY;
+                    victimValue = null;
+                    break;
+                } else if (x == y) {
+                    //identity match
+                    returning = y;
+                    incomingPri = 0;
+                    break;
+                } else if (kHash == hashes.getOpaque(i) && keyEquals(k, y)) {
+                    //non-identity equality match
+                    float before = pri(y);
+                    returning = merge(y, x, overflowing);
+                    float after = pri(y);
+                    incomingPri -= (after - before); //reduce pressure
+                    break;
+                } else {
+                    //select weakest victim
+                    float yp = priElseNegInfinity(y);
+                    if (victimPri > yp) {
+                        victimPri =
+                                yp / reprobes; //likely to be replaced
+                        //yp;
+                        victimValue = y;
                         victimIndex = i;
-                        victimPri = NEGATIVE_INFINITY;
-                        victimValue = null;
-                        break;
-                    } else if (x == y) {
-                        //identity match
-                        toReturn = y;
-                        incomingPri = 0;
-                        break;
-                    } else if (kHash == hashes.getOpaque(i) && keyEquals(k, y)) {
-                        //non-identity equality match
-                        float before = pri(y);
-                        toReturn = merge(y, x, overflowing);
-                        float after = pri(y);
-                        incomingPri -= (after-before); //reduce pressure
-                        break;
-                    } else {
-                        //select weakest victim
-                        float yp = priElseNegInfinity(y);
-                        if (victimPri > yp) {// || (victimPri==yp && random().nextFloat() < 1f/(j+1))) {
-                            victimPri = yp;
-                            victimValue = y;
-                            victimIndex = i;
-                        }
                     }
-
-                    if (++i == c) i = 0;
-                }
-                if (toReturn==null) {
-
-                    //ATTEMPT HIJACK
-                    //if (victimIndex >= 0) {
-                    if (victimValue == null || replace(x, incomingPri, victimValue, victimPri)) {
-                        //int victimHash = hashes.get(victimIndex);
-                        if (map.compareAndSet(victimIndex, victimValue, x)) {
-                            hashes.setOpaque(victimIndex, kHash); //hashes.compareAndSet(victimIndex, victimHash, kHash);
-                            toRemove = victimValue;
-                            toReturn = toAdd = x;
-                        }
-                    }
-                    //}
                 }
 
-            //} while (--retriesRemain > 0);
+                if (++i == c) i = 0;
+            }
+            if (returning == null) {
+
+                //ATTEMPT HIJACK
+                if (victimValue == null || replace(x, incomingPri, victimValue, victimPri)) {
+                    //int victimHash = hashes.get(victimIndex);
+                    if (map.compareAndSet(victimIndex, victimValue, x)) {
+                        hashes.setOpaque(victimIndex, kHash); //hashes.compareAndSet(victimIndex, victimHash, kHash);
+                        removing = victimValue;
+                        returning = adding = x;
+                    }
+                }
+            }
+
         } finally {
             if (locking) mutex.end(mutexTicket);
         }
 
-        commit(toAdd, toRemove, overflowing);
+        commit(adding, removing, overflowing);
 
-        pressurize(incomingPri - (toRemove!=null ? pri(toRemove) : 0));
+        pressurize(incomingPri - (removing != null ? pri(removing) : 0));
 
-        return toReturn;
+        return returning;
     }
 
     @Override
@@ -590,8 +598,8 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
 
             int windowCap = Math.min(s,
 
-                //(1 + reprobes)
-                Math.min(s, 2 * reprobes)
+                    //(1 + reprobes)
+                    Math.min(s, 2 * reprobes)
             );
 
             float[] wPri = new float[windowCap];
@@ -722,7 +730,9 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         Bag.forEach(table.values, max, e);
     }
 
-    /** direct access.  when reaching the end of the buffer, wraps-around to the beginning */
+    /**
+     * direct access.  when reaching the end of the buffer, wraps-around to the beginning
+     */
     public void forEachIndex(int start, int n, Consumer<? super V> e) {
         FastAtomicReferenceArray m = table.values;
 
@@ -734,7 +744,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         int end = (start + n) % cap;
         for (int i = start; i != end; ) {
             Object x = m.getOpaque(i);
-            if (x!=null) e.accept((V)x);
+            if (x != null) e.accept((V) x);
             if (++i == cap) i = 0;
         }
     }
@@ -754,7 +764,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
     public Stream<V> stream() {
         FastAtomicReferenceArray map = table.values;
         return IntStream.range(0, map.length())
-            .mapToObj(map::getOpaque).filter(Objects::nonNull).map(z -> (V)z);
+                .mapToObj(map::getOpaque).filter(Objects::nonNull).map(z -> (V) z);
     }
 
     /**
@@ -845,7 +855,7 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
             int cp = capacity();
             if (sp < cp) {
                 int ns =
-                    Math.min(cp, Math.round(sp * growthRate));
+                        Math.min(cp, Math.round(sp * growthRate));
                 if (ns != sp) {
                     resize(ns);
                     return true;
@@ -873,11 +883,11 @@ public abstract class HijackBag<K, V> extends Bag<K, V> {
         public boolean hasNext() {
             Object v = null;
             int i = this.i;
-            while (i < n && v==null) {
+            while (i < n && v == null) {
                 v = map.getOpaque(i++);
             }
             this.i = i;
-            return (next = (V) v)!=null;
+            return (next = (V) v) != null;
         }
 
         @Override
