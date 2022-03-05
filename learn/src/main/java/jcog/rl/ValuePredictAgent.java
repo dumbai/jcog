@@ -2,6 +2,7 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.Util;
+import jcog.activation.EluActivation;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
@@ -140,12 +141,13 @@ public class ValuePredictAgent extends Agent {
 //                        )
 //                );
             layers.add(new MLP.AutoEncoderLayerBuilder(
-                            i/3
-                            //i / 2
-                            //Fuzzy.mean(i,o*4)
-                            //i
-                            //Math.round(Util.lerp(0.33f, i, o))
-                    )
+                    //(int) Math.ceil(Util.sqrt(i))
+                    i/3
+                    //i / 2
+                    //Fuzzy.mean(i,o*4)
+                    //i
+                    //Math.round(Util.lerp(0.33f, i, o))
+                )
             );
         }
 
@@ -153,12 +155,13 @@ public class ValuePredictAgent extends Agent {
 
             //brains
             layers.add(new MLP.Dense(brains,
-                 //ReluActivation.the
-                    //SigmoidActivation.the
-                    LeakyReluActivation.the
-                    //new SigLinearActivation()
-                    //new SigLinearActivation(4, -1, +1)
-                    //TanhActivation.the
+                LeakyReluActivation.the
+                //ReluActivation.the
+                //SigmoidActivation.the
+                //EluActivation.the
+                //new SigLinearActivation()
+                //new SigLinearActivation(4, -1, +1)
+                //TanhActivation.the
             ));
         }
 
@@ -167,6 +170,7 @@ public class ValuePredictAgent extends Agent {
             for (int p = 0; p < precisionLayers; p++) {
                 layers.add(new MLP.Dense(Util.lerpInt((p+1f)/precisionLayers, brains, o),
                         LeakyReluActivation.the
+                        //EluActivation.the
                         //ReluActivation.the
                         //SigmoidActivation.the
 //                    new SigLinearActivation()
@@ -196,9 +200,9 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0.9f)
+                    new SGDOptimizer(0)
+                    //new SGDOptimizer(0.9f)
                     //new AdamOptimizer()
-                    //new SGDOptimizer(0)
                     //new SGDOptimizer(0).minibatches(8)
                     //new SGDOptimizer(0.9f).minibatches(8)
                     //new AdamOptimizer().minibatches(8)

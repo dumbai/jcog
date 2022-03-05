@@ -598,7 +598,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 */
 	private static int[] inverse(int[] indices) {
 		int[] inverse = new int[indices.length];
-		for (int i = 0; i < indices.length; i++) inverse[indices[i]] = i;
+		for (int i = 0; i < indices.length; i++)
+			inverse[indices[i]] = i;
 		return inverse;
 	}
 
@@ -608,7 +609,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 */
 	private static int[] reverse(int[] indices) {
 		int[] reverse = new int[indices.length];
-		for (int i = 0; i < indices.length; i++) reverse[i] = indices[indices.length - i - 1];
+		for (int i = 0; i < indices.length; i++)
+			reverse[i] = indices[indices.length - i - 1];
 		return reverse;
 	}
 
@@ -1179,8 +1181,10 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
             boolean hsig = updateEvolutionPaths(zmean, xold);
 
-            if (diagonalOnly <= 0) updateCovariance(hsig, bestArx, arz, arindex, xold);
-            else updateCovarianceDiagonalOnly(hsig, bestArz);
+            if (diagonalOnly <= 0)
+				updateCovariance(hsig, bestArx, arz, arindex, xold);
+            else
+				updateCovarianceDiagonalOnly(hsig, bestArz);
 
             sigma *= Math.exp(Math.min(1, (normps / chiN - 1) * cs / damps));
             double bestFitness = fitness[arindex[0]];
@@ -1206,7 +1210,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
                 if (sigma * Math.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX)
                     break;
                 if (i >= dimension - 1)
-                    return false;
+                    return false; //HACK will this ever happen?
             }
             for (int i = 0; i < dimension; i++)
                 if (sigma * sqrtDiagC[i] > stopTolUpX)
