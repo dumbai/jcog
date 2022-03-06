@@ -12,8 +12,6 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
-import static jcog.Util.sqr;
-
 public class QPolicySimul implements Policy {
 
     final int inputs, actions;
@@ -112,8 +110,8 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
-                        //1 / sqr(1 + d * actionsInternal); //blur intense
                         1 / (1 + d * actionsInternal); //blur
+                        //1 / sqr(1 + d * actionsInternal); //blur intense
                         //Math.max(0, 1-d); //clean
                         //1 / (1 + d * actions);
                         //Math.max(0, 1-d/actions);

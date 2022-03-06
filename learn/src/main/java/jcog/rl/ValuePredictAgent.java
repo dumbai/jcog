@@ -2,7 +2,6 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.Util;
-import jcog.activation.EluActivation;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
@@ -201,8 +200,8 @@ public class ValuePredictAgent extends Agent {
         MLP p = new MLP(i, layers)
                 .optimizer(
                     new SGDOptimizer(0)
-                    //new SGDOptimizer(0.9f)
                     //new AdamOptimizer()
+                    //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0).minibatches(8)
                     //new SGDOptimizer(0.9f).minibatches(8)
                     //new AdamOptimizer().minibatches(8)

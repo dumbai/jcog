@@ -1,6 +1,5 @@
 package jcog.math;
 
-import jcog.Fuzzy;
 import jcog.Research;
 import jcog.Util;
 import jcog.WTF;

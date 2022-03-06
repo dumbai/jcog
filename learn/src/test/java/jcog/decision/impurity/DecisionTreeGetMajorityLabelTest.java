@@ -3,7 +3,6 @@ package jcog.decision.impurity;
 import com.google.common.collect.Lists;
 import jcog.decision.DecisionTree;
 import jcog.decision.TestValue;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
