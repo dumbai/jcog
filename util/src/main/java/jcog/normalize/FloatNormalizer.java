@@ -58,9 +58,8 @@ public class FloatNormalizer implements FloatToFloatFunction {
     protected double normalize(float x) {
         if (x != x)
             return Float.NaN; //uninitialized
-
-        double r = Math.max(0, max - min);
-        return r <= Float.MIN_NORMAL ? 0.5f : ((x - min) / r);
+        else
+            return ((x - min) / Util.max(Double.MIN_NORMAL, max - min));
     }
 
     @Override
@@ -114,21 +113,21 @@ public class FloatNormalizer implements FloatToFloatFunction {
 
     public final FloatNormalizer range(double min, double max) {
         if (polar) {
-            double amp = Math.max(abs(min), abs(max));
+            double amp = Util.max(abs(min), abs(max));
             _range(-amp, +amp);
         } else {
-            _range(Math.min(max, min), Math.max(min, max));
+            _range(Util.min(max, min), Util.max(min, max));
         }
         return this;
     }
 
     private void _range(double min, double max) {
-        min = _min(min);
-        max = _max(max);
-        if (min > max) {
-            min = max = (min+max)/2; //HACK mean if out of order
-        }
-        this.min = min; this.max = max;
+        this.min = _min(min);
+        this.max = _max(max);
+//        if (min > max) {
+//            min = max = (min+max)/2; //HACK mean if out of order
+//        }
+//        this.min = min; this.max = max;
     }
 
     private double _max(double max) {
