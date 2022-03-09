@@ -4,6 +4,8 @@ import jcog.Fuzzy;
 import jcog.activation.DiffableFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.nn.optimizer.WeightUpdater;
+import jcog.random.RandomBits;
+import jcog.random.XoRoShiRo128PlusRandom;
 import org.hipparchus.analysis.function.Gaussian;
 
 import java.util.Arrays;
@@ -21,9 +23,7 @@ public class DenseLayer extends AbstractLayer {
             //0.01f;
             //0.05f;
             //0.1f;
-            //0.5f;
             //0.2f;
-            //0.1f;
             //0;
 
     public final double[] delta;
@@ -138,10 +138,8 @@ public class DenseLayer extends AbstractLayer {
 
         if (bias) in[I - 1] = 1;
 
-
         int O = out.length;
         int io = 0;
-//        int biasInput = bias ? I - 1 : -1;
 
         float dropIn = 1 - dropout;
 
@@ -188,15 +186,24 @@ public class DenseLayer extends AbstractLayer {
         float dropIn = 1 - dropout;
 
         int n = W.length;
-        Random rng = ThreadLocalRandom.current(); //HACK
-        final int maxSkip = Math.max(1, Math.round(n * dropout));
-        int nextDropOut = rng.nextInt(maxSkip*2);
-
-        for (int io = nextDropOut; io < n; ) {
-            enabled.set(io, false);
+        RandomBits rng = new RandomBits(
+                new XoRoShiRo128PlusRandom()
+                //ThreadLocalRandom.current()
+        );
+        int d = rng.floor(dropout * n);
+        if (d > 0) {
             enabledAll = false;
-            io += rng.nextInt(maxSkip*2);
+            for (int i = 0; i < d; i++)
+                enabled.set(rng.nextInt(n), false);
         }
+
+//        int maxSkip = Math.max(1, Math.round(n * dropout));
+//        int nextDropOut = rng.nextInt(maxSkip*2);
+//        for (int io = nextDropOut; io < n; ) {
+//            enabled.set(io, false);
+//            enabledAll = false;
+//            io += rng.nextInt(maxSkip*2);
+//        }
         this.enabledAll = enabledAll;
 
     }

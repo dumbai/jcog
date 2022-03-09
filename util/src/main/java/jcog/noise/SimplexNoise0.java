@@ -1,4 +1,4 @@
-package jcog.math;
+package jcog.noise;
 /**
  * from: https://raw.githubusercontent.com/SRombauts/SimplexNoise/master/references/SimplexNoise.java
  * A speed-improved simplex noise algorithm for 2D, 3D and 4D in Java.
@@ -16,7 +16,7 @@ package jcog.math;
  * attribution is appreciated.
  *
  */
-public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
+@Deprecated public class SimplexNoise0 {  // Simplex noise in 2D, 3D and 4D
   private static Grad grad3[] = {new Grad(1,1,0),new Grad(-1,1,0),new Grad(1,-1,0),new Grad(-1,-1,0),
                                  new Grad(1,0,1),new Grad(-1,0,1),new Grad(1,0,-1),new Grad(-1,0,-1),
                                  new Grad(0,1,1),new Grad(0,-1,1),new Grad(0,1,-1),new Grad(0,-1,-1)};

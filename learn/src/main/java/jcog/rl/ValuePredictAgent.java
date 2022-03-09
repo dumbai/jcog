@@ -9,6 +9,7 @@ import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
+import jcog.nn.layer.DenseLayer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -78,7 +79,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                2 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
+                8 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -207,6 +208,10 @@ public class ValuePredictAgent extends Agent {
                     //new AdamOptimizer().minibatches(8)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
+
+        float dropout = 0.1f;
+        for (int l = 0; l < p.layers.length; l++)
+            ((DenseLayer)p.layers[l]).dropout = dropout;
 
         p.clear();
         return p;

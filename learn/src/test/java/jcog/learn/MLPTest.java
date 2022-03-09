@@ -5,6 +5,7 @@ import jcog.activation.ReluActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.data.DistanceFunction;
 import jcog.nn.MLP;
+import jcog.nn.layer.DenseLayer;
 import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.RMSPropOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
@@ -34,6 +35,10 @@ class MLPTest {
 	@Test void IRIS_in_2_out_1_sgd() {
 		mlpIrisTest(new SGDOptimizer(0));
 	}
+
+	@Test void IRIS_in_2_out_1_sgd_dropout() {
+		mlpIrisTest(new SGDOptimizer(0), 0.1f);
+	}
 	@Test void IRIS_in_2_out_1_sgd_minibatch() {
 		mlpIrisTest(new SGDOptimizer(0).minibatches(4));
 	}
@@ -42,6 +47,10 @@ class MLPTest {
 	}
 	@Test void IRIS_adam() {
 		mlpIrisTest(new AdamOptimizer());
+	}
+
+	@Test void IRIS_adam_dropout() {
+		mlpIrisTest(new AdamOptimizer(), 0.1f);
 	}
 	@Test void IRIS_adam_minibatch8() {
 		mlpIrisTest(new AdamOptimizer().minibatches(8));
@@ -76,10 +85,14 @@ class MLPTest {
 	}
 
 	private static void mlpIrisTest(WeightUpdater u) {
+		mlpIrisTest(u, 0);
+	}
+	private static void mlpIrisTest(WeightUpdater u, float dropOut) {
 		MLP predictor = new MLP(4,
 				new MLP.Dense(8, ReluActivation.the),
 					new MLP.Dense(3, SigmoidActivation.the)
 		).optimizer(u);
+		((DenseLayer)predictor.layers[1]).dropout = dropOut;
 
 		irisTest(predictor);
 	}
