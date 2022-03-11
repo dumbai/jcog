@@ -33,8 +33,10 @@ public enum Forgetting {
                 if (m <= EPSILON)
                     return null;
 
+                /* TODO tune */
                 double ideal =
-                    0.5;
+                    1/3.0;
+                    //0.5;
                     //1f/sqrt(s);
                     //1f/c;
                     //0.1f;

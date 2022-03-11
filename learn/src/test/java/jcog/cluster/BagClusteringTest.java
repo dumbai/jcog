@@ -22,7 +22,8 @@ class BagClusteringTest {
         c.put("z", 0.5f);
         assertEquals(8, c.size());
 
-        c.learn(0.5f, 1);
+        c.forget(0.5f);
+        c.learn(1);
 
         assertEquals(8, c.size());
 

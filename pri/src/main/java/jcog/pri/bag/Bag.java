@@ -3,6 +3,7 @@ package jcog.pri.bag;
 import com.google.common.collect.Streams;
 import jcog.Util;
 import jcog.data.list.FastAtomicReferenceArray;
+import jcog.data.list.Lst;
 import jcog.data.list.table.Table;
 import jcog.pri.Forgetting;
 import jcog.pri.Pressurizable;
@@ -16,6 +17,7 @@ import org.eclipse.collections.api.block.function.primitive.FloatFloatToFloatFun
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
@@ -456,6 +458,9 @@ public abstract class Bag<X, Y> implements Table<X, Y>, Sampler<Y>, Pressurizabl
         depressurizePct(1);
     }
 
+    public void addAllTo(Collection<Y> l) {
+        forEach(l::add);
+    }
 
 
 //    /**

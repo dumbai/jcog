@@ -112,8 +112,7 @@ public class BagClustering<X> {
 //
 //    }
 
-    protected void learn(float forgetRate, int clusterIterations) {
-        bag.commit(bag.forget(forgetRate));
+    protected void learn(int clusterIterations) {
 
         int s = bag.size();
         if (s <= net.k)
@@ -121,8 +120,13 @@ public class BagClustering<X> {
 
         Lst<PLink<X>> l = net.values==null ? new Lst<>(s) : net.values.cleared();
 
-        bag.forEach(l::add);
+        bag.addAllTo(l);
+
         net.clusterDirect(l, clusterIterations);
+    }
+
+    public void forget(float forgetRate) {
+        bag.commit(bag.forget(forgetRate));
     }
 
 //    public int centroid(X x) {

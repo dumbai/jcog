@@ -296,6 +296,13 @@ public interface LongInterval extends LongIntervalArray {
 //                ;
     }
 
+    static double diffTotalNorm(double[] a, double[] b) {
+        double ds = abs(a[0] - b[0]);
+        double de = abs(a[1] - b[1]);
+        double rSum = (a[1] - a[0]) + (b[1] - b[0]);
+        return (ds + de) / (1 + rSum);
+    }
+
     long start();
 
 //	/** does not test for eternal, timeless */

@@ -166,9 +166,12 @@ public class SortedArray<X> /*extends AbstractList<X>*/ implements Iterable<X> {
     }
 
     public void delete() {
-        Arrays.fill(items, 0, size, null);
+        X[] i = items;
+        if (i!=null) {
+            //Arrays.fill(i, 0, size, null);
+            items = null;
+        }
         size = 0;
-        items = null;
         //items = (X[]) ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
 

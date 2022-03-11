@@ -104,8 +104,8 @@ public class QPolicy extends PredictorPolicy {
             }
 
             dq[a] = action[a] * (reward + gq - qPrevA);
-            //dq[a] = action[a] * reward + (gq - qPrevA);
             //dq[a] = action[a] * (reward + gq) - qPrevA;
+            //dq[a] = action[a] * reward + (gq - qPrevA);
         }
 
         if (p instanceof jcog.predict.DeltaPredictor) {

@@ -79,7 +79,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                8 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
+                4 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -209,7 +209,7 @@ public class ValuePredictAgent extends Agent {
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 
-        float dropout = 0.1f;
+        float dropout = 0.25f;
         for (int l = 0; l < p.layers.length; l++)
             ((DenseLayer)p.layers[l]).dropout = dropout;
 

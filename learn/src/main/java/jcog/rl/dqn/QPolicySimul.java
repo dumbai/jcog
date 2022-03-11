@@ -1,5 +1,6 @@
 package jcog.rl.dqn;
 
+import jcog.Fuzzy;
 import jcog.TODO;
 import jcog.Util;
 import jcog.data.DistanceFunction;
@@ -126,8 +127,13 @@ public class QPolicySimul implements Policy {
                 zSum += weight;
             }
 
-            if (zSum > Float.MIN_NORMAL)
-                Util.mul(1/zSum, z);
+            if (zSum > Float.MIN_NORMAL) {
+                Util.mul(1 / zSum, z);
+
+//                //0..1 -> -1..+1
+//                for (int i = 0; i < z.length; i++)
+//                    z[i] = Fuzzy.polarize(z[i]);
+            }
 
             return z;
         }
