@@ -49,7 +49,7 @@ public class MeshMap<K,V> extends UDPeer /* implements Map<K,V>*/ {
     @Override
     protected void starting() {
         super.starting();
-        onStart.emit(this);
+        onStart.accept(this);
     }
 
     public void put(K k, V v) {

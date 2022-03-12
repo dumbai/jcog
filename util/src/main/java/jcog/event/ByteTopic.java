@@ -98,7 +98,7 @@ public class ByteTopic<X> {
 
     private void _emit(X x, byte c) {
         if (active.test(c))
-            chan[c].emit(x);
+            chan[c].accept(x);
     }
 
     private void validate(boolean afterConstruction, byte[] chans) {

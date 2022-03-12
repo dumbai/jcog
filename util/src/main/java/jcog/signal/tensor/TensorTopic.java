@@ -15,12 +15,12 @@ public class TensorTopic<T extends Tensor> extends ListTopic<T> implements Tenso
 
     public TensorTopic(T initial) {
         this();
-        emit(initial);
+        accept(initial);
     }
 
 
-    @Override public final void emit(T x) {
-        super.emit(current = x);
+    @Override public final void accept(T x) {
+        super.accept(current = x);
     }
 
     public T get() {

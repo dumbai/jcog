@@ -85,7 +85,7 @@ public class SignalInput extends Loop {
                         this.e = source.time();
                         this.s = this.e - Math.round(dataPtr/((double)sampleRate)*1000.0);
 
-                        wave.emit(new RealTimeTensor(data.clone(), s, e-1));
+                        wave.accept(new RealTimeTensor(data.clone(), s, e-1));
                         dataPtr = 0;
 
                         //if (dataPtr==0)

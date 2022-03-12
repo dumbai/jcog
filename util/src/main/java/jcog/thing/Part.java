@@ -98,7 +98,7 @@ public abstract class Part<T>  {
                 if (!nowOn)
                     throw new UnsupportedOperationException("unable to set state=On");
 
-                c.eventOnOff.emit(ENABLED/*, executor*/);
+                c.eventOnOff.accept(ENABLED/*, executor*/);
 
             } catch (Throwable e) {
                 state.set(Off);

@@ -76,16 +76,16 @@ public interface Topic<X> extends Iterable<Consumer<X>> {
 	/**
 	 * broadcast the signal to zero or more attached recipients
 	 */
-	void emit(X x);
+	void accept(X x);
 
 	/**
 	 * emits the supplier procedure's result IF there is any listener to receive it
 	 */
-	default /* final */ void emit(Supplier<X> t) {
+	default /* final */ void accept(Supplier<X> t) {
 		if (!isEmpty()) {
 			X x = t.get();
 			if (x != null)
-				emit(x);
+				accept(x);
 		}
 	}
 

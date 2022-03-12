@@ -92,6 +92,7 @@ class MLPTest {
 				new MLP.Dense(8, ReluActivation.the),
 					new MLP.Dense(3, SigmoidActivation.the)
 		).optimizer(u);
+
 		((DenseLayer)predictor.layers[1]).dropout = dropOut;
 
 		irisTest(predictor);

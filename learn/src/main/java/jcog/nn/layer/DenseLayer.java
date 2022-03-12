@@ -1,6 +1,7 @@
 package jcog.nn.layer;
 
 import jcog.Fuzzy;
+import jcog.Util;
 import jcog.activation.DiffableFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.nn.optimizer.WeightUpdater;
@@ -108,14 +109,19 @@ public class DenseLayer extends AbstractLayer {
 
     public static void randomizeHe(double[] W, float n, Random r) {
         double sigma =
-                //1.0 / Fuzzy.meanGeo((float)a,b);
-                //2.0 / Fuzzy.mean((float)a,b);
-                //2.0/(a*b);
-                1.0 / n;
-        //2.0/(a*b);
-        //(2.0 / (a + b));
-        //2.0 / a;
-        Gaussian g = new Gaussian(0, sigma);
+            1.0 / n;
+            //1.0 / Fuzzy.meanGeo((float)a,b);
+            //2.0 / Fuzzy.mean((float)a,b);
+            //2.0/(a*b);
+            //2.0/(a*b);
+            //(2.0 / (a + b));
+            //2.0 / a;
+
+        Gaussian g =
+            new Gaussian(2, 0, sigma);
+            //new Gaussian(0, sigma);
+            //new Gaussian(1, 0, sigma);
+
         for (int i = 0; i < W.length; i++) {
             double u = Fuzzy.polarize(r.nextDouble());
             boolean neg = (u < 0);

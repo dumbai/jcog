@@ -17,6 +17,6 @@ public class ExplainedCounter<E> extends FastCounter {
     public void increment(Supplier<E> explainer) {
         increment();
 
-        why.emit(explainer);
+        why.accept(explainer);
     }
 }

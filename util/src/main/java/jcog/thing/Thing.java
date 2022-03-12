@@ -273,7 +273,7 @@ public class Thing<T/* context */, P /* service key */> {
 
                 boolean nowOff = x.state.compareAndSet(OnToOff, Off); assert (nowOff);
 
-                eventOnOff.emit(pair(x, false)/*, executor*/);
+                eventOnOff.accept(pair(x, false)/*, executor*/);
 
                 if (afterOff != null && x.isOff())
                     afterOff.run();

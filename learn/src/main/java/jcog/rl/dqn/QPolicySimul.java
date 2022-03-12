@@ -87,7 +87,6 @@ public class QPolicySimul implements Policy {
             //HACK 2-ary thresholding
             //assert (actionDiscretization == 2);
             double[] y = new double[actions];
-            //x = Util.normalize(x);
             int Z = decide.applyAsInt(z);
             for (int i = 0; i < actions; i++) {
                 boolean a = (Z & (1 << i)) != 0;
@@ -149,8 +148,10 @@ public class QPolicySimul implements Policy {
             //z = z.clone();Util.normalize(z);
             //System.out.println(n2(z));
 
-            double zMin = Util.min(z), zMax = Util.max(z);
-            double zRange = zMax - zMin;
+            //double zMin = Util.min(z), zMax = Util.max(z);
+            //double zRange = zMax - zMin;
+
+            //z = Util.normalize(z);
 
             double[] y = new double[actions];
             double s = 0;

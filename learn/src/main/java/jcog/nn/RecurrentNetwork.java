@@ -146,8 +146,8 @@ public class RecurrentNetwork extends DeltaPredictor {
 
                             //guassian-like:
                             weightRange
-                                    * Math.pow(rng.nextDouble(), 1 + Math.sqrt(n* cft))
-                                    * (rng.nextBoolean() ? +1 : -1);
+                                * Math.pow(rng.nextDouble(), 1 + Math.sqrt(n * cft)) //TODO use randomizeHe gaussian
+                                * (rng.nextBoolean() ? +1 : -1);
                     } else
                         w = 0;
                 }

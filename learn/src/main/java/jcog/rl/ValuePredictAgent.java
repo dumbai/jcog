@@ -10,6 +10,7 @@ import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -79,7 +80,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-                4 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
+                64 /*Util.PHI_min_1f*/ /*0.5f*/, 4);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -184,9 +185,9 @@ public class ValuePredictAgent extends Agent {
 //        layers.add(new MLP.Output(o));
 
         layers.add(new MLP.Dense(o,
+                        SigmoidActivation.the
                         //new SigLinearActivation()
                         //ReluActivation.the
-                        SigmoidActivation.the
                         //LinearActivation.the
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
@@ -200,18 +201,18 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0)
+                    //new SGDOptimizer(0)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0).minibatches(8)
-                    //new SGDOptimizer(0.9f).minibatches(8)
+                    new SGDOptimizer(0.9f).minibatches(8)
                     //new AdamOptimizer().minibatches(8)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 
-        float dropout = 0.25f;
-        for (int l = 0; l < p.layers.length; l++)
-            ((DenseLayer)p.layers[l]).dropout = dropout;
+//        float dropout = 0.05f;
+//        for (int l = 0; l < p.layers.length; l++)
+//            ((DenseLayer)p.layers[l]).dropout = dropout;
 
         p.clear();
         return p;

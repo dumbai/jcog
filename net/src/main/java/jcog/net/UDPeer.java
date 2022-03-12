@@ -437,7 +437,7 @@ public class UDPeer extends UDP {
     }
 
     protected void receive(@Nullable UDProfile from, Msg m) {
-        receive.emit(() -> new MsgReceived(m, from));
+        receive.accept(() -> new MsgReceived(m, from));
     }
 
     private RecycledSummaryStatistics latencyAvg() {

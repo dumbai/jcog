@@ -26,7 +26,7 @@ public class ListTopic<V> extends FastCoWList<Consumer<V>> implements Topic<V> {
 
 
     @Override
-    public void emit(V x) {
+    public void accept(V x) {
         forEachWith(Consumer::accept, x);
 //        final Consumer[] cc = this.array();
 //        for (Consumer c: cc)
