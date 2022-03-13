@@ -88,7 +88,7 @@ public class StackedAutoencoder extends AbstractAutoencoder {
             if (l == layers - 1) {
                 double[] y = layer_input;
                 if (normalize.getOpaque()) {
-                    Util.normalize(y);
+                    Util.normalizeUnit(y);
                 }
 
                 //post-process final layer

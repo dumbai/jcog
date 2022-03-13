@@ -1076,7 +1076,7 @@ public enum Util {
 		return normalize(x, minmax[0], minmax[1]);
 	}
 
-	public static double[] normalize(double... x) {
+	public static double[] normalizeUnit(double... x) {
 		return normalize(x, x.length);
 	}
 
@@ -3011,6 +3011,10 @@ public enum Util {
 		return (int) x;
 	}
 
+	public static void normalizeHamming(float[] v, float epsilon) {
+		normalizeHamming(v, 1, epsilon);
+	}
+
 	public static void normalizeHamming(float[] v, float target, float epsilon) {
 		float current = 0;
 		for (float value : v)
@@ -3024,7 +3028,19 @@ public enum Util {
 				v[i] *= scale;
 		}
 	}
+	public static void normalizeHamming(double[] v, double epsilon) {
+		double current = 0;
+		for (double value : v)
+			current += abs(value);
 
+		if (current < epsilon) {
+			Arrays.fill(v, 1.0 / v.length);
+		} else {
+			double scale = 1.0 / current;
+			for (int i = 0; i < v.length; i++)
+				v[i] *= scale;
+		}
+	}
 
 	public static long readToWrite(long l, StampedLock lock) {
 		return readToWrite(l, lock, true);

@@ -5,11 +5,13 @@ import jcog.rl.ValuePredictAgent;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
+import static jcog.Util.sqr;
+
 /**
  * experience replay buffer
  */
 public abstract class Replay {
-    static final boolean ageDecay = false;
+    private static final boolean ageDecay = false;
     float replayAlpha;
     float rememberProb;
     int trainIters;
@@ -28,9 +30,10 @@ public abstract class Replay {
         int capacity = capacity();
         double dur = capacity / rememberProb;
 
-        //float memoryUsage = ((float)size()) / capacity;
+        float memoryUsage = ((float)size()) / capacity;
+        float memoryUsageFactor = sqr(memoryUsage);
 
-        trainIters = Math.min(size(), trainIters); //(int) Math.ceil(trainIters * memoryUsage);
+        //trainIters = Math.min(size(), trainIters); //(int) Math.ceil(trainIters * memoryUsage);
 
         for (int i = 0; i < trainIters; i++) {
             ReplayMemory m = sample(agent.rng);
@@ -42,7 +45,10 @@ public abstract class Replay {
             } else {
                 pri = (float) alpha;
             }
-            //pri *= memoryUsage;
+
+            //normalize by memory utilization
+            pri *= memoryUsageFactor;
+
             rerun(m, pri, agent);
         }
 

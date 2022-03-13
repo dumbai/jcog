@@ -2,15 +2,13 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.Util;
-import jcog.activation.LeakyReluActivation;
-import jcog.activation.SigLinearActivation;
-import jcog.activation.SigmoidActivation;
+import jcog.activation.*;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
-import jcog.nn.optimizer.AdamOptimizer;
+import jcog.nn.layer.NormalizeLayer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -79,8 +77,8 @@ public class ValuePredictAgent extends Agent {
 
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
-                true,
-                64 /*Util.PHI_min_1f*/ /*0.5f*/, 4);
+                false,
+                4 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -103,6 +101,12 @@ public class ValuePredictAgent extends Agent {
     }
 
     public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean precise, float brainsScale, int replays) {
+        float dropOut =
+            //0;
+            //0.1f;
+            0.75f;
+            //0.9f;
+
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
 
         ValuePredictAgent a = new ValuePredictAgent(inputs, actions,
@@ -110,7 +114,7 @@ public class ValuePredictAgent extends Agent {
             (i, o) ->
                 //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
                 new QPolicySimul( i, o,
-                        (ii,oo)->mlpBrain(ii, oo, brains, precise, inputAE))
+                        (ii,oo)->mlpBrain(ii, oo, brains, precise, inputAE, dropOut))
 //            (i, o) ->
 //                new QPolicyBranched(i, o,
 //                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
@@ -120,14 +124,14 @@ public class ValuePredictAgent extends Agent {
 
         if (replays > 0)
             a.replay(
-                new SimpleReplay(8 * 1024, 1 / 3f, replays)
+                new SimpleReplay(1 * 1024, 1 / 3f, replays)
                 //new BagReplay(64*replays, replays)
             );
 
         return a;
     }
 
-    private static MLP mlpBrain(int i, int o, int brains, boolean precise, boolean inputAE) {
+    private static MLP mlpBrain(int i, int o, int brains, boolean precise, boolean inputAE, float dropOut) {
 
         //  int actionDigitization = 2; return new DigitizedPredictAgent(actionDigitization, inputs, actions, (i, o) -> {
         List<MLP.LayerBuilder> layers = new Lst(4);
@@ -187,8 +191,8 @@ public class ValuePredictAgent extends Agent {
         layers.add(new MLP.Dense(o,
                         SigmoidActivation.the
                         //new SigLinearActivation()
-                        //ReluActivation.the
-                        //LinearActivation.the
+                         //ReluActivation.the
+                         //LinearActivation.the
                         //new SigLinearActivation(-1, +1, 0, +1)
 //                            new SigLinearActivation(
 //                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
@@ -199,20 +203,23 @@ public class ValuePredictAgent extends Agent {
                 )
         );
 
+        //layers.add(new NormalizeLayer(o));
+
         MLP p = new MLP(i, layers)
                 .optimizer(
+                    new SGDOptimizer(0).minibatches(8)
                     //new SGDOptimizer(0)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
-                    //new SGDOptimizer(0).minibatches(8)
-                    new SGDOptimizer(0.9f).minibatches(8)
-                    //new AdamOptimizer().minibatches(8)
+                    //new SGDOptimizer(0.9f).minibatches(8)
+                    //new AdamOptimizer().minibatches(32)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 
-//        float dropout = 0.05f;
-//        for (int l = 0; l < p.layers.length; l++)
-//            ((DenseLayer)p.layers[l]).dropout = dropout;
+        if (dropOut > 0) {
+            for (int l = 0; l < p.layers.length; l++)
+                if (p.layers[l] instanceof DenseLayer D) D.dropout = dropOut;
+        }
 
         p.clear();
         return p;

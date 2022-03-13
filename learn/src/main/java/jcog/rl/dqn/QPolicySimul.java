@@ -1,6 +1,5 @@
 package jcog.rl.dqn;
 
-import jcog.Fuzzy;
 import jcog.TODO;
 import jcog.Util;
 import jcog.data.DistanceFunction;
@@ -12,6 +11,8 @@ import jcog.rl.Policy;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 
 import java.util.Random;
+
+import static jcog.Util.sqr;
 
 public class QPolicySimul implements Policy {
 
@@ -111,7 +112,7 @@ public class QPolicySimul implements Policy {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
                         1 / (1 + d * actionsInternal); //blur
-                        //1 / sqr(1 + d * actionsInternal); //blur intense
+//                        1 / sqr(1 + d * actionsInternal); //blur intense
                         //Math.max(0, 1-d); //clean
                         //1 / (1 + d * actions);
                         //Math.max(0, 1-d/actions);
@@ -133,6 +134,54 @@ public class QPolicySimul implements Policy {
 //                for (int i = 0; i < z.length; i++)
 //                    z[i] = Fuzzy.polarize(z[i]);
             }
+
+            return z;
+        }
+
+        /** experimental */
+        private double[] actionEncode0(double[] x, int actionsInternal) {
+            //assert (actionDiscretization == 2);
+            int actionsExternal = x.length;
+            double[] z = new double[actionsInternal];
+            int actions = x.length;
+//            double zSum = 0;
+            for (int i = 0; i < actionsInternal; i++) {
+                double d = dist(x, idealDecode(i, actions));
+                z[i] = d;
+//                double weight =
+//                        //Math.max(0, 1 - d); //clean
+//                        //1 / (1 + d * actionsInternal); //blur
+//                        1 / sqr(1 + d * actionsInternal); //blur intense
+//                        //1 / (1 + d * actions);
+//                        //Math.max(0, 1-d/actions);
+//                        //sqr(Math.max(0, 1-d/actions));
+//                        //Math.max(0, 1-sqr(d/actions));
+//                        //Math.max(0, 1-d*2);
+//                        //1 / (1 + d);
+//                        //1 / sqr(1 + d);
+//                        //1 / sqr(1 + d * actions);
+//
+//                z[i] = weight;
+//                zSum += weight;
+            }
+
+
+            Util.normalizeUnit(z);
+            for (int i = 0; i < z.length; i++)
+                z[i] = 1 - z[i]; //dist -> weight
+            Util.normalizeHamming(z, Double.MIN_NORMAL);
+
+            //double zMin = Util.min(z), zMax = Util.max(z);
+
+//            if (zSum > Float.MIN_NORMAL) {
+//                Util.mul(1 / zSum, z);
+//
+////                //0..1 -> -1..+1
+////                for (int i = 0; i < z.length; i++)
+////                    z[i] = Fuzzy.polarize(z[i]);
+//            } else {
+//                Arrays.fill(z, 1.0 / actionsInternal);
+//            }
 
             return z;
         }

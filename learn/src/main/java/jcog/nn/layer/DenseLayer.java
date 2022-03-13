@@ -1,7 +1,6 @@
 package jcog.nn.layer;
 
 import jcog.Fuzzy;
-import jcog.Util;
 import jcog.activation.DiffableFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.nn.optimizer.WeightUpdater;
@@ -11,7 +10,6 @@ import org.hipparchus.analysis.function.Gaussian;
 
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
 import static jcog.Util.fma;
@@ -48,7 +46,7 @@ public class DenseLayer extends AbstractLayer {
      */
     public float dropout;
 
-    public boolean enabledAll;
+    public boolean dropping = false;
 
 
     public DenseLayer(int inputSize, int outputSize, DiffableFunction activation, boolean bias) {
@@ -182,10 +180,8 @@ public class DenseLayer extends AbstractLayer {
     }
 
     private void updateDropout() {
-        if (!enabledAll)
-            enabled.setAll(true);
 
-        boolean enabledAll = true;
+
         float dropout = this.dropout;
         if (dropout <= Float.MIN_NORMAL) return;
 
@@ -196,12 +192,20 @@ public class DenseLayer extends AbstractLayer {
                 new XoRoShiRo128PlusRandom()
                 //ThreadLocalRandom.current()
         );
-        int d = rng.floor(dropout * n);
+        boolean invert = dropout > 0.5f;
+
+        if (dropping)
+            enabled.setAll(!invert);
+
+        boolean dropping = true;
+
+        int d = rng.floor((invert ? (1-dropout) : dropout) * n);
         if (d > 0) {
-            enabledAll = false;
+            dropping = true;
             for (int i = 0; i < d; i++)
-                enabled.set(rng.nextInt(n), false);
-        }
+                enabled.set(rng.nextInt(n), invert);
+        } else
+            dropping = invert;
 
 //        int maxSkip = Math.max(1, Math.round(n * dropout));
 //        int nextDropOut = rng.nextInt(maxSkip*2);
@@ -210,7 +214,7 @@ public class DenseLayer extends AbstractLayer {
 //            enabledAll = false;
 //            io += rng.nextInt(maxSkip*2);
 //        }
-        this.enabledAll = enabledAll;
+        this.dropping = dropping;
 
     }
 

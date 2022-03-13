@@ -42,8 +42,8 @@ public abstract class BatchWeightUpdater implements WeightUpdater {
         double[] in = l.in;
         DiffableFunction act = l.activation;
 
-        boolean enabledAll = l.enabledAll;
-        MetalBitSet e = enabledAll ? null : l.enabled;
+        boolean dropping = l.dropping;
+        MetalBitSet e = dropping ? l.enabled : null;
 
 
         //update gradients
@@ -56,7 +56,7 @@ public abstract class BatchWeightUpdater implements WeightUpdater {
             for (int i = 0; i < ii; i++, io++) {
 
                 double inI;
-                if (dOutO == 0 || (!enabledAll && !e.test(io)) || !Double.isFinite(inI=in[i]))
+                if (dOutO == 0 || (dropping && !e.test(io)) || !Double.isFinite(inI=in[i]))
                     continue; //skip
 
                 dIn[i] = fma(W[io], dOutO, dIn[i]);
