@@ -2,13 +2,14 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.Util;
-import jcog.activation.*;
+import jcog.activation.LeakyReluActivation;
+import jcog.activation.SigLinearActivation;
+import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
-import jcog.nn.layer.NormalizeLayer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;

@@ -3,7 +3,6 @@ package jcog.pri.bag;
 import com.google.common.collect.Streams;
 import jcog.Util;
 import jcog.data.list.FastAtomicReferenceArray;
-import jcog.data.list.Lst;
 import jcog.data.list.table.Table;
 import jcog.pri.Forgetting;
 import jcog.pri.Pressurizable;

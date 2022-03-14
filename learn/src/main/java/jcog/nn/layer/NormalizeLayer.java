@@ -1,7 +1,6 @@
 package jcog.nn.layer;
 
 import jcog.Util;
-import jcog.data.DistanceFunction;
 import jcog.nn.MLP;
 import jcog.nn.optimizer.WeightUpdater;
 

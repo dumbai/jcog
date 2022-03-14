@@ -12,8 +12,6 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
-import static jcog.Util.sqr;
-
 public class QPolicySimul implements Policy {
 
     final int inputs, actions;
