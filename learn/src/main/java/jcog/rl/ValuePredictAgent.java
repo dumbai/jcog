@@ -101,7 +101,7 @@ public class ValuePredictAgent extends Agent {
                 2, 15);
     }
 
-    public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean precise, float brainsScale, int replays) {
+    public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
         float dropOut =
             //0;
             //0.1f;
@@ -115,7 +115,7 @@ public class ValuePredictAgent extends Agent {
             (i, o) ->
                 //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
                 new QPolicySimul( i, o,
-                        (ii,oo)->mlpBrain(ii, oo, brains, precise, inputAE, dropOut))
+                        (ii,oo)->mlpBrain(ii, oo, brains, deep, inputAE, dropOut))
 //            (i, o) ->
 //                new QPolicyBranched(i, o,
 //                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
