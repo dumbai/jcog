@@ -16,6 +16,7 @@ import org.eclipse.collections.api.block.procedure.Procedure2;
 import org.eclipse.collections.api.map.primitive.MutableObjectFloatMap;
 import org.eclipse.collections.impl.block.factory.Functions;
 import org.eclipse.collections.impl.block.factory.HashingStrategies;
+import org.eclipse.collections.impl.block.factory.Predicates2;
 import org.eclipse.collections.impl.list.mutable.MutableListIterator;
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectFloatHashMapWithHashingStrategy;
 import org.eclipse.collections.impl.utility.ListIterate;
@@ -1378,7 +1379,7 @@ public class Lst<X> implements List<X>, RandomAccess {
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        throw new TODO();
+        return removeIf(z -> !c.contains(z));
     }
 
     public boolean addAll(Collection<? extends X> c, int extraSpace) {
