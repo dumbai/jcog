@@ -383,7 +383,7 @@ public interface Tensor  {
     }
 
     @Deprecated default void writeTo(double[] target) {
-        forEach((i, v) -> target[i + 0] = getAt(i));
+        forEach((i, v) -> target[i] = getAt(i));
     }
 
 

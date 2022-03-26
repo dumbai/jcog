@@ -19,7 +19,7 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.9f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
 
 
     /** TODO move into separate impls of the update function */
@@ -104,6 +104,7 @@ public class QPolicy extends PredictorPolicy {
             }
 
             dq[a] = action[a] * (reward + gq - qPrevA);
+            //dq[a] = action[a] * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
             //dq[a] = action[a] * (reward + gq) - qPrevA;
             //dq[a] = action[a] * reward + (gq - qPrevA);
         }

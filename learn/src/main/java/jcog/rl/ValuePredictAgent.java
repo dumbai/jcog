@@ -3,6 +3,7 @@ package jcog.rl;
 import jcog.Fuzzy;
 import jcog.Util;
 import jcog.activation.LeakyReluActivation;
+import jcog.activation.ReluActivation;
 import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
@@ -10,6 +11,7 @@ import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -79,7 +81,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-                4 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
+               8 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -103,9 +105,9 @@ public class ValuePredictAgent extends Agent {
 
     public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
         float dropOut =
-            //0;
+            0;
             //0.1f;
-            0.75f;
+            //0.75f;
             //0.9f;
 
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
@@ -161,8 +163,8 @@ public class ValuePredictAgent extends Agent {
 
             //brains
             layers.add(new MLP.Dense(brains,
-                LeakyReluActivation.the
-                //ReluActivation.the
+                //LeakyReluActivation.the
+                ReluActivation.the
                 //SigmoidActivation.the
                 //EluActivation.the
                 //new SigLinearActivation()
@@ -175,9 +177,9 @@ public class ValuePredictAgent extends Agent {
             int precisionLayers = 1;
             for (int p = 0; p < precisionLayers; p++) {
                 layers.add(new MLP.Dense(Util.lerpInt((p+1f)/precisionLayers, brains, o),
-                        LeakyReluActivation.the
+                        //LeakyReluActivation.the
+                        ReluActivation.the
                         //EluActivation.the
-                        //ReluActivation.the
                         //SigmoidActivation.the
 //                    new SigLinearActivation()
                         //TanhActivation.the
@@ -208,12 +210,12 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0).minibatches(8)
+                    new SGDOptimizer(0.9f).minibatches(16)
                     //new SGDOptimizer(0)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0.9f).minibatches(8)
-                    //new AdamOptimizer().minibatches(32)
+                    //new AdamOptimizer().minibatches(16)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 

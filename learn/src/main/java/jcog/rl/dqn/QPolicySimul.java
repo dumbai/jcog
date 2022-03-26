@@ -12,6 +12,8 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
+import static jcog.Util.sqr;
+
 public class QPolicySimul implements Policy {
 
     final int inputs, actions;
@@ -31,6 +33,7 @@ public class QPolicySimul implements Policy {
 
     private ActionEncoder c =
         new DistanceActionEncoder();
+        //new SoftDistanceActionEncoder();
         //new BinaryActionEncoder();
 
     public QPolicySimul(int inputs, int actions, IntIntToObjectFunction<Predictor> p) {
@@ -85,15 +88,20 @@ public class QPolicySimul implements Policy {
             //System.out.println(n2(z));
             //HACK 2-ary thresholding
             //assert (actionDiscretization == 2);
-            double[] y = new double[actions];
-            int Z = decide.applyAsInt(z);
-            for (int i = 0; i < actions; i++) {
-                boolean a = (Z & (1 << i)) != 0;
-                if (a)
-                    y[i] = 1;
-            }
-            return y;
+            return actionDecodeDecide(z, actions, decide);
         }
+
+
+    }
+    private static double[] actionDecodeDecide(double[] z, int actions, Decide decide) {
+        double[] y = new double[actions];
+        int Z = decide.applyAsInt(z);
+        for (int i = 0; i < actions; i++) {
+            boolean a = (Z & (1 << i)) != 0;
+            if (a)
+                y[i] = 1;
+        }
+        return y;
     }
 
     /** HACK 2-ary thresholding */
@@ -109,8 +117,8 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
-                        1 / (1 + d * actionsInternal); //blur
-//                        1 / sqr(1 + d * actionsInternal); //blur intense
+                        //1 / (1 + d * actionsInternal); //blur
+                        1 / sqr(1 + d * actionsInternal); //blur intense
                         //Math.max(0, 1-d); //clean
                         //1 / (1 + d * actions);
                         //Math.max(0, 1-d/actions);
@@ -233,5 +241,25 @@ public class QPolicySimul implements Policy {
         }
     }
 
+    public static class SoftDistanceActionEncoder extends DistanceActionEncoder {
+        private final Decide decide =
+                new DecideSoftmax(0.1f, new XoRoShiRo128PlusRandom());
+
+        @Override
+        public double[] actionDecode(double[] z, int actions) {
+            //return actionDecodeDecide(z, actions, decide);
+
+            //multisampled softmax:
+            int iterations = 8;
+            double[] y = new double[actions];
+            for (int i = 0; i < iterations; i++) {
+                double[] yi = actionDecodeDecide(z, actions, decide);
+                for (int j = 0; j < actions; j++)
+                    y[j] += yi[j];
+            }
+            Util.mul(1f/iterations, y);
+            return y;
+        }
+    }
 
 }
