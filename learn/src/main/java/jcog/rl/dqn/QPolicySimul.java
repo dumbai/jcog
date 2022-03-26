@@ -117,8 +117,9 @@ public class QPolicySimul implements Policy {
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
                 double weight =
+                        actionsInternal == 2 ? Math.max(0, 1-d) /* clean */ : 1 / sqr(1 + d * actionsInternal); /*blur intense*/
                         //1 / (1 + d * actionsInternal); //blur
-                        1 / sqr(1 + d * actionsInternal); //blur intense
+                        //1 / sqr(1 + d * actionsInternal); //blur intense
                         //Math.max(0, 1-d); //clean
                         //1 / (1 + d * actions);
                         //Math.max(0, 1-d/actions);

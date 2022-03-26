@@ -81,7 +81,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-               8 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
+               2 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -210,7 +210,7 @@ public class ValuePredictAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0.9f).minibatches(16)
+                    new SGDOptimizer(0)//.minibatches(16)
                     //new SGDOptimizer(0)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
@@ -384,6 +384,8 @@ public class ValuePredictAgent extends Agent {
 
     public static Agent DQrecurrent(int i, int o) {
         return DQrecurrent(i, o,
+                //0.1f, 4
+                //0.25f, 6
                 0.75f, 7
                 //0.25f, 8
         );
