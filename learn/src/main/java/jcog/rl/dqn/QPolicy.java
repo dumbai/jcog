@@ -27,8 +27,8 @@ public class QPolicy extends PredictorPolicy {
 
     /** NaN to disable */
     private static final float tdErrClamp =
-        Float.NaN;
-        //1;
+        //Float.NaN;
+        1;
         //10;
 
     /**
