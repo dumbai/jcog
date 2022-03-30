@@ -16,7 +16,6 @@ import org.eclipse.collections.api.block.procedure.Procedure2;
 import org.eclipse.collections.api.map.primitive.MutableObjectFloatMap;
 import org.eclipse.collections.impl.block.factory.Functions;
 import org.eclipse.collections.impl.block.factory.HashingStrategies;
-import org.eclipse.collections.impl.block.factory.Predicates2;
 import org.eclipse.collections.impl.list.mutable.MutableListIterator;
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectFloatHashMapWithHashingStrategy;
 import org.eclipse.collections.impl.utility.ListIterate;

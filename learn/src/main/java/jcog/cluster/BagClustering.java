@@ -171,8 +171,12 @@ public class BagClustering<X> {
         }
     }
 
+    public final PLink<X> put(PLink<X> X) {
+        return bag.put(X);
+    }
+
     public final PLink<X> put(X x, float pri) {
-        return bag.put(new PLink<>(x, pri));
+        return put(new PLink<>(x, pri));
     }
 
     public final void remove(X x) {
