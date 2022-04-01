@@ -51,8 +51,12 @@ import static org.eclipse.collections.impl.tuple.Tuples.pair;
         return pair(source.createReader(bytesCache), types);
     }
 
-    public Table read(CsvReadOptions options) throws IOException {
-        return this.read(options, false);
+    public Table read(CsvReadOptions options)  {
+        try {
+            return this.read(options, false);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Table read(CsvReadOptions options, boolean headerOnly) throws IOException {
@@ -136,7 +140,7 @@ import static org.eclipse.collections.impl.tuple.Tuples.pair;
         return format;
     }
 
-    public Table read(Source source) throws IOException {
+    public Table read(Source source) {
         return this.read(CsvReadOptions.builder(source).build());
     }
 

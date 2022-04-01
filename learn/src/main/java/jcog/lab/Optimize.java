@@ -24,7 +24,6 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
@@ -435,13 +434,13 @@ public class Optimize<S, X> extends Lab<X>  {
 
         var data = e.data.sortDescendingOn(e.goal.id);
 
-        try {
+//        try {
             File f = new File("/tmp/x." + System.currentTimeMillis() + ".csv");
             data.write().csv(f);
             System.out.println("written: " + f.getAbsolutePath());
-        } catch (IOException ee) {
-            ee.printStackTrace();
-        }
+//        } catch (IOException ee) {
+//            ee.printStackTrace();
+//        }
 
         System.out.println(data.printAll());
         data.write().csv(System.out);
