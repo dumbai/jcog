@@ -80,7 +80,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-               2 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
+               1 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
