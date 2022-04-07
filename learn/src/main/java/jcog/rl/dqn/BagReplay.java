@@ -5,7 +5,7 @@ import jcog.pri.PLink;
 import jcog.pri.Prioritized;
 import jcog.pri.bag.impl.PriReferenceArrayBag;
 import jcog.pri.op.PriMerge;
-import jcog.rl.ValuePredictAgent;
+import jcog.rl.PolicyAgent;
 import jcog.rl.replay.Replay;
 import jcog.rl.replay.ReplayMemory;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +57,7 @@ public class BagReplay extends Replay {
     }
 
     @Override
-    protected void rerun(ReplayMemory m, float pri, ValuePredictAgent agent) {
+    protected void rerun(ReplayMemory m, float pri, PolicyAgent agent) {
         double[] qTmp = new double[agent.actions];
         double[] dq = agent.run(m, pri, qTmp);
 
@@ -66,7 +66,7 @@ public class BagReplay extends Replay {
     }
 
     @Override
-    protected void playback(ValuePredictAgent agent) {
+    protected void playback(PolicyAgent agent) {
         super.playback(agent);
         memory.commit();
 

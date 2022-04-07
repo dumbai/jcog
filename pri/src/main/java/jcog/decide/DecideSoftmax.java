@@ -51,8 +51,7 @@ public class DecideSoftmax implements Decide {
         temperature.set(tmp = Math.max(minTemperature, temperature.asFloat() * temperatureDecay));
 
         int actions = vector.length;
-        if (mot == null) {
-//            mot = new float[actions];
+        if (mot == null || mot.length!=actions) {
             mot = new float[actions];
         }
 

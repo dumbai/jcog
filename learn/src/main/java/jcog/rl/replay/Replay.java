@@ -1,6 +1,6 @@
 package jcog.rl.replay;
 
-import jcog.rl.ValuePredictAgent;
+import jcog.rl.PolicyAgent;
 
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -23,7 +23,7 @@ public abstract class Replay {
         this.trainIters = trainIters;
     }
 
-    protected void playback(ValuePredictAgent agent) {
+    protected void playback(PolicyAgent agent) {
 
         int trainIters = this.trainIters;
         double alpha = replayAlpha();
@@ -54,7 +54,7 @@ public abstract class Replay {
 
     }
 
-    protected void rerun(ReplayMemory m, float pri, ValuePredictAgent agent) {
+    protected void rerun(ReplayMemory m, float pri, PolicyAgent agent) {
         agent.run(m, pri, null);
     }
 
@@ -69,7 +69,7 @@ public abstract class Replay {
         //* ((float)memory.size())/capacity; //discount for incompletely filled memory
     }
 
-    public void run(ValuePredictAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
+    public void run(PolicyAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
         if (size() > 0)
             playback(agent);
 
@@ -78,7 +78,7 @@ public abstract class Replay {
         t++;
     }
 
-    private void tryRemember(ValuePredictAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
+    private void tryRemember(PolicyAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
         int s = size(), c = capacity();
         if (s < c || agent.rng.nextFloat() <= rememberProb) {
 

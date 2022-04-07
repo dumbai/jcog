@@ -19,7 +19,7 @@ public class AutoEncoderLayer extends AbstractLayer {
     //float noise = 0;
     public final AbstractAutoencoder ae;
 
-    final boolean normalize = true;
+    final boolean normalize = false;
 
     float learningRate = 0.01f;
 

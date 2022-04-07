@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static jcog.Util.sumAbs;
 
 /** TODO rename: PolicyAgent */
-public class ValuePredictAgent extends Agent {
+public class PolicyAgent extends Agent {
 
 
     public final Policy policy;
@@ -66,11 +66,11 @@ public class ValuePredictAgent extends Agent {
 
     private transient double[] iPrev;
 
-    public ValuePredictAgent(int numInputs, int numActions, IntIntToObjectFunction<? extends Policy> policy) {
+    public PolicyAgent(int numInputs, int numActions, IntIntToObjectFunction<? extends Policy> policy) {
         this(numInputs, numActions, policy.value(numInputs, numActions));
     }
 
-    public ValuePredictAgent(int numInputs, int numActions, Policy policy) {
+    public PolicyAgent(int numInputs, int numActions, Policy policy) {
         super(numInputs, numActions);
         this.policy = policy;
         this.policy.clear(rng);
@@ -80,7 +80,7 @@ public class ValuePredictAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-               1 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
+               4 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -102,7 +102,7 @@ public class ValuePredictAgent extends Agent {
                 2, 15);
     }
 
-    public static ValuePredictAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
+    public static PolicyAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
         float dropOut =
             0;
             //0.1f;
@@ -111,7 +111,7 @@ public class ValuePredictAgent extends Agent {
 
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
 
-        ValuePredictAgent a = new ValuePredictAgent(inputs, actions,
+        PolicyAgent a = new PolicyAgent(inputs, actions,
             //THIS ISNT GOOD:
             (i, o) ->
                 //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
@@ -149,6 +149,7 @@ public class ValuePredictAgent extends Agent {
 //                );
             layers.add(new MLP.AutoEncoderLayerBuilder(
                     //(int) Math.ceil(Util.sqrt(i))
+                    //i*2
                     i/3
                     //i / 2
                     //Fuzzy.mean(i,o*4)
@@ -229,7 +230,7 @@ public class ValuePredictAgent extends Agent {
 
     public static Agent DQrecurrent(int inputs, int actions, float brainsScale, int trainIters) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
-        return new ValuePredictAgent(inputs, actions,
+        return new PolicyAgent(inputs, actions,
                 (i, o) -> new QPolicy(
                         recurrentBrain(inputs, actions, brains))).replay(new SimpleReplay(8 * 1024, 1/3f, trainIters));
     }
@@ -259,7 +260,7 @@ public class ValuePredictAgent extends Agent {
     }
     public static Agent direct(int inputs, int actions, float brainsScale) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
-        return new ValuePredictAgent(inputs, actions,
+        return new PolicyAgent(inputs, actions,
             new DirectPolicy(
                 recurrentBrain(inputs, actions, brains)
                 //mlpBrain(inputs, actions, brains, true)
@@ -269,7 +270,7 @@ public class ValuePredictAgent extends Agent {
 
     public static Agent DQN_NTM(int inputs, int actions) {
         //return new DigitizedPredictAgent(2, inputs, actions,
-        return new ValuePredictAgent(inputs, actions,
+        return new PolicyAgent(inputs, actions,
                 (ii, oo) ->
                 {
                     final LivePredictor.NTMPredictor p = new LivePredictor.NTMPredictor(ii, oo, 2, 2);
