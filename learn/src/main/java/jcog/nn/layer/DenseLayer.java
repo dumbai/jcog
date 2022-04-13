@@ -83,16 +83,23 @@ public class DenseLayer extends AbstractLayer {
      */
     @Override
     public void randomize(Random r) {
-        //randomizeXavier(r);
-        randomizeHe(r);
+        randomizeXavier(r);
+        //randomizeHe(r);
     }
 
+    /** https://paperswithcode.com/method/xavier-initialization
+     *  https://prateekvishnu.medium.com/xavier-and-he-normal-he-et-al-initialization-8e3d7a087528
+     * */
     private void randomizeXavier(Random r) {
-        int n = ins() * outs();
-        double factor = Math.sqrt(n);
-        for (int i = 0; i < W.length; i++) {
-            W[i] = ((r.nextFloat() - 0.5f) * 2) / factor;
-        }
+        double variance =
+                2.0 / ins();
+                //2.0 / (ins() + outs());
+        double sigma = Math.sqrt(variance);
+        Gaussian g =
+                new Gaussian(1, 0, sigma);
+        for (int i = 0; i < W.length; i++)
+            W[i] = normalSample(r, g);
+
     }
 
     private void randomizeHe(Random r) {
@@ -120,15 +127,17 @@ public class DenseLayer extends AbstractLayer {
             //new Gaussian(0, sigma);
             //new Gaussian(1, 0, sigma);
 
-        for (int i = 0; i < W.length; i++) {
-            double u = Fuzzy.polarize(r.nextDouble());
-            boolean neg = (u < 0);
-            if (neg) u = -u;
-            double y = g.value(u);
-            if (neg) y = -y;
+        for (int i = 0; i < W.length; i++)
+            W[i] = normalSample(r, g);
+    }
 
-            W[i] = y;
-        }
+    private static double normalSample(RandomGenerator r, Gaussian g) {
+        double u = Fuzzy.polarize(r.nextDouble());
+        boolean neg = (u < 0);
+        if (neg) u = -u;
+        double y = g.value(u);
+        if (neg) y = -y;
+        return y;
     }
 
     /**

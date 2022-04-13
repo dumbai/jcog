@@ -115,7 +115,6 @@ class MLPTest {
 	}
 
 	private static void predictorTest(Predictor p, DataTable d, int is, int ie, int os, int oe) {
-		int cases = d.rowCount();
 
 		int seed = 1;
 
@@ -125,7 +124,8 @@ class MLPTest {
 
 		float alpha = 0.04f;
 
-		int maxIter = 8000*d.rowCount();
+		int cases = d.rowCount();
+		int maxIter = 8000 * cases;
 		int minIterations = cases * 2;
 		double errGoal = 0.05;
 

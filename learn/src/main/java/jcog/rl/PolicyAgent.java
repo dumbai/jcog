@@ -11,6 +11,7 @@ import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
+import jcog.nn.optimizer.AdamOptimizer;
 import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
@@ -210,8 +211,8 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0)//.minibatches(16)
-                    //new SGDOptimizer(0)
+                    new SGDOptimizer(0)
+                    //new SGDOptimizer(0).minibatches(16)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0.9f).minibatches(8)

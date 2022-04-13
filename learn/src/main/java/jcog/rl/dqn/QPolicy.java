@@ -59,15 +59,14 @@ public class QPolicy extends PredictorPolicy {
     private transient double rewardPrev = Double.NaN;
 
     /**
-     * TD update policy
+     * Q update function
      * @see https://towardsdatascience.com/reinforcement-learning-temporal-difference-sarsa-q-learning-expected-sarsa-on-python-9fecfda7467e
-     *
      */
-    @Override public synchronized double[] learn(double[] xPrev, double[] action, double reward, double[] i, float pri) {
+    @Override public synchronized double[] learn(double[] xPrev, double[] action, double reward, double[] x, float pri) {
         if (dq == null || dq.length!=action.length) dq = new double[action.length];
 
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
-        double[] qNext = predict(i).clone(); //TODO is clone() necessary?
+        double[] qNext = predict(x).clone(); //TODO is clone() necessary?
 
         double gamma = plan.doubleValue();
         int n = action.length;
@@ -96,17 +95,16 @@ public class QPolicy extends PredictorPolicy {
             double qPrevA = qPrev[a], qNextA = qNext[a];
 
             /* estimate of optimal future value */
-            double gq;
-            if (m) {
-                gq = gqMunch(gamma, qNextMax, logsumNext, qPrevMax, logsumPrev, qPrevA, qNextA);
-            } else {
-                gq = sarsaOrQ ? gamma * qNextA : gammaQNextMax;
-            }
+            double gq = m ?
+                gqMunch(gamma, qNextMax, logsumNext, qPrevMax, logsumPrev, qPrevA, qNextA) :
+                (sarsaOrQ ? gamma * qNextA : gammaQNextMax);
 
-            dq[a] = action[a] * (reward + gq - qPrevA);
-            //dq[a] = action[a] * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
-            //dq[a] = action[a] * (reward + gq) - qPrevA;
-            //dq[a] = action[a] * reward + (gq - qPrevA);
+
+            double aa = action[a];
+            dq[a] = aa * (reward + gq - qPrevA);
+            //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
+            //dq[a] = aa * (reward + gq) - qPrevA;
+            //dq[a] = aa * reward + (gq - qPrevA);
         }
 
         if (p instanceof jcog.predict.DeltaPredictor) {
@@ -114,7 +112,9 @@ public class QPolicy extends PredictorPolicy {
                 clampSafe(dq, -tdErrClamp, +tdErrClamp);
                 //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
             }
-            ((jcog.predict.DeltaPredictor) p).putDelta(dq, pri * learn.floatValue());
+            float p = pri * learn.floatValue();
+            ((jcog.predict.DeltaPredictor) this.p).putDelta(dq, p);
+
         } else
             throw new TODO("d.put(plus(q,dq), learnRate) ?");
 
