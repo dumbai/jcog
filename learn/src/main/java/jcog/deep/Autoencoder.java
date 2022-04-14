@@ -18,8 +18,6 @@ import static jcog.Util.fma;
  */
 public class Autoencoder extends AbstractAutoencoder {
 
-//    static final float NORMALIZATION_EPSILON = (float) Math.sqrt(Float.MIN_NORMAL);
-
     /**
      * input vector after preprocessing (noise, corruption, etc..)
      */
@@ -37,7 +35,7 @@ public class Autoencoder extends AbstractAutoencoder {
 
     public final float[][] W;
 
-    public final float[] hbias, vbias;
+    private final float[] hbias, vbias;
     private final float[] L_hbias;
 
     private final double[] delta /*"L_vbias"*/;
@@ -51,20 +49,6 @@ public class Autoencoder extends AbstractAutoencoder {
 
     @Deprecated public final FloatRange noise = new FloatRange(0, 0, 1);
     public final FloatRange corruption = new FloatRange(0, 0, 1);
-
-
-
-    /*
-     * public float binomial(final int n, final float p) { if (p < 0 || p > 1)
-     * { return 0; }
-     *
-     * int c = 0; float r;
-     *
-     * for (int i = 0; i < n; i++) { r = rng.nextfloat(); if (r < p) { c++; } }
-     *
-     * return c; }
-     */
-
 
     public Autoencoder(int ins, int outs) {
         this(ins, outs, null);
@@ -109,9 +93,6 @@ public class Autoencoder extends AbstractAutoencoder {
             clear(wi, a);
 
     }
-
-
-
 
     @Override
     public final float[] get(float[] x) {
@@ -266,8 +247,7 @@ public class Autoencoder extends AbstractAutoencoder {
     }
 
     public float[] reconstruct(float[] x) {
-        float[] yTmp = new float[this.y.length];
-        return decode(get(x, 0, 0, false, yTmp), z);
+        return decode(get(x, 0, 0, false, new float[this.y.length]), z);
     }
 
     public int inputs() {
