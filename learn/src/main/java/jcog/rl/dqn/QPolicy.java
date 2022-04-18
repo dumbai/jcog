@@ -19,17 +19,17 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.1f, 0, 1);
 
-
-    /** TODO move into separate impls of the update function */
-    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(false);
 
     /** NaN to disable */
     private static final float tdErrClamp =
         //Float.NaN;
         1;
         //10;
+
+    /** TODO move into separate impls of the update function */
+    public final AtomicBoolean sarsaOrQ = new AtomicBoolean(false);
 
     /**
      * https://medium.com/analytics-vidhya/munchausen-reinforcement-learning-9876efc829de
@@ -102,19 +102,18 @@ public class QPolicy extends PredictorPolicy {
 
             double aa = action[a];
             dq[a] = aa * (reward + gq - qPrevA);
-            //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
             //dq[a] = aa * (reward + gq) - qPrevA;
-            //dq[a] = aa * reward + (gq - qPrevA);
+            //dq[a] = aa * (reward) + (gq - qPrevA);
+            //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
         }
 
-        if (p instanceof jcog.predict.DeltaPredictor) {
+        if (p instanceof jcog.predict.DeltaPredictor D) {
             if (tdErrClamp == tdErrClamp) {
                 clampSafe(dq, -tdErrClamp, +tdErrClamp);
                 //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
             }
             float p = pri * learn.floatValue();
-            ((jcog.predict.DeltaPredictor) this.p).putDelta(dq, p);
-
+            D.putDelta(dq, p);
         } else
             throw new TODO("d.put(plus(q,dq), learnRate) ?");
 

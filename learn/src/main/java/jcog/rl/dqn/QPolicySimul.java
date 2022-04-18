@@ -12,6 +12,7 @@ import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFuncti
 
 import java.util.Random;
 
+import static jcog.Str.n2;
 import static jcog.Util.sqr;
 
 public class QPolicySimul implements Policy {
@@ -33,6 +34,7 @@ public class QPolicySimul implements Policy {
 
     private ActionEncoder c =
         new DistanceActionEncoder();
+        //new FuzzyDistanceActionEncoder();
         //new SoftDistanceActionEncoder();
         //new BinaryActionEncoder();
 
@@ -242,6 +244,37 @@ public class QPolicySimul implements Policy {
         }
     }
 
+    public static class FuzzyDistanceActionEncoder extends DistanceActionEncoder {
+        @Override
+        public double[] actionDecode(double[] z, int actions) {
+
+            //TODO refine
+
+            int zArgMax = Util.argmax(z);
+            double zMax = z[zArgMax];
+            double zOtherSum = 0;
+            for (int i = 0; i < z.length; i++) {
+                if (i!=zArgMax) {
+                    double zI = z[i];
+                    zOtherSum += zI / zMax;
+                }
+            }
+            double uncertainty = zOtherSum / (z.length - 1);
+            //double uncertainty = 1 - (Util.max(z) - Util.min(z));
+            //System.out.println(uncertainty + " " + n2(z));
+            Random rng = new XoRoShiRo128PlusRandom();
+//            for (int i = 0; i < z.length; i++)
+//                z[i] = Util.unitizeSafe( z[i] + uncertainty * ((rng.nextFloat()-0.5f)*2f) /* TODO gaussian */ );
+
+            double[] y = super.actionDecode(z, actions);
+
+            for (int i = 0; i < y.length; i++)
+                y[i] = Util.unitizeSafe( y[i] + uncertainty * ((rng.nextFloat()-0.5f)*2f) /* TODO gaussian */ );
+
+
+            return y;
+        }
+    }
     public static class SoftDistanceActionEncoder extends DistanceActionEncoder {
         private final Decide decide =
                 new DecideSoftmax(0.1f, new XoRoShiRo128PlusRandom());

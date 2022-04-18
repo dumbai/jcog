@@ -81,7 +81,7 @@ public class PolicyAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-               4 /*Util.PHI_min_1f*/ /*0.5f*/, 64);
+               2 /*Util.PHI_min_1f*/ /*0.5f*/, 16);
     }
 
     public static Agent DQNmini(int inputs, int actions) {
@@ -110,10 +110,12 @@ public class PolicyAgent extends Agent {
             //0.75f;
             //0.9f;
 
-        int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
+        int brains = (int) Math.ceil(
+            //Fuzzy.mean(inputs, actions) * brainsScale
+            actions * brainsScale
+        );
 
         PolicyAgent a = new PolicyAgent(inputs, actions,
-            //THIS ISNT GOOD:
             (i, o) ->
                 //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
                 new QPolicySimul( i, o,
