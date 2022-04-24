@@ -23,7 +23,7 @@ public interface Prioritized  {
      * https://en.wikipedia.org/wiki/Floating-point_arithmetic#Internal_representation
      */
     float EPSILON =
-        FixedPoint.Epsilon16;
+        (float) FixedPoint.Epsilon16;
         //0.00001f;
         //0.000001f;
         //0.00000001f;

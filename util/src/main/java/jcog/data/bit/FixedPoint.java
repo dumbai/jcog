@@ -7,8 +7,8 @@ public enum FixedPoint {
 	public static final int Range16 = Short.MAX_VALUE*2 + 1;
 	public static final int Range24 = (1<<24)*2 + 1;
 
-	public static final float Epsilon8 = 1f / (Range8 - 1);
-	public static final float Epsilon16 = 1f / (Range16 - 1);
+	public static final double Epsilon8 = 1f / (Range8 - 1);
+	public static final double Epsilon16 = 1f / (Range16 - 1);
 
 
 //	public static float unitShortToFloat(long y) {

@@ -50,10 +50,15 @@ public class QPolicy extends PredictorPolicy {
         super(p);
     }
 
+    /** experimental */
+    public final FloatRange qDecay = FloatRange.unit(
+        0f
+        //0.01f
+    );
+
 
     boolean rewardDelta = false;
 
-    /** TODO may not matter */
     boolean rewardPolarize = false;
 
     private transient double rewardPrev = Double.NaN;
@@ -67,6 +72,10 @@ public class QPolicy extends PredictorPolicy {
 
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
         double[] qNext = predict(x).clone(); //TODO is clone() necessary?
+
+        float alphaPri = pri * learn.floatValue(), alphaQ = 1;
+        //float alphaQ = pri * learn.floatValue(), alphaPri = 1;
+        //float alphaQ = (float) Math.sqrt(pri * learn.floatValue()), alphaPri = alphaQ; //balanced
 
         double gamma = plan.doubleValue();
         int n = action.length;
@@ -85,6 +94,7 @@ public class QPolicy extends PredictorPolicy {
 
         double rewardPrev = this.rewardPrev;
         this.rewardPrev = reward;
+        assert(!(rewardDelta && rewardPolarize));
         if (rewardDelta) {
             reward = rewardPrev==rewardPrev ? reward - rewardPrev : 0;
         } else {
@@ -101,10 +111,16 @@ public class QPolicy extends PredictorPolicy {
 
 
             double aa = action[a];
-            dq[a] = aa * (reward + gq - qPrevA);
+            dq[a] = alphaQ * aa * (reward + gq - qPrevA);
             //dq[a] = aa * (reward + gq) - qPrevA;
             //dq[a] = aa * (reward) + (gq - qPrevA);
             //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
+        }
+
+        float qDecay = this.qDecay.floatValue();
+        if (qDecay!=0) {
+            for (int a = 0; a < n; a++)
+                dq[a] -= (1-action[a]) * qDecay * Fuzzy.mean(qPrev[a] ,qNext[a]);
         }
 
         if (p instanceof jcog.predict.DeltaPredictor D) {
@@ -112,8 +128,7 @@ public class QPolicy extends PredictorPolicy {
                 clampSafe(dq, -tdErrClamp, +tdErrClamp);
                 //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
             }
-            float p = pri * learn.floatValue();
-            D.putDelta(dq, p);
+            D.putDelta(dq, alphaPri);
         } else
             throw new TODO("d.put(plus(q,dq), learnRate) ?");
 

@@ -157,6 +157,11 @@ public class AtomicFixedPoint4x16bitVector implements WritableTensor {
         X.setOpaque(this, y);
     }
 
+    /** TODO rewrite */
+    public void commit(org.eclipse.collections.api.block.function.primitive.FloatToFloatFunction m) {
+        merge(0, 0, 0, 0, (a,ignored)-> m.valueOf(a));
+    }
+
     public void merge(float b, float q, float g, float Q, FloatFloatToFloatFunction m) {
         merge(0, b, m, null);
         merge(1, q, m, null);

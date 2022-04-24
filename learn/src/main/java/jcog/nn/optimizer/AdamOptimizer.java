@@ -17,8 +17,12 @@ public class AdamOptimizer extends BatchWeightUpdater {
         //0.999;
 
     //        private double beta1PowerT = Double.NaN, beta2PowerT = Double.NaN;
-    public static final double epsilon = 1.0E-12;
-    public float lr;
+    public static final double epsilon =
+        1.0E-4;
+        //1.0E-12;
+        //0.5f;
+
+    public float pri;
 
     /** mean - running estimate of gradient */
     private double[] momentM = ArrayUtil.EMPTY_DOUBLE_ARRAY;
@@ -36,12 +40,12 @@ public class AdamOptimizer extends BatchWeightUpdater {
      * https://github.com/pytorch/pytorch/blob/c371542efc31b1abfe6f388042aa3ab0cef935f2/torch/optim/_multi_tensor/adamw.py
      */
     float weightDecay =
-            //1;
+            2.5E-4f;
             //0.5f;
             //0.1f;
             //0.05f;
             //0.001f;
-            0;
+            //0;
 
 
     //        protected void minimizeDeltas(Map<VariableNode, TensorNode> var) {
@@ -64,7 +68,7 @@ public class AdamOptimizer extends BatchWeightUpdater {
             momentV = new double[weights];
         }
         this.pAbs = 0;
-        this.lr = alpha;
+        this.pri = alpha;
     }
 
 
@@ -73,38 +77,39 @@ public class AdamOptimizer extends BatchWeightUpdater {
         int pAbs = this.pAbs;
         double[] mm = this.momentM, vv = this.momentV;
 
-        double pri = this.lr;
+        double pri = this.pri;
+
+
+        double weightDecay = this.weightDecay!=0 ?
+                pri * this.weightDecay
+                //pri * Math.min(1, Util.sumAbs(dW) / dW.length) * this.weightDecay
+                //pri * this.weightDecay * Util.sumAbs(dW) / dW.length
+            : 0;
+
+        double weightDecayFactor = 1 - weightDecay;
+
         double alphaT =
                 pri * (minimizing ? -1 : +1)
                 //* Math.sqrt(1 - beta2) / (1 - beta1)
                 ;
 
-        double weightDecay =
-                Math.min(1, Util.sumAbs(dW)/ (dW.length)) * this.weightDecay;
-                //this.weightDecay;
-
-        double weightDecayFactor = 1 - weightDecay;
-
-
         int n = l.ins() * l.outs();
         for (int pRel = 0; pRel < n; pRel++, pAbs++) {
             double g = dW[pRel];
 
-            //update the moving averages of the gradient
+            //update the moving averages of the gradient: beta1 * mm[pAbs] + (1-beta1)*g
             double m = mm[pAbs] =
-                    //beta1 * mm[pAbs] + (1-beta1)*g;
-                    lerpSafe(beta1, g, mm[pAbs]);
+                lerpSafe(beta1, g, mm[pAbs]);
 
-            //update the moving averages of the squared gradient
+            //update the moving averages of the squared gradient: beta2 * vv[pAbs] + (1-beta2)*(g*g)
             double v = vv[pAbs] =
-                    //beta2 * vv[pAbs] + (1-beta2)*(g*g);
-                    lerpSafe(beta2, g * g, vv[pAbs]);
+                lerpSafe(beta2, g * g, vv[pAbs]);
 
-            double Wnext =
-                    m / (Math.sqrt(v) + epsilon);
+            double dw =
+                m / (Math.sqrt(v) + epsilon);
 
             double Wprev = W[pRel];
-            W[pRel] = fma(alphaT, Wnext, Wprev * weightDecayFactor);
+            W[pRel] = fma(alphaT, dw, Wprev * weightDecayFactor);
 
 //                    double m_cap = m/(1-(Math.pow(beta1,t)))		#calculates the bias-corrected estimates
 //                            v_cap = v/(1-(Math.pow(beta2,t))		#calculates the bias-corrected estimates
@@ -119,7 +124,7 @@ public class AdamOptimizer extends BatchWeightUpdater {
     }
 
     public final AdamOptimizer alpha(float v) {
-        lr = v;
+        pri = v;
         return this;
     }
 
