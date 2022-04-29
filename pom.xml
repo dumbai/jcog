@@ -39,7 +39,7 @@
     <properties>
         <jvmArgs>--enable-preview --illegal-access=permit --add-opens java.base/java.io=ALL-UNNAMED</jvmArgs>
 
-        <hipparchus.version>2.0</hipparchus.version>
+        <hipparchus.version>2.1</hipparchus.version>
 
         <junit-platform-launcher.version>1.8.2</junit-platform-launcher.version>
         <junit-jupiter-params.version>5.8.2</junit-jupiter-params.version>
