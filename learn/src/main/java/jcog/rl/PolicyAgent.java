@@ -82,7 +82,7 @@ public class PolicyAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 false,
-               /*2*/ /*Util.PHI_min_1f*/ 1, 16);
+               /*2*/ /*Util.PHI_min_1f*/ 4, 16);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -207,13 +207,13 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    new SGDOptimizer(0)
+                    //new SGDOptimizer(0)
                     //new SGDOptimizer(0).minibatches(128)
                     //new SGDOptimizer(0.99f).minibatches(128)
                     //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0.9f).minibatches(8)
-                    //new AdamOptimizer().minibatches(128)
+                    new AdamOptimizer().minibatches(16)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 

@@ -110,6 +110,7 @@ public class QPolicySimul implements Policy {
     public static class DistanceActionEncoder implements ActionEncoder {
 
         private final float decodeSpecificity = 1;
+        private boolean normalizeManhattanOrCartesian = false;
 
         @Override public double[] actionEncode(double[] x, int actionsInternal) {
             //assert (actionDiscretization == 2);
@@ -137,7 +138,11 @@ public class QPolicySimul implements Policy {
             }
 
             if (zSum > Float.MIN_NORMAL) {
-                Util.mul(1 / zSum, z);
+                if (normalizeManhattanOrCartesian)
+                    Util.mul(1 / zSum, z);
+                else {
+                    Util.normalizeCartesian(z, z.length, Double.MIN_NORMAL);
+                }
 
 //                //0..1 -> -1..+1
 //                for (int i = 0; i < z.length; i++)
