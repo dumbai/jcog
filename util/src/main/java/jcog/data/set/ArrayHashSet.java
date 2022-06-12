@@ -332,6 +332,12 @@ public class ArrayHashSet<X> extends AbstractSet<X> implements ArraySet<X> {
         set.add(y);
     }
 
+    public X removeFirst() {
+        X x = get(0);
+        remove(x);
+        return x;
+    }
+
     private final class ArrayHashSetIterator implements ListIterator<X> {
 
         private final ListIterator<X> i;

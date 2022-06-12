@@ -122,11 +122,10 @@ public enum Util {
 
 	public static double fma(double a, double b, double c) {
 		return MATH_FMA ? Math.fma(a, b, c) : a * b + c;
-
 	}
+
 	public static float fma(float a, float b, float c) {
 		return MATH_FMA ? Math.fma(a, b, c) : a * b + c;
-
 	}
 
 	public static String UUIDbase64() {

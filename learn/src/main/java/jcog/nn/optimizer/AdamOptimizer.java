@@ -1,6 +1,5 @@
 package jcog.nn.optimizer;
 
-import jcog.Util;
 import jcog.nn.layer.DenseLayer;
 import jcog.util.ArrayUtil;
 
