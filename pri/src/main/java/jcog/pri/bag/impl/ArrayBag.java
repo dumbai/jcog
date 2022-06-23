@@ -980,17 +980,17 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
             if (pRange < Prioritized.EPSILON)
                 h.commitFlat(0, n);
             else
-                histogram(items, n, h);
+                histogram(items, n, h, pMin, pRange);
         }
 
-        private void histogram(short[] items, int n, DistributionApproximator h) {
+        private void histogram(short[] items, int n, DistributionApproximator h, float pMin, float pRange) {
             float[] pri = this.pri;
             for (int i = 0; i < n; i++) {
                 float p = pri[items[i]];
                 if (p > 0)
                     h.accept(Util.max(0,
+                            1 - p                     //UN-NORMALIZED
                             //1 - (p - pMin) / pRange //NORMALIZED TO RANGE
-                            1 - p                     //UNNORMALIZED
                     ));
             }
         }
