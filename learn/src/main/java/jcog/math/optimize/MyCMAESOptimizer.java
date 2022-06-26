@@ -1064,10 +1064,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
             initializeCMA(guess);
 
-            //ValuePenaltyPair valuePenalty = value(guess);
-            bestValue = //isMinimize ?
-					Double.POSITIVE_INFINITY;
-//					: Double.NEGATIVE_INFINITY; //valuePenalty.value + valuePenalty.penalty;
+
+
+            bestValue =
+				Double.POSITIVE_INFINITY;
+
+				//isMinimize ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+
+				////ValuePenaltyPair valuePenalty = value(guess); valuePenalty.value + valuePenalty.penalty;
 
             push(fitnessHistory, bestValue);
 
@@ -1079,7 +1083,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * @param point Normalized objective variables.
 		 * @return the objective value + penalty for violated bounds.
 		 */
-		ValuePenaltyPair value(double[] point) {
+		private ValuePenaltyPair value(double[] point) {
 			double penalty;
 			if (isRepairMode) {
 				double[] repaired = repair(point);
@@ -1092,8 +1096,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		}
 
 		private ValuePenaltyPair value(double[] point, double penalty) {
-			double value = MyCMAESOptimizer.this.computeObjectiveValue(point);
-			return valuePenalty(value, penalty);
+			return valuePenalty(MyCMAESOptimizer.this.computeObjectiveValue(point), penalty);
 		}
 
 
@@ -1101,13 +1104,10 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * @param x Normalized objective variables.
 		 * @return {@code true} if in bounds.
 		 */
-		boolean isFeasible(double[] x, double[] lB, double[] uB) {
-
+		boolean feasible(double[] x, double[] lB, double[] uB) {
 			for (int i = 0; i < x.length; i++) {
 				double xi = x[i];
-				if (xi < lB[i])
-					return false;
-				if (xi > uB[i])
+				if (xi < lB[i] || xi > uB[i])
 					return false;
 			}
 			return true;
@@ -1142,12 +1142,12 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
         public boolean iterate() {
             RealMatrix arx = zeros(dimension, lambda), arz = randn1(dimension, lambda);
 
-			preIterate(arx, arz);
+			iterateBefore(arx, arz);
 
 			return iterateEval(arx, arz, this);
 		}
 
-		private void preIterate(RealMatrix arx, RealMatrix arz) {
+		private void iterateBefore(RealMatrix arx, RealMatrix arz) {
 			incrementIterationCount();
 			double[] lB = this.lB, uB = this.uB;
 
@@ -1161,7 +1161,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 					arxk = xmean.add(diagonalOnly <= 0 ? BD.multiply(arzK).scalarMultiply(sigma) : xFactor);
 
-					if (i >= checkFeasableCount || this.isFeasible(arxk.getColumn(0), lB, uB))
+					if (i >= checkFeasableCount || this.feasible(arxk.getColumn(0), lB, uB))
 						break;
 
 					arz.setColumn(k, randn(dimension));
@@ -1189,9 +1189,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			xmean = bestArx.multiply(weights);
 
 			RealMatrix bestArz = selectColumns(arz, arMu);
-			RealMatrix zmean = bestArz.multiply(weights);
 
-			boolean hsig = updateEvolutionPaths(zmean, xold);
+			boolean hsig = updateEvolutionPaths(bestArz.multiply(weights), xold);
 
 			if (diagonalOnly <= 0)
 				updateCovariance(hsig, bestArx, arz, arindex, xold);
@@ -1206,7 +1205,10 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				this.bestValue = bestFitness;
 				this.lastResult = opt;
 
-				this.opt = new PointValuePair(this.repair(bestArx.getColumn(0)), isMinimize ? bestFitness : -bestFitness);
+				this.opt = new PointValuePair(this.repair(bestArx.getColumn(0)),
+						//bestFitness
+						isMinimize ? bestFitness : -bestFitness
+				);
 
 				if (convergence != null && convergence.converged(iterations, opt, this.lastResult))
 					return false;
@@ -1219,7 +1221,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double[] sqrtDiagC = sqrtSelf(diagC.getColumn(0).clone());
 			double[] pcCol = pc.getColumn(0);
             for (int i = 0; i < dimension; i++) {
-                if (sigma * Math.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX)
+                if (sigma * Util.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX)
                     break;
 				if (i >= dimension - 1)
                     return false; //HACK will this ever happen?
@@ -1272,11 +1274,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 	/** inline, serial implementation */
 	protected boolean iterateEval(RealMatrix arx, RealMatrix arz, FitEval e) {
-		for (int k = 0; k < lambda; k++) {
-			double[] X = arx.getColumn(k);
-			ValuePenaltyPair Y = e.value(X);
-			e.value[k] = Y;
-		}
+		for (int k = 0; k < lambda; k++)
+			e.value[k] = e.value( arx.getColumn(k) );
 
 		return e.iterateAfter(arx, arz);
 	}
