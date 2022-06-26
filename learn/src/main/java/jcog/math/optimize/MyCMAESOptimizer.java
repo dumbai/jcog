@@ -52,7 +52,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * at the expense of speed (which in general decreases at most
 	 * linearly with increasing population size).
 	 */
-	private final int lambda;
+	protected final int lambda;
 	/**
 	 * Covariance update mechanism, default is active CMA. isActiveCMA = true
 	 * turns on "active CMA" with a negative update of the covariance matrix and
@@ -279,7 +279,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	}
 
 	public MyCMAESOptimizer(int maxIter, double stopFitness, int popSize, double[] sigma) {
-		this(maxIter, stopFitness, true, 0, 1, new XoRoShiRo128PlusRandom(), false, null, popSize, sigma);
+		this(maxIter, stopFitness, true, 0, 1, new XoRoShiRo128PlusRandom(), false, null,
+				popSize, sigma);
 	}
 
 	/**
@@ -292,6 +293,11 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		if (vals.length - 1 >= 0) System.arraycopy(vals, 0, vals, 1, vals.length - 1);
 		vals[0] = val;
 	}
+
+	protected ValuePenaltyPair valuePenalty(double value, double penalty) {
+		return new ValuePenaltyPair(isMinimize ? value : -value, isMinimize ? penalty : -penalty);
+	}
+
 
 	/**
 	 * Sorts fitness values.
@@ -1006,7 +1012,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	/**
 	 * Stores the value and penalty (for repair of out of bounds point).
 	 */
-	private static class ValuePenaltyPair {
+	static class ValuePenaltyPair {
 		/**
 		 * Objective function value.
 		 */
@@ -1030,19 +1036,19 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * Normalizes fitness values to the range [0,1]. Adds a penalty to the
 	 * fitness value if out of range.
 	 */
-	private class FitEval {
+	class FitEval {
 		/**
 		 * Flag indicating whether the objective variables are forced into their
 		 * bounds if defined
 		 */
-		private final boolean isRepairMode;
+		final boolean isRepairMode;
         public final double[] lB;
         public final double[] uB;
         public PointValuePair opt;
         public PointValuePair lastResult;
         public double bestValue;
         final double[] fitness = new double[lambda];
-        final ValuePenaltyPair[] valuePenaltyPairs = new ValuePenaltyPair[lambda];
+        final ValuePenaltyPair[] value = new ValuePenaltyPair[lambda];
 
         /**
 		 * Simple constructor.
@@ -1058,12 +1064,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
             initializeCMA(guess);
 
-            ValuePenaltyPair valuePenalty = value(guess);
+            //ValuePenaltyPair valuePenalty = value(guess);
+            bestValue = //isMinimize ?
+					Double.POSITIVE_INFINITY;
+//					: Double.NEGATIVE_INFINITY; //valuePenalty.value + valuePenalty.penalty;
 
-            bestValue = valuePenalty.value + valuePenalty.penalty;
             push(fitnessHistory, bestValue);
 
-            opt = new PointValuePair(guess, isMinimize ? bestValue : -bestValue);
+            opt = new PointValuePair(guess, bestValue);
             lastResult = null;
         }
 
@@ -1080,9 +1088,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			} else
 			    penalty = 0;
 
-            double value = MyCMAESOptimizer.this.computeObjectiveValue(point);
-			return new ValuePenaltyPair(isMinimize ? value : -value, isMinimize ? penalty : -penalty);
+			return value(point, penalty);
 		}
+
+		private ValuePenaltyPair value(double[] point, double penalty) {
+			double value = MyCMAESOptimizer.this.computeObjectiveValue(point);
+			return valuePenalty(value, penalty);
+		}
+
 
 		/**
 		 * @param x Normalized objective variables.
@@ -1104,7 +1117,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * @param x Normalized objective variables.
 		 * @return the repaired (i.e. all in bounds) objective variables.
 		 */
-		private double[] repair(double[] x) {
+		double[] repair(double[] x) {
 			double[] lB = this.lB, uB = this.uB;
 			double[] repaired = new double[x.length];
 			for (int i = 0; i < x.length; i++) {
@@ -1119,7 +1132,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * @param repaired Repaired objective variables.
 		 * @return Penalty value according to the violation of the bounds.
 		 */
-		private double penalty(double[] x, double[] repaired) {
+		double penalty(double[] x, double[] repaired) {
 			double penalty = 0;
 			for (int i = 0; i < x.length; i++)
 			    penalty += Math.abs(x[i] - repaired[i]);
@@ -1127,126 +1140,126 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		}
 
         public boolean iterate() {
+            RealMatrix arx = zeros(dimension, lambda), arz = randn1(dimension, lambda);
 
-            incrementIterationCount();
+			preIterate(arx, arz);
 
+			return iterateEval(arx, arz, this);
+		}
 
-
-            RealMatrix arz = randn1(dimension, lambda);
-            RealMatrix arx = zeros(dimension, lambda);
-
-            double[] lB = this.lB, uB = this.uB;
-
-			int maxEvals = getMaxEvaluations();
-
-            for (int k = 0; k < lambda; k++) {
-                RealMatrix arzK = arz.getColumnMatrix(k);
-                RealMatrix xFactor = times(diagD, arzK, sigma);
-
-                RealMatrix arxk = null;
-                for (int i = 0; i < checkFeasableCount + 1; i++) {
-
-                    arxk = xmean.add(diagonalOnly <= 0 ? BD.multiply(arzK).scalarMultiply(sigma) : xFactor);
-
-                    if (i >= checkFeasableCount || this.isFeasible(arxk.getColumn(0), lB, uB))
-                        break;
-
-                    arz.setColumn(k, randn(dimension));
-                }
-
-                copyColumn(arxk, 0, arx, k);
-
-				valuePenaltyPairs[k] = this.value(arx.getColumn(k));
-
-				if (getEvaluations() >= maxEvals)
-					return false;
-
-            }
+		private void preIterate(RealMatrix arx, RealMatrix arz) {
+			incrementIterationCount();
+			double[] lB = this.lB, uB = this.uB;
 
 
-            double valueRange = valueRange(valuePenaltyPairs);
-            for (int iValue = 0; iValue < valuePenaltyPairs.length; iValue++)
-                fitness[iValue] = valuePenaltyPairs[iValue].value + valuePenaltyPairs[iValue].penalty * valueRange;
+			for (int k = 0; k < lambda; k++) {
+				RealMatrix arzK = arz.getColumnMatrix(k);
+				RealMatrix xFactor = times(diagD, arzK, sigma);
 
-            int[] arindex = sortedIndices(fitness);
+				RealMatrix arxk = null;
+				for (int i = 0; i < checkFeasableCount + 1; i++) {
 
-            RealMatrix xold = xmean;
-            int[] arMu = copyOf(arindex, mu);
+					arxk = xmean.add(diagonalOnly <= 0 ? BD.multiply(arzK).scalarMultiply(sigma) : xFactor);
 
-            RealMatrix bestArx = selectColumns(arx, arMu);
-            xmean = bestArx.multiply(weights);
+					if (i >= checkFeasableCount || this.isFeasible(arxk.getColumn(0), lB, uB))
+						break;
 
-            RealMatrix bestArz = selectColumns(arz, arMu);
-            RealMatrix zmean = bestArz.multiply(weights);
+					arz.setColumn(k, randn(dimension));
+				}
 
-            boolean hsig = updateEvolutionPaths(zmean, xold);
+				copyColumn(arxk, 0, arx, k);
+			}
 
-            if (diagonalOnly <= 0)
+		}
+
+		boolean iterateAfter(RealMatrix arx, RealMatrix arz) {
+			if (getEvaluations() >= getMaxEvaluations())
+				return false;
+
+			double valueRange = valueRange(value);
+			for (int iValue = 0; iValue < value.length; iValue++)
+				fitness[iValue] = value[iValue].value + value[iValue].penalty * valueRange;
+
+			int[] arindex = sortedIndices(fitness);
+
+			RealMatrix xold = xmean;
+			int[] arMu = copyOf(arindex, mu);
+
+			RealMatrix bestArx = selectColumns(arx, arMu);
+			xmean = bestArx.multiply(weights);
+
+			RealMatrix bestArz = selectColumns(arz, arMu);
+			RealMatrix zmean = bestArz.multiply(weights);
+
+			boolean hsig = updateEvolutionPaths(zmean, xold);
+
+			if (diagonalOnly <= 0)
 				updateCovariance(hsig, bestArx, arz, arindex, xold);
-            else
+			else
 				updateCovarianceDiagonalOnly(hsig, bestArz);
 
             sigma *= Math.exp(Math.min(1, (normps / chiN - 1) * cs / damps));
-            double bestFitness = fitness[arindex[0]];
-            double worstFitness = fitness[arindex[arindex.length - 1]];
-            ConvergenceChecker<PointValuePair> convergence = getConvergenceChecker();
-            if (this.bestValue > bestFitness) {
-                this.bestValue = bestFitness;
-                this.lastResult = opt;
+			double bestFitness = fitness[arindex[0]];
+			double worstFitness = fitness[arindex[arindex.length - 1]];
+			ConvergenceChecker<PointValuePair> convergence = getConvergenceChecker();
+			if (this.bestValue > bestFitness) {
+				this.bestValue = bestFitness;
+				this.lastResult = opt;
 
-                this.opt = new PointValuePair(this.repair(bestArx.getColumn(0)), isMinimize ? bestFitness : -bestFitness);
+				this.opt = new PointValuePair(this.repair(bestArx.getColumn(0)), isMinimize ? bestFitness : -bestFitness);
 
-                if (convergence != null && convergence.converged(iterations, opt, this.lastResult))
-                    return false;
-            }
+				if (convergence != null && convergence.converged(iterations, opt, this.lastResult))
+					return false;
+			}
 
 
-            if (stopFitness == stopFitness && bestFitness < (isMinimize ? stopFitness : -stopFitness))
-                return false;
+			if (stopFitness == stopFitness && bestFitness < (isMinimize ? stopFitness : -stopFitness))
+				return false;
 
-            double[] sqrtDiagC = sqrtSelf(diagC.getColumn(0).clone());
-            double[] pcCol = pc.getColumn(0);
+			double[] sqrtDiagC = sqrtSelf(diagC.getColumn(0).clone());
+			double[] pcCol = pc.getColumn(0);
             for (int i = 0; i < dimension; i++) {
                 if (sigma * Math.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX)
                     break;
-                if (i >= dimension - 1)
+				if (i >= dimension - 1)
                     return false; //HACK will this ever happen?
-            }
-            for (int i = 0; i < dimension; i++)
-                if (sigma * sqrtDiagC[i] > stopTolUpX)
-                    return false;
+			}
+			for (int i = 0; i < dimension; i++)
+				if (sigma * sqrtDiagC[i] > stopTolUpX)
+					return false;
 
-            double historyBest = Util.min(fitnessHistory);
-            double historyWorst = Util.max(fitnessHistory);
+			double historyBest = Util.min(fitnessHistory);
+			double historyWorst = Util.max(fitnessHistory);
 
             if (iterations > 2 && Math.max(historyWorst, worstFitness) - Math.min(historyBest, bestFitness) < stopTolFun)
-                return false;
-            if (iterations > fitnessHistory.length && historyWorst - historyBest < stopTolHistFun)
-                return false;
-            if (max(diagD) / min(diagD) > tENmILLION)
-                return false;
+				return false;
+			if (iterations > fitnessHistory.length && historyWorst - historyBest < stopTolHistFun)
+				return false;
+			if (max(diagD) / min(diagD) > tENmILLION)
+				return false;
 
-            if (convergence != null) {
-                PointValuePair current = new PointValuePair(bestArx.getColumn(0), isMinimize ? bestFitness : -bestFitness);
-                if (this.lastResult != null && convergence.converged(iterations, current, this.lastResult))
-                    return false;
-                this.lastResult = current;
-            }
+			if (convergence != null) {
+				PointValuePair current = new PointValuePair(bestArx.getColumn(0), isMinimize ? bestFitness : -bestFitness);
+				if (this.lastResult != null && convergence.converged(iterations, current, this.lastResult))
+					return false;
+				this.lastResult = current;
+			}
 
-            if (this.bestValue == fitness[arindex[(int) (0.1 + lambda / 4.0)]])
-                sigma *= Math.exp(0.2 + cs / damps);
+			if (this.bestValue == fitness[arindex[(int) (0.1 + lambda / 4.0)]])
+				sigma *= Math.exp(0.2 + cs / damps);
             if (iterations > 2 && Math.max(historyWorst, bestFitness) - Math.min(historyBest, bestFitness) == 0)
-                sigma *= Math.exp(0.2 + cs / damps);
+				sigma *= Math.exp(0.2 + cs / damps);
 
-            push(fitnessHistory, bestFitness);
-            if (generateStatistics) {
-                statisticsSigmaHistory.add(sigma);
-                statisticsFitnessHistory.add(bestFitness);
-                statisticsMeanHistory.add(xmean.transpose());
-                statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
-            }
-            return true;
-        }
+			push(fitnessHistory, bestFitness);
+			if (generateStatistics) {
+				statisticsSigmaHistory.add(sigma);
+				statisticsFitnessHistory.add(bestFitness);
+				statisticsMeanHistory.add(xmean.transpose());
+				statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
+			}
+			return true;
+		}
+
 
 		private static double[] sqrtSelf(double[] x) {
 			for (int i= 0; i < x.length; i++)
@@ -1254,5 +1267,17 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			return x;
 		}
 
+	}
+
+
+	/** inline, serial implementation */
+	protected boolean iterateEval(RealMatrix arx, RealMatrix arz, FitEval e) {
+		for (int k = 0; k < lambda; k++) {
+			double[] X = arx.getColumn(k);
+			ValuePenaltyPair Y = e.value(X);
+			e.value[k] = Y;
+		}
+
+		return e.iterateAfter(arx, arz);
 	}
 }

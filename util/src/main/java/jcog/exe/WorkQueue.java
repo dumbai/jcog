@@ -1,6 +1,5 @@
 package jcog.exe;
 
-import jcog.Util;
 import org.jctools.queues.MessagePassingQueue;
 import org.jctools.queues.MpmcArrayQueue;
 
@@ -42,9 +41,10 @@ public class WorkQueue<X> {
                 if ((available = size()) <= 0)
                     break;
 
-                batchSize = //Util.lerp(throttle,
-                        //available, /* all of it if low throttle. this allows most threads to remains asleep while one awake thread takes care of it all */
-                        (int) Util.clamp(available, 1, Math.ceil(completeness * available));
+                /* all of it if low throttle. this allows most threads to remains asleep while one awake thread takes care of it all */
+                batchSize =
+                        (int) (completeness * available) + 1;
+                        //Util.clamp(available, 1, (int) Math.ceil(completeness * available));
 
             } else if (--batchSize == 0)
                 break; //enough

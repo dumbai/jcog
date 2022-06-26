@@ -38,6 +38,48 @@ class MyCMAESOptimizerTest {
 			1e-13, 1e-6, 100000, expected);
 	}
 
+	@Test void testRosenAsync() {
+		double[] start = point(DIM, 0.1);
+		double[] bounds = point(DIM, 0.1);
+		int pop = LAMBDA;
+		int iters = 1000;
+
+		var o = new MyAsyncCMAESOptimizer(iters, 1e-13, pop, bounds) {
+
+			final Rosen rosen = new Rosen();
+
+			@Override
+			protected boolean apply(double[][] X) {
+				//ASYNC start:
+				double[] y = new double[X.length];
+				for (int i = 0; i < X.length; i++)
+					y[i] = rosen.value(X[i]);
+
+				//System.out.println(n2(X[0]) + "->" + n2(y));
+
+				//ASYNC end:
+				commit(y);
+				return true;
+			}
+		};
+
+		int evaluationsMax = iters * pop;
+
+		o.optimize(new MaxEval(evaluationsMax),
+				null /* HACK */,
+				GoalType.MINIMIZE,
+				new InitialGuess(start),
+				SimpleBounds.unbounded(start.length));
+
+		double[] best = o.best();
+
+		//System.out.println(n2(o.best()));
+
+		/* 1,1,1,1,... */
+		for (int i = 0; i < pop; i++)
+			assertEquals(best[i], 1, 1e-12);
+	}
+
 	@Test
 	void testMaximize() {
 		double[] startPoint = point(DIM, 1.0);
