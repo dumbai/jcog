@@ -25,12 +25,12 @@ abstract public class MyAsyncCMAESOptimizer extends MyCMAESOptimizer {
     @Override
     protected boolean iterateEval(RealMatrix arx, RealMatrix arz, FitEval e) {
         if (X == null)
-            X = new double[lambda][arx.getColumnDimension()];
+            X = new double[capacity][arx.getColumnDimension()];
 
         if (e.isRepairMode && penalty == null)
-            penalty = new double[lambda];
+            penalty = new double[capacity];
 
-        for (int k = 0; k < lambda; k++) {
+        for (int k = 0; k < capacity; k++) {
             var point = arx.getColumn(k);
 
             double penalty;
@@ -67,7 +67,7 @@ abstract public class MyAsyncCMAESOptimizer extends MyCMAESOptimizer {
      */
     public final synchronized void commit(double[] y) {
 
-        for (int k = 0; k < lambda; k++)
+        for (int k = 0; k < capacity; k++)
             e.value[k] = valuePenalty(y[k], penalty!=null ? penalty[k] : null);
 
         e.iterateAfter(arx, arz);

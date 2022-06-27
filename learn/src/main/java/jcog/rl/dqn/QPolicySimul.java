@@ -56,11 +56,6 @@ public class QPolicySimul implements Policy {
                 reward, x, pri), actions);
     }
 
-    @Override
-    public double[] predict(double[] input) {
-        throw new TODO();
-    }
-
 
     /** HACK 2-ary thresholding */
     public static class BinaryActionEncoder implements ActionEncoder {

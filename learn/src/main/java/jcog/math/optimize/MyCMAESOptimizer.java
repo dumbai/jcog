@@ -37,7 +37,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 
 	/**
-	 * Population size, offspring number. The primary strategy parameter to play
+	 * "Lambda": Population size, offspring number. The primary strategy parameter to play
 	 * with, which can be increased from its default value. Increasing the
 	 * population size improves global search properties in exchange to speed.
 	 * Speed decreases, as a rule, at most linearly with increasing population
@@ -52,7 +52,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * at the expense of speed (which in general decreases at most
 	 * linearly with increasing population size).
 	 */
-	protected final int lambda;
+	protected final int capacity;
+
 	/**
 	 * Covariance update mechanism, default is active CMA. isActiveCMA = true
 	 * turns on "active CMA" with a negative update of the covariance matrix and
@@ -78,7 +79,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * guess).
 	 * Too small values might however lead to early termination.
 	 */
-	private final double[] inputSigma;
+	private final double[] sigma;
 	/**
 	 * Indicates whether statistic data is collected.
 	 */
@@ -160,7 +161,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	/**
 	 * Overall standard deviation - search volume.
 	 */
-	private double sigma;
+	private double sigmaVolume;
 	/**
 	 * Cumulation constant.
 	 */
@@ -265,7 +266,9 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 							int checkFeasableCount,
 							Random random,
 							boolean generateStatistics,
-							ConvergenceChecker<PointValuePair> checker, int populationSize, double[] sigma) {
+							ConvergenceChecker<PointValuePair> checker,
+							int populationSize,
+							double[] sigma) {
 		super(checker);
 		this.maxIterations = maxIterations;
 		this.stopFitness = stopFitness;
@@ -274,12 +277,13 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		this.checkFeasableCount = checkFeasableCount;
 		this.random = random;
 		this.generateStatistics = generateStatistics;
-		lambda = populationSize;
-		inputSigma = sigma;
+		this.capacity = populationSize;
+		this.sigma = sigma;
 	}
 
 	public MyCMAESOptimizer(int maxIter, double stopFitness, int popSize, double[] sigma) {
-		this(maxIter, stopFitness, true, 0, 1, new XoRoShiRo128PlusRandom(), false, null,
+		this(maxIter, stopFitness, true, 0, 1,
+				new XoRoShiRo128PlusRandom(), false, null,
 				popSize, sigma);
 	}
 
@@ -652,7 +656,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected PointValuePair doOptimize() {
+	public PointValuePair doOptimize() {
         iterations = 0;
 
 		FitEval eval = new FitEval();
@@ -699,12 +703,12 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		double[] lB = getLowerBound();
 		double[] uB = getUpperBound();
 
-		if (inputSigma != null) {
-			if (inputSigma.length != init.length)
+		if (sigma != null) {
+			if (sigma.length != init.length)
 				throw new RuntimeException("dimension mismatch");
 				//throw new DimensionMismatchException(inputSigma.length, init.length);
 			for (int i = 0; i < init.length; i++)
-				if (inputSigma[i] > uB[i] - lB[i])
+				if (sigma[i] > uB[i] - lB[i])
 					throw new RuntimeException("out of range");
 					//throw new OutOfRangeException(inputSigma[i], 0, uB[i] - lB[i]);
 		}
@@ -719,23 +723,23 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 		int dimension = this.dimension;
 
-		if (lambda <= 0)
-			throw new NumberException("not strictly positive", lambda);
+		if (capacity <= 0)
+			throw new NumberException("not strictly positive", capacity);
 			//throw new NotStrictlyPositiveException(lambda);
 
 		RealMatrix insigma = new BlockRealMatrix(guess.length, 1);
 		for (int i = 0; i < guess.length; i++)
-		    insigma.setEntry(i, 0, inputSigma[i]);
+		    insigma.setEntry(i, 0, sigma[i]);
 
-		sigma = Util.max(inputSigma);
+		sigmaVolume = Util.max(sigma);
 
-		stopTolUpX = oNEtHOUSAND * sigma;
-		stopTolX = epsilonWTF11 * sigma;
+		stopTolUpX = oNEtHOUSAND * sigmaVolume;
+		stopTolX = epsilonWTF11 * sigmaVolume;
 		this.stopTolFun = EPSILON_WTF12;
 		this.stopTolHistFun = epsilonwtf13;
 
 
-		mu = lambda / 2;
+		mu = capacity / 2;
 		/* log(mu + 0.5), stored for efficiency. */
 		double logMu2 = Math.log(mu + 0.5);
 		weights = logSelf(sequence(1, mu, 1)).scalarMultiply(-1).scalarAdd(logMu2);
@@ -766,7 +770,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			(1 - 1 / (4.0 * dimension) + 1 / (21.0 * dimension * dimension));
 
 		xmean = MatrixUtils.createColumnRealMatrix(guess);
-		diagD = insigma.scalarMultiply(1 / sigma);
+		diagD = insigma.scalarMultiply(1 / sigmaVolume);
 		diagC = square(diagD);
 		pc = zeros(dimension, 1);
 		ps = zeros(dimension, 1);
@@ -778,7 +782,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		C = B.multiply(diag(square(D)).multiply(B.transpose()));
 
 		/* Size of history queue of best values. */
-		int historySize = 10 + (int) (3 * 10 * dimension / (double) lambda);
+		int historySize = 10 + (int) (3 * 10 * dimension / (double) capacity);
 		fitnessHistory = new double[historySize];
 		Arrays.fill(fitnessHistory, Double.POSITIVE_INFINITY);
 	}
@@ -800,7 +804,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			Math.sqrt(1 - Math.pow(1 - cs, 2 * iterations)) /
 			chiN < 1.4 + 2 / ((double) dimension + 1);
 		pc = pc.scalarMultiply(1 - cc);
-		if (hsig) pc = pc.add(xmean.subtract(xold).scalarMultiply(Math.sqrt(cc * (2 - cc) * mueff) / sigma));
+		if (hsig) pc = pc.add(xmean.subtract(xold).scalarMultiply(Math.sqrt(cc * (2 - cc) * mueff) / sigmaVolume));
 		return hsig;
 	}
 
@@ -852,7 +856,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	private double _updateCovariance(boolean hsig, RealMatrix bestArx, RealMatrix arz, int[] arindex, RealMatrix xold) {
 		double negccov = 0;
 		RealMatrix arpos = bestArx.subtract(repmat(xold, 1, mu))
-			.scalarMultiply(1 / sigma);
+			.scalarMultiply(1 / sigmaVolume);
 		RealMatrix roneu = pc.multiply(pc.transpose())
 			.scalarMultiply(ccov1);
 
@@ -1047,8 +1051,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
         public PointValuePair opt;
         public PointValuePair lastResult;
         public double bestValue;
-        final double[] fitness = new double[lambda];
-        final ValuePenaltyPair[] value = new ValuePenaltyPair[lambda];
+        final double[] fitness = new double[capacity];
+        final ValuePenaltyPair[] value = new ValuePenaltyPair[capacity];
 
         /**
 		 * Simple constructor.
@@ -1140,7 +1144,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		}
 
         public boolean iterate() {
-            RealMatrix arx = zeros(dimension, lambda), arz = randn1(dimension, lambda);
+            RealMatrix arx = zeros(dimension, capacity), arz = randn1(dimension, capacity);
 
 			iterateBefore(arx, arz);
 
@@ -1152,14 +1156,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double[] lB = this.lB, uB = this.uB;
 
 
-			for (int k = 0; k < lambda; k++) {
+			for (int k = 0; k < capacity; k++) {
 				RealMatrix arzK = arz.getColumnMatrix(k);
-				RealMatrix xFactor = times(diagD, arzK, sigma);
+				RealMatrix xFactor = times(diagD, arzK, sigmaVolume);
 
 				RealMatrix arxk = null;
 				for (int i = 0; i < checkFeasableCount + 1; i++) {
 
-					arxk = xmean.add(diagonalOnly <= 0 ? BD.multiply(arzK).scalarMultiply(sigma) : xFactor);
+					arxk = xmean.add(diagonalOnly <= 0 ? BD.multiply(arzK).scalarMultiply(sigmaVolume) : xFactor);
 
 					if (i >= checkFeasableCount || this.feasible(arxk.getColumn(0), lB, uB))
 						break;
@@ -1197,7 +1201,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			else
 				updateCovarianceDiagonalOnly(hsig, bestArz);
 
-            sigma *= Math.exp(Math.min(1, (normps / chiN - 1) * cs / damps));
+            sigmaVolume *= Math.exp(Math.min(1, (normps / chiN - 1) * cs / damps));
 			double bestFitness = fitness[arindex[0]];
 			double worstFitness = fitness[arindex[arindex.length - 1]];
 			ConvergenceChecker<PointValuePair> convergence = getConvergenceChecker();
@@ -1221,13 +1225,13 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double[] sqrtDiagC = sqrtSelf(diagC.getColumn(0).clone());
 			double[] pcCol = pc.getColumn(0);
             for (int i = 0; i < dimension; i++) {
-                if (sigma * Util.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX)
+                if (Util.max(Math.abs(pcCol[i]), sqrtDiagC[i]) > stopTolX/ sigmaVolume)
                     break;
 				if (i >= dimension - 1)
-                    return false; //HACK will this ever happen?
+                    return false;
 			}
 			for (int i = 0; i < dimension; i++)
-				if (sigma * sqrtDiagC[i] > stopTolUpX)
+				if (sqrtDiagC[i] > stopTolUpX/ sigmaVolume)
 					return false;
 
 			double historyBest = Util.min(fitnessHistory);
@@ -1247,14 +1251,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				this.lastResult = current;
 			}
 
-			if (this.bestValue == fitness[arindex[(int) (0.1 + lambda / 4.0)]])
-				sigma *= Math.exp(0.2 + cs / damps);
+			if (this.bestValue == fitness[arindex[(int) (0.1 + capacity / 4.0)]])
+				sigmaVolume *= Math.exp(0.2 + cs / damps);
             if (iterations > 2 && Math.max(historyWorst, bestFitness) - Math.min(historyBest, bestFitness) == 0)
-				sigma *= Math.exp(0.2 + cs / damps);
+				sigmaVolume *= Math.exp(0.2 + cs / damps);
 
 			push(fitnessHistory, bestFitness);
 			if (generateStatistics) {
-				statisticsSigmaHistory.add(sigma);
+				statisticsSigmaHistory.add(sigmaVolume);
 				statisticsFitnessHistory.add(bestFitness);
 				statisticsMeanHistory.add(xmean.transpose());
 				statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
@@ -1274,7 +1278,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 	/** inline, serial implementation */
 	protected boolean iterateEval(RealMatrix arx, RealMatrix arz, FitEval e) {
-		for (int k = 0; k < lambda; k++)
+		for (int k = 0; k < capacity; k++)
 			e.value[k] = e.value( arx.getColumn(k) );
 
 		return e.iterateAfter(arx, arz);

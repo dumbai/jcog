@@ -24,8 +24,7 @@ public abstract class PredictorPolicy implements Policy {
         p.clear(rng);
     }
 
-    @Override
-    public double[] predict(double[] input) {
+    public final double[] predict(double[] input) {
         return p.get(input);
     }
 }

@@ -13,8 +13,6 @@ public interface Policy  {
 
     double[] learn(@Nullable double[] xPrev, double[] actionPrev, double reward, double[] x, float pri);
 
-    double[] predict(double[] input);
-
 }
 
 //dq[a] = Util.fma(alpha * action[a], ((1-gamma)*reward  + gq - qPrev[a]), dq[a]);

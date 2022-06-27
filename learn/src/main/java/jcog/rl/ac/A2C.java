@@ -94,7 +94,6 @@ public class A2C implements Policy {
         return critic.get(xPrev)[0];
     }
 
-    @Override
     public double[] predict(double[] input) {
         return actor.get(input);
     }

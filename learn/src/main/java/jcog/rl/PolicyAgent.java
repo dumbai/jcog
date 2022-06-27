@@ -19,6 +19,7 @@ import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.rl.dqn.DirectPolicy;
 import jcog.rl.dqn.QPolicy;
 import jcog.rl.dqn.QPolicySimul;
+import jcog.rl.misc.CMAESPolicy;
 import jcog.rl.replay.Replay;
 import jcog.rl.replay.ReplayMemory;
 import jcog.rl.replay.SimpleReplay;
@@ -94,6 +95,12 @@ public class PolicyAgent extends Agent {
     }
 
 
+    public static PolicyAgent CMAES(int inputs, int actions) {
+        PolicyAgent a = new PolicyAgent(inputs, actions,
+                new CMAESPolicy()
+        );
+        return a;
+    }
 
     public static PolicyAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
         float dropOut =
