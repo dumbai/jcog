@@ -10,6 +10,7 @@ import org.hipparchus.optim.OptimizationData;
 import org.hipparchus.optim.PointValuePair;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.nonlinear.scalar.MultivariateOptimizer;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -95,7 +96,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	/**
 	 * Random generator.
 	 */
-	private final Random random;
+	public final Random random;
 	/**
 	 * History of sigma values.
 	 */
@@ -657,16 +658,23 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 */
 	@Override
 	public PointValuePair doOptimize() {
-        iterations = 0;
+		return doOptimize(getStartPoint());
+	}
 
-		FitEval eval = new FitEval();
+	public PointValuePair doOptimize(double[] startPoint) {
 
-		for (iterations = 1; iterations <= maxIterations; iterations++) {
-            if (!eval.iterate())
-                break;
+		FitEval e = newEval(startPoint);
+
+		for (iterations = 0; iterations <= maxIterations; iterations++) {
+			if (!e.iterate())
+				break;
 		}
 
-		return eval.opt;
+		return e.opt;
+	}
+
+	public FitEval newEval(@Nullable double[] startPoint) {
+		return new FitEval(startPoint!=null ? startPoint : getStartPoint());
 	}
 
 
@@ -1040,7 +1048,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * Normalizes fitness values to the range [0,1]. Adds a penalty to the
 	 * fitness value if out of range.
 	 */
-	class FitEval {
+	public class FitEval {
 		/**
 		 * Flag indicating whether the objective variables are forced into their
 		 * bounds if defined
@@ -1057,18 +1065,15 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
         /**
 		 * Simple constructor.
 		 */
-		FitEval() {
+		FitEval(double[] guess) {
             isMinimize = getGoalType() == GoalType.MINIMIZE;
 			isRepairMode = true;
 			lB = getLowerBound();
 			uB = getUpperBound();
 
-            double[] guess = getStartPoint();
             dimension = guess.length;
 
             initializeCMA(guess);
-
-
 
             bestValue =
 				Double.POSITIVE_INFINITY;

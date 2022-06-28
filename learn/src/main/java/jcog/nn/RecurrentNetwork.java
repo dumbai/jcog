@@ -5,6 +5,7 @@ import jcog.activation.DiffableFunction;
 import jcog.activation.LeakyReluActivation;
 import jcog.activation.LinearActivation;
 import jcog.activation.SigLinearActivation;
+import jcog.data.bit.MetalBitSet;
 import jcog.predict.DeltaPredictor;
 import org.hipparchus.linear.Array2DRowRealMatrix;
 import org.hipparchus.linear.RealMatrix;
@@ -54,6 +55,7 @@ public class RecurrentNetwork extends DeltaPredictor {
 
     /** TODO use SGDLayer or abstract sibling */
     @Deprecated public final WeightState weights;
+    private final MetalBitSet weightsEnabled;
 
     private DiffableFunction activationFnHidden =
         LeakyReluActivation.the;
@@ -107,6 +109,7 @@ public class RecurrentNetwork extends DeltaPredictor {
         this.Anext = new double[n /* bias */];
 
         this.weights = new WeightState(n);
+        weightsEnabled = MetalBitSet.bits(weights.weights());;
     }
 
     public final boolean isBias(int f) {
@@ -118,18 +121,20 @@ public class RecurrentNetwork extends DeltaPredictor {
 
         for (int from = 0; from < n; from++) {
             for (int to = 0; to < n; to++) {
-                double w;
-                if (inputsConstant && to < inputs + 1 /* bias*/)
-                    w = 0;
+                boolean enabled, active = false; float cft = 0;
+                if (inputsConstant && to < inputs)
+                    enabled = false;
                 else if (isBias(to))
-                    w = 0;
+                    enabled = false;
                 else if (outputsTerminal && from >= n - outputs)
-                    w = 0;
+                    enabled = false;
                 else if (!selfConnections && from == to)
-                    w = 0;
+                    enabled = false;
                 else {
+
                     int F = neuronClass(from), T = neuronClass(to);
-                    float cft = this.connect[F][T];
+                    cft = this.connect[F][T];
+
 
 //                    if (F==1 && T==1) {
 //                        //recurrent: scale by id distance
@@ -139,23 +144,30 @@ public class RecurrentNetwork extends DeltaPredictor {
 //                        cft *= Math.sqrt(2) /* on avg TODO check */ * Util.sqr(proximity);
 //                    }
 
-                    if (cft >= 1 || rng.nextFloat() < cft) {
-                        w =
-                            //weightRange * Fuzzy.polarize(rng.nextFloat());
-                            //weightRange * rng.nextGaussian();
-
-                            //guassian-like:
-                            weightRange
-                                * Math.pow(rng.nextDouble(), 1 + Math.sqrt(n * cft)) //TODO use randomizeHe gaussian
-                                * (rng.nextBoolean() ? +1 : -1);
-                    } else
-                        w = 0;
+                    active = cft >= 1 || rng.nextFloat() < cft;
+                    enabled =
+                        active; //sparse
+                        //true; //full
+                        //cft > 0; //dense
                 }
 
+                double w;
+                if (active)
+                    w =
+                        //weightRange * Fuzzy.polarize(rng.nextFloat());
+                        //weightRange * rng.nextGaussian();
+
+                        //guassian-like:
+                        weightRange
+                                * Math.pow(rng.nextDouble(), 1 + Math.sqrt(n * cft)) //TODO use randomizeHe gaussian
+                                * (rng.nextBoolean() ? +1 : -1);
+                else
+                    w = 0;
+
                 weights.weightSet(from, to, w);
+                weights.weightsEnabled.set(from * n + to, enabled);
             }
         }
-
 
         return this;
     }
@@ -285,6 +297,12 @@ public class RecurrentNetwork extends DeltaPredictor {
         return A[neuron];
     }
 
+    /** loads a weight vector */
+    public RecurrentNetwork weights(double[] weights) {
+        this.weights.load(weights);
+        return this;
+    }
+
     /** default dense matrix impl */
     public static class WeightState {
 
@@ -297,11 +315,15 @@ public class RecurrentNetwork extends DeltaPredictor {
         private final Array2DRowRealMatrix weights;
         private final double[][] weightsData;
 
+        final MetalBitSet weightsEnabled;
+
         public WeightState(int n) {
             this.weights =
                     //new BlockRealMatrix(n, n);
                     new Array2DRowRealMatrix(n, n);
             weightsData = weights.getDataRef();
+
+            weightsEnabled = MetalBitSet.bits(weights());
         }
 
         @Deprecated public RealMatrix getWeights() {
@@ -354,6 +376,10 @@ public class RecurrentNetwork extends DeltaPredictor {
             return Util.sqr(weightsData.length);
         }
 
+        public int weightsEnabled() {
+            return weightsEnabled.cardinality();
+        }
+
         public double weightL1() {
             //return weights.walkInOptimizedOrder(new L1Norm());
             double sum = 0;
@@ -362,6 +388,20 @@ public class RecurrentNetwork extends DeltaPredictor {
                 for (int j = 0; j < n; j++)
                     sum += abs(weightsData[i][j]);
             return sum;
+        }
+
+        public void load(double[] weights) {
+            int n = weightsData.length, k = 0, l = 0;
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++) {
+                    double w;
+                    if (weightsEnabled.test(k))
+                        w = weights[l++];
+                    else
+                        w = 0;
+                    weightsData[i][j] = w;
+                    k++;
+                }
         }
 
 //        public double weightL2() {
