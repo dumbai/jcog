@@ -50,7 +50,7 @@ class MLPTest {
 	}
 
 	@Test void IRIS_adam_dropout() {
-		mlpIrisTest(new AdamOptimizer(), 0.1f);
+		mlpIrisTest(new AdamOptimizer(), 0.05f);
 	}
 	@Test void IRIS_adam_minibatch8() {
 		mlpIrisTest(new AdamOptimizer().minibatches(8));

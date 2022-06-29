@@ -429,6 +429,7 @@ public class RecurrentNetwork extends DeltaPredictor {
                 return sum;
             }
         }
+
         private static class L2Norm implements RealMatrixPreservingVisitor {
 
             private double sumSq;

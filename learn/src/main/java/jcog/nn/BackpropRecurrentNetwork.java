@@ -209,7 +209,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
         updateWeights(/*priDelta*/ pri, momentum,
 
-                pri * BackpropRecurrentNetwork.this.weightDecay * deltaL1
+                pri * BackpropRecurrentNetwork.this.weightDecay// * deltaL1
 //                BackpropRecurrentNetwork.this.weightDecay * pri
                 );
 
