@@ -1,6 +1,5 @@
 package jcog.rl.dqn;
 
-import jcog.TODO;
 import jcog.Util;
 import jcog.data.DistanceFunction;
 import jcog.decide.Decide;

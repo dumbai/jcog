@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
-            <version>11.0.0</version>
+            <version>11.1.0.M2</version>
         </dependency>
 
 
@@ -107,7 +107,7 @@
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
-            <version>0.9.28</version>
+            <version>0.9.30</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-lang3</artifactId>
