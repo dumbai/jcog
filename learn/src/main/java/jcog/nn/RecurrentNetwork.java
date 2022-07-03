@@ -319,8 +319,8 @@ public class RecurrentNetwork extends DeltaPredictor {
 
         public WeightState(int n) {
             this.weights =
-                    //new BlockRealMatrix(n, n);
                     new Array2DRowRealMatrix(n, n);
+                    //new BlockRealMatrix(n, n);
             weightsData = weights.getDataRef();
 
             weightsEnabled = MetalBitSet.bits(weights());
@@ -381,13 +381,13 @@ public class RecurrentNetwork extends DeltaPredictor {
         }
 
         public double weightL1() {
-            //return weights.walkInOptimizedOrder(new L1Norm());
             double sum = 0;
             int n = weightsData.length;
             for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    sum += abs(weightsData[i][j]);
+                sum += Util.sumAbs(weightsData[i]);
             return sum;
+
+            //return weights.walkInOptimizedOrder(new L1Norm());
         }
 
         public void load(double[] weights) {

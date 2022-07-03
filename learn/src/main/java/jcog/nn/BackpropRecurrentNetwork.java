@@ -204,14 +204,16 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
                 updateIncomingWeightGradient(t, delta, dW);
         }
 
-        double deltaL1 = Util.sumAbs(delta)/delta.length;
-        float priDelta = (float) (pri * deltaL1);
+
 
         updateWeights(/*priDelta*/ pri, momentum,
 
                 pri * BackpropRecurrentNetwork.this.weightDecay// * deltaL1
 //                BackpropRecurrentNetwork.this.weightDecay * pri
                 );
+
+        double deltaL1 = Util.sumAbs(delta)/delta.length;
+        float priDelta = (float) (pri * deltaL1);
 
         mutateWeights(mutationRate * priDelta);
         eraseWeights(eraseRate * priDelta);

@@ -1,7 +1,5 @@
 package jcog.net.http;
 
-import org.apache.commons.lang3.time.DateUtils;
-
 import java.io.File;
 import java.lang.annotation.*;
 import java.lang.ref.SoftReference;
@@ -516,7 +514,7 @@ public enum HttpUtil
                      * creates a {@link SimpleDateFormat} for the requested format string.
                      *
                      * @param pattern a non-<code>null</code> format String according to {@link SimpleDateFormat}. The
-                     * format is not checked against <code>null</code> since all paths go through {@link DateUtils}.
+                     * format is not checked against <code>null</code> since all paths go through DateUtils.
                      * @return the requested format. This simple dateformat should not be used to
                      * {@link SimpleDateFormat#applyPattern(String) apply} to a different pattern.
                      */
