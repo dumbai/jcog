@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
-            <version>11.1.0.M2</version>
+            <version>11.1.0</version>
         </dependency>
 
 

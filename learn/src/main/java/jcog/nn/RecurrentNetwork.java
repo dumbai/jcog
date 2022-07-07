@@ -30,6 +30,7 @@ public class RecurrentNetwork extends DeltaPredictor {
 
     /**
      * -weightRange..+weightRange
+     * TODO share weight initialization with MLP
      */
     @Deprecated
     final float initWeightRange;
@@ -109,7 +110,7 @@ public class RecurrentNetwork extends DeltaPredictor {
         this.Anext = new double[n /* bias */];
 
         this.weights = new WeightState(n);
-        weightsEnabled = MetalBitSet.bits(weights.weights());;
+        this.weightsEnabled = MetalBitSet.bits(weights.weights());;
     }
 
     public final boolean isBias(int f) {
@@ -173,10 +174,10 @@ public class RecurrentNetwork extends DeltaPredictor {
     }
 
     public final int neuronClass(int n) {
-        final int inputLimit = inputs + 1;
+        int inputLimit = inputs + 1;
         if (n < inputLimit) return 0;
-        if (n < inputLimit + hiddens) return 1;
-        return 2;
+        else if (n < inputLimit + hiddens) return 1;
+        else return 2;
     }
 
     @Override
