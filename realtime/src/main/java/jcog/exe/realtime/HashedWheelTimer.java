@@ -107,7 +107,7 @@ public class HashedWheelTimer implements AbstractTimer, ScheduledExecutorService
         do {
 			int c = cursor();
 
-			while ((cursor.weakCompareAndSet(c, c = (c + 1) % wheels))) {
+			while ((cursor.compareAndSet(c, c = (c + 1) % wheels))) {
 
 				if (model.run(c) == 0)
 					empties++;
@@ -396,7 +396,7 @@ public class HashedWheelTimer implements AbstractTimer, ScheduledExecutorService
 
 
 	void assertRunning() {
-		if (cursor.weakCompareAndSet(-1, 0))
+		if (cursor.compareAndSet(-1, 0))
 			start();
 	}
 

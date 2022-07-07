@@ -60,7 +60,7 @@ public class AdmissionQueueWheelModel extends WheelModel {
 
             TimedFuture r = q[i];
 
-            if (switch (r.state()) {
+            if (switch (r.queueState()) {
                 case CANCELLED -> true;
                 case READY -> { r.execute(timer); yield true;  }
                 default -> false;

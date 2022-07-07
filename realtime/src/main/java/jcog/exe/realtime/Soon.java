@@ -22,6 +22,12 @@ public abstract class Soon extends AbstractTimedFuture<Object> {
 
     @Override
     public boolean isDone() {
+        throw new UnsupportedOperationException();
+        //return false;
+    }
+
+    @Override
+    public boolean isPeriodic() {
         return false;
     }
 

@@ -36,4 +36,8 @@ public abstract class AbstractTimedRunnable extends AbstractTimedFuture<Void> {
         return null;
     }
 
+    @Override
+    public boolean isPeriodic() {
+        return false;
+    }
 }

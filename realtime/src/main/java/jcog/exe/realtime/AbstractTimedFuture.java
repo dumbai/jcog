@@ -17,8 +17,8 @@ public abstract class AbstractTimedFuture<T> implements TimedFuture<T> {
     }
 
     @Override
-    public final int state() {
-        return (this.rounds == Integer.MIN_VALUE) ? CANCELLED : (--this.rounds < 0 ? READY : PENDING);
+    public final int queueState() {
+        return isCancelled() ? CANCELLED : (--this.rounds < 0 ? READY : PENDING);
     }
 
     @Override
@@ -53,8 +53,8 @@ public abstract class AbstractTimedFuture<T> implements TimedFuture<T> {
     }
 
 
-    @Override
-    public boolean isPeriodic() {
-        return false;
-    }
+//    @Override
+//    public boolean isPeriodic() {
+//        return false;
+//    }
 }

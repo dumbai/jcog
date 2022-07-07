@@ -16,7 +16,7 @@ public interface TimedFuture<T> extends RunnableScheduledFuture<T> {
     int READY = 1;
 
     /** mutability: dont call this except from WheelModel's */
-    int state();
+    int queueState();
 
     /**
      * Get the offset of the Registration relative to the current cursor position

@@ -88,4 +88,8 @@ public abstract class AbstractTimedCallable<X> extends AbstractTimedFuture<X> {
         return null;
     }
 
+    @Override
+    public boolean isPeriodic() {
+        return false;
+    }
 }

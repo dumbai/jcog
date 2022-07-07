@@ -16,4 +16,5 @@ public class OneTimedFuture<T> extends AbstractTimedCallable<T> {
         return (int) (offset % resolution);
     }
 
+
 }

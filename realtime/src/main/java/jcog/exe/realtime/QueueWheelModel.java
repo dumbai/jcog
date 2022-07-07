@@ -39,7 +39,7 @@ public class QueueWheelModel extends WheelModel {
 		TimedFuture r;
 		while ((r = q.poll()) != null) {
 			n++;
-			switch (r.state()) {
+			switch (r.queueState()) {
 				case CANCELLED:
 					/* nop */
 					break;

@@ -83,7 +83,7 @@ public abstract class Loop extends FixedRateTimedFuture {
 
     @Override
     public void execute(AbstractTimer t) {
-        if (phase.weakCompareAndSet(PENDING, RUNNING))
+        if (phase.compareAndSet(PENDING, RUNNING))
             _execute(t);
 
         t.schedule(this);

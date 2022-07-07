@@ -39,7 +39,7 @@ public  class  MetalConcurrentQueueWheelModel extends WheelModel {
                 //special optimized case: the only element can be peek'd without poll/offer in case it remains pending
             {
                 var r = q.peek();
-                switch (r.state()) {
+                switch (r.queueState()) {
                     case CANCELLED:
                         q.poll();
                         break;
@@ -59,7 +59,7 @@ public  class  MetalConcurrentQueueWheelModel extends WheelModel {
                 for (int i = 0; i < n; i++) {
                     {
                         TimedFuture timedFuture = q.poll();
-                        switch (timedFuture.state()) {
+                        switch (timedFuture.queueState()) {
                             case CANCELLED:
                                 break;
                             case READY:
