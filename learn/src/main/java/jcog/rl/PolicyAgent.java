@@ -14,6 +14,7 @@ import jcog.nn.layer.DenseLayer;
 import jcog.nn.optimizer.AdamOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
+import jcog.predict.Predictor;
 import jcog.random.RandomBits;
 import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.rl.dqn.DirectPolicy;
@@ -114,12 +115,13 @@ public class PolicyAgent extends Agent {
             actions * brainsScale
         );
 
+        IntIntToObjectFunction<Predictor> brain = (ii, oo) ->
+            mlpBrain(ii, oo, brains, deep, inputAE, dropOut);
+
         PolicyAgent a = new PolicyAgent(inputs, actions,
             (i, o) ->
-                //new QPolicy(mlpBrain(i, o, brains, precise, inputAE))
-                new QPolicySimul( i, o,
-                        (ii,oo)->mlpBrain(ii, oo, brains, deep, inputAE, dropOut))
-//            (i, o) ->
+                new QPolicy(brain.value(i,o))
+                //new QPolicySimul( i, o, brain)
 //                new QPolicyBranched(i, o,
 //                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
 //                )
@@ -215,10 +217,10 @@ public class PolicyAgent extends Agent {
                     //new SGDOptimizer(0)
                     //new SGDOptimizer(0).minibatches(128)
                     //new SGDOptimizer(0.99f).minibatches(128)
-                    //new AdamOptimizer()
+                    new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0.9f).minibatches(8)
-                    new AdamOptimizer().minibatches(16)
+                    //new AdamOptimizer().minibatches(16)
                     //new AdamOptimizer().momentum(0.99, 0.99)
                 );
 

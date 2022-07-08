@@ -23,18 +23,20 @@ public class SGDOptimizer extends BatchWeightUpdater {
 
     private transient float alpha;
 
-    public static final float WEIGHT_DECAY_DEFAULT = 1.0E-5f;
+    public static final float WEIGHT_DECAY_DEFAULT =
+        1.0E-7f;
+        //1.0E-5f;
 
     public final FloatRange weightDecay = FloatRange.unit(WEIGHT_DECAY_DEFAULT);
 
-    public static final double wEpsilon = 1.0E-16;
-
-    //0;
-            //1;
-            //0.5;
-            //1.0E-1;
-            //2.0E-2;
-            //8.0E-3;
+    public static final double wEpsilon =
+        1.0E-24;
+        //0;
+        //1;
+        //0.5;
+        //1.0E-1;
+        //2.0E-2;
+        //8.0E-3;
 
 //    /** whether weight decay is scaled by L1(delta) */
 //    private static final boolean weightDecayDX = false;
