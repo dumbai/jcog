@@ -2,6 +2,7 @@ package jcog.math.optimize;
 
 import jcog.Util;
 import org.hipparchus.linear.RealMatrix;
+import org.hipparchus.optim.PointValuePair;
 import org.jetbrains.annotations.Nullable;
 
 abstract public class MyAsyncCMAESOptimizer extends MyCMAESOptimizer {
@@ -10,8 +11,8 @@ abstract public class MyAsyncCMAESOptimizer extends MyCMAESOptimizer {
     @Nullable
     private transient RealMatrix arx, arz;
 
-    public MyAsyncCMAESOptimizer(int maxIter, double stopFitness, int popSize, double[] sigma) {
-        super(maxIter, stopFitness, popSize, sigma);
+    public MyAsyncCMAESOptimizer(int popSize, double[] sigma) {
+        super(Integer.MAX_VALUE, Double.NaN, popSize, sigma);
     }
 
     transient double[][] X = null;
@@ -20,6 +21,10 @@ abstract public class MyAsyncCMAESOptimizer extends MyCMAESOptimizer {
     public double[] best() {
         int best = Util.argmax(e.fitness);
         return X[best];
+    }
+
+    protected PointValuePair doOptimize(double[] startPoint) {
+        return null;
     }
 
     @Override

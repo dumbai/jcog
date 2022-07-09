@@ -40,13 +40,13 @@ class MyCMAESOptimizerTest {
 
 	@Test void testRosenAsync() {
 		double[] start = point(DIM, 0.1);
-		double[] bounds = point(DIM, 0.1);
+		double[] sigma = point(DIM, 0.1);
 		int pop = LAMBDA;
-		int iters = 1000;
+		int iters = 1800;
 
-		var o = new MyAsyncCMAESOptimizer(iters, 1e-13, pop, bounds) {
+		Rosen rosen = new Rosen();
 
-			final Rosen rosen = new Rosen();
+		var o = new MyAsyncCMAESOptimizer(pop, sigma) {
 
 			@Override
 			protected boolean apply(double[][] X) {
@@ -63,21 +63,14 @@ class MyCMAESOptimizerTest {
 			}
 		};
 
-		int evaluationsMax = iters * pop;
+		var iter = o.iterator(GoalType.MINIMIZE, start);
+		for (int i = 0; i < iters; i++)
+			iter.iterate();
 
-		o.optimize(new MaxEval(evaluationsMax),
-				null /* HACK */,
-				GoalType.MINIMIZE,
-				new InitialGuess(start),
-				SimpleBounds.unbounded(start.length));
-
-		double[] best = o.best();
-
-		//System.out.println(n2(o.best()));
+		double[] best = o.best();  //System.out.println(n2(o.best()));
 
 		/* 1,1,1,1,... */
-		for (int i = 0; i < pop; i++)
-			assertEquals(best[i], 1, 1e-12);
+		for (int i = 0; i < pop; i++)  assertEquals(best[i], 1, 1.0e-12);
 	}
 
 	@Test
@@ -420,7 +413,8 @@ class MyCMAESOptimizerTest {
 		MyCMAESOptimizer optim = new MyCMAESOptimizer(10000, stopValue, isActive, diagonalOnly,
 			0, rng(), false, null, lambda, inSigma);
 		PointValuePair result = boundaries == null ?
-			optim.optimize(new MaxEval(maxEvaluations),
+			optim.optimize(
+				new MaxEval(maxEvaluations),
 				new ObjectiveFunction(func),
 				goal,
 				new InitialGuess(startPoint),

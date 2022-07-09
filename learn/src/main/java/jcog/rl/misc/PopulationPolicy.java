@@ -1,5 +1,6 @@
 package jcog.rl.misc;
 
+import jcog.TODO;
 import jcog.Util;
 import jcog.activation.ReluActivation;
 import jcog.activation.SigLinearActivation;
@@ -7,9 +8,6 @@ import jcog.math.optimize.MyAsyncCMAESOptimizer;
 import jcog.math.optimize.MyCMAESOptimizer;
 import jcog.nn.RecurrentNetwork;
 import jcog.rl.Policy;
-import org.hipparchus.optim.InitialGuess;
-import org.hipparchus.optim.MaxEval;
-import org.hipparchus.optim.SimpleBounds;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,27 +27,28 @@ public class PopulationPolicy implements Policy {
         //0.75f;
         //0.5f
 
-    /** how many iterations to try each individual for */
+    /** how many iterations to try each individual for
+     *  TODO tune this in proportion to aggregate reward variance, starting with a small value
+     * */
     int episodePeriod = 64; //TODO tune
 
     /** population size */
-    final int capacity = 8;
-
-
+    final int capacity = 4;
 
     /** reward accumulator per individual */
-    transient double[] individualRewards = null;
+    private transient double[] individualRewards = null;
 
-    transient int iteration = 0, individualCurrent = 0;
+    private transient int iteration = 0, individualCurrent = 0;
 
-    transient private double[] piBest = null;
-    private boolean exploring = false;
+    private transient double[] piBest = null;
+    private transient boolean exploring = false;
     private transient int timeUntilExplore = 0;
 
-    float weightRange = Util.PHIf;
+    float weightRange =
+        Util.PHIf * 2;
+        //Util.PHIf;
 
     public RecurrentNetwork fn;
-
 
     @Override
     public void clear(Random rng) {
@@ -129,7 +128,7 @@ public class PopulationPolicy implements Policy {
 
         if (fn == null) {
             boolean recurrent = false;
-            boolean inputsDirectToOutput = false;
+            boolean inputsDirectToOutput = true;
             int loops = recurrent ? 3 : 2;
             int hidden =
                 //actions + 1;
@@ -185,6 +184,11 @@ public class PopulationPolicy implements Policy {
 
         public abstract double[] best();
 
+        /** weighted sum of populations by rewards */
+        public double[] bestComposite() {
+            throw new TODO();
+        }
+
         public abstract void commit(double[] individualRewards);
 
         public abstract double[] get(int individual);
@@ -197,7 +201,7 @@ public class PopulationPolicy implements Policy {
 
     public static class CMAESPopulation extends Population {
         private MyAsyncCMAESOptimizer opt = null;
-        private MyCMAESOptimizer.FitEval eval;
+        private MyCMAESOptimizer.FitEval iter;
 
         /**
          * population, representing policies
@@ -211,8 +215,8 @@ public class PopulationPolicy implements Policy {
          * TODO tune
          */
         private float SIGMA =
-                //0.5f;
-                0.1f;
+                0.5f;
+                //0.1f;
 
 
         @Override
@@ -223,7 +227,7 @@ public class PopulationPolicy implements Policy {
             double[] sigma = new double[parameters];
             Arrays.fill(sigma, SIGMA);
 
-            opt = new MyAsyncCMAESOptimizer(1 /* HACK */, Double.NEGATIVE_INFINITY, populationSize, sigma) {
+            opt = new MyAsyncCMAESOptimizer(populationSize, sigma) {
                 @Override
                 protected boolean apply(double[][] p) {
                     pi = p;
@@ -231,22 +235,13 @@ public class PopulationPolicy implements Policy {
                 }
             };
 
-            //iterate(actions);
-            double[] mid;
-            double[] min;
-            double[] max;
-            min = new double[parameters]; Arrays.fill(min, -weightRange);
-            max = new double[parameters]; Arrays.fill(max, +weightRange);
-            mid = new double[parameters]; Arrays.fill(mid, 0);
+            double[] min = new double[parameters]; Arrays.fill(min, -weightRange);
+            double[] max = new double[parameters]; Arrays.fill(max, +weightRange);
+            iter = opt.iterator(GoalType.MAXIMIZE, min, max);
 
-            opt.optimize(//func,
-                    GoalType.MAXIMIZE,
-                    new MaxEval(Integer.MAX_VALUE /* HACK */),
-                    new SimpleBounds(min, max),
-                    new InitialGuess(mid)
-            );
+//            iter = opt.iterator(GoalType.MAXIMIZE, new double[parameters]); //unbounded
 
-            eval = opt.newEval(null);
+            iter.iterate(); //INITIALIZE
         }
 
         @Override
@@ -262,7 +257,7 @@ public class PopulationPolicy implements Policy {
         @Override
         public void commit(double[] individualRewards) {
             opt.commit(individualRewards);
-            eval.iterate();
+            iter.iterate();
         }
 
     }

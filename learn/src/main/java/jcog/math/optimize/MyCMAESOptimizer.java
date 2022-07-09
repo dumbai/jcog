@@ -1,13 +1,12 @@
 package jcog.math.optimize;
 
+import jcog.Fuzzy;
 import jcog.Util;
 import jcog.data.list.Lst;
 import jcog.math.NumberException;
 import jcog.random.XoRoShiRo128PlusRandom;
 import org.hipparchus.linear.*;
-import org.hipparchus.optim.ConvergenceChecker;
-import org.hipparchus.optim.OptimizationData;
-import org.hipparchus.optim.PointValuePair;
+import org.hipparchus.optim.*;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.nonlinear.scalar.MultivariateOptimizer;
 import org.jetbrains.annotations.Nullable;
@@ -267,7 +266,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 							int checkFeasableCount,
 							Random random,
 							boolean generateStatistics,
-							ConvergenceChecker<PointValuePair> checker,
+							@Nullable ConvergenceChecker<PointValuePair> checker,
 							int populationSize,
 							double[] sigma) {
 		super(checker);
@@ -661,9 +660,9 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		return doOptimize(getStartPoint());
 	}
 
-	public PointValuePair doOptimize(double[] startPoint) {
+	protected PointValuePair doOptimize(double[] startPoint) {
 
-		FitEval e = newEval(startPoint);
+		FitEval e = iterator(startPoint);
 
 		for (iterations = 0; iterations <= maxIterations; iterations++) {
 			if (!e.iterate())
@@ -673,7 +672,39 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		return e.opt;
 	}
 
-	public FitEval newEval(@Nullable double[] startPoint) {
+
+	/** unbounded */
+	public FitEval iterator(GoalType goal, double[] start) {
+		int dim = start.length;
+		double[] min = new double[dim]; Arrays.fill(min, Double.NEGATIVE_INFINITY);
+		double[] max = new double[dim]; Arrays.fill(max, Double.POSITIVE_INFINITY);
+		return iterator(goal, start, min, max, start);
+	}
+
+	public FitEval iterator(GoalType goal, double[] min, double[] max) {
+		double[] mid = new double[min.length];
+		for (int i = 0; i < min.length; i++)
+			mid[i] = Fuzzy.mean(min[i], max[i]);
+		return iterator(goal, mid, min, max);
+	}
+
+	public FitEval iterator(GoalType goal, double[] mid, double[] min, double[] max) {
+		return iterator(goal, mid, min, max, null);
+	}
+
+	public FitEval iterator(GoalType goal, double[] mid, double[] min, double[] max, @Nullable double[] startPoint) {
+		optimize(
+				new MaxEval(1),
+				null,
+				goal,
+				new InitialGuess(mid),
+				new SimpleBounds(min, max)
+		);
+
+		return new FitEval(startPoint!=null ? startPoint : getStartPoint());
+	}
+
+	private FitEval iterator(@Nullable double[] startPoint) {
 		return new FitEval(startPoint!=null ? startPoint : getStartPoint());
 	}
 
@@ -707,11 +738,11 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * Checks dimensions and values of boundaries and inputSigma if defined.
 	 */
 	private void checkParameters() {
-		double[] init = getStartPoint();
-		double[] lB = getLowerBound();
-		double[] uB = getUpperBound();
-
 		if (sigma != null) {
+			double[] init = getStartPoint();
+			double[] lB = getLowerBound();
+			double[] uB = getUpperBound();
+
 			if (sigma.length != init.length)
 				throw new RuntimeException("dimension mismatch");
 				//throw new DimensionMismatchException(inputSigma.length, init.length);
