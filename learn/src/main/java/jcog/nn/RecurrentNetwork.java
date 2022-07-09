@@ -58,14 +58,14 @@ public class RecurrentNetwork extends DeltaPredictor {
     @Deprecated public final WeightState weights;
     private final MetalBitSet weightsEnabled;
 
-    private DiffableFunction activationFnHidden =
+    public DiffableFunction activationFnHidden =
         LeakyReluActivation.the;
         //SigmoidActivation.the;
         //new SigLinearActivation();
         //ReluActivation.the;
         //TanhActivation.the;
 
-    private DiffableFunction activationFnOutput =
+    public DiffableFunction activationFnOutput =
         new SigLinearActivation();
         //SigmoidActivation.the;
         //ReluActivation.the;
@@ -89,8 +89,8 @@ public class RecurrentNetwork extends DeltaPredictor {
         //outputs -> ...
         connect[2] = new float[]{
                 0 /* inputsConstant? */,
-                /* TODO valid for iterations >= 4: */ 0, outputsTerminal ? 0 :
-                /* TODO this is valid only for iterations >= 3 */ 1/2f};
+                /* TODO valid for iterations >= 4: */ outputsTerminal ? 0 : 1/4f,
+                /* TODO this is valid only for iterations >= 3 */ outputsTerminal ? 0 : 1/4f};
     }
 
     public RecurrentNetwork(int inputs, int outputs, int hiddens, int iterations) {
@@ -122,7 +122,8 @@ public class RecurrentNetwork extends DeltaPredictor {
 
         for (int from = 0; from < n; from++) {
             for (int to = 0; to < n; to++) {
-                boolean enabled, active = false; float cft = 0;
+                boolean enabled, active = false;
+                float cft = 0;
                 if (inputsConstant && to < inputs)
                     enabled = false;
                 else if (isBias(to))
