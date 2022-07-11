@@ -128,7 +128,7 @@ public class PopulationPolicy implements Policy {
 //            return actions; //DIRECT
 
         if (fn == null) {
-            boolean recurrent = true;
+            boolean recurrent = false;
             boolean inputsDirectToOutput = false;
             int loops = recurrent ? 3 : 2;
             int hidden =
