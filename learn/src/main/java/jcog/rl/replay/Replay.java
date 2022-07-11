@@ -69,16 +69,16 @@ public abstract class Replay {
         //* ((float)memory.size())/capacity; //discount for incompletely filled memory
     }
 
-    public void run(PolicyAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
+    public void run(PolicyAgent agent, double[] actionPrev, float reward, double[] x, double[] xPrev, double[] actionNext) {
         if (size() > 0)
             playback(agent);
 
-        tryRemember(agent, action, reward, i, iPrev, qNext);
+        tryRemember(agent, xPrev, actionPrev, reward, x, actionNext);
 
         t++;
     }
 
-    private void tryRemember(PolicyAgent agent, double[] action, float reward, double[] i, double[] iPrev, double[] qNext) {
+    private void tryRemember(PolicyAgent agent, double[] xPrev, double[] actionPrev, float reward, double[] x, double[] actionNext) {
         int s = size(), c = capacity();
         if (s < c || agent.rng.nextFloat() <= rememberProb) {
 
@@ -86,7 +86,7 @@ public abstract class Replay {
                 pop(agent.RNG);
 
             //TODO clone() e
-            add(new ReplayMemory(t, iPrev.clone(), action.clone(), reward, i.clone()), qNext);
+            add(new ReplayMemory(t, xPrev.clone(), actionPrev.clone(), reward, x.clone()), actionNext);
         }
     }
 

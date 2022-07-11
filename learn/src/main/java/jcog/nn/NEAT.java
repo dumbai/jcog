@@ -321,7 +321,7 @@ public class NEAT implements Predictor {
                 for (int t = 0; t < n; t++) {
                     if (rng.nextFloat() < mutationRate)
                         net.weights.weightAdd(f, t,
-                                mutationAmount * net.initWeightRange * Fuzzy.polarize(rng.nextFloat()));
+                            mutationAmount * net.initWeightRange * Fuzzy.polarize(rng.nextFloat()));
                 }
             }
         }

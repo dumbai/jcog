@@ -1,8 +1,6 @@
 package jcog.agent;
 
 import jcog.decide.Decide;
-import jcog.normalize.FloatNormalizer;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * lowest common denominator markov decision process / reinforcement learning agent interface
@@ -10,20 +8,15 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class Agent {
 
-    /**
-     * input reward as first-order difference from previous?
-     */
-    @Deprecated
-    static final boolean rewardDelta = false;
     public final int inputs;
     public final int actions;
     public final double[] actionPrev;
     public final double[] actionNext;
 
-    @Nullable
-    final FloatNormalizer rewardNormalizer =
-            //new FloatNormalizer(...);
-            null;
+//    @Nullable
+//    final FloatNormalizer rewardNormalizer =
+//            //new FloatNormalizer(...);
+//            null;
 
     public transient float reward = Float.NaN;
 
@@ -48,23 +41,20 @@ public abstract class Agent {
     }
 
     /**
-     * @param action (input)
+     * @param actionPrev (input)
      * @param reward
      * @param input
-     * @param qNext      (output)
+     * @param actionNext      (output)
      */
-    public void act(double[] action, float reward, double[] input, double[] qNext) {
+    public final void act(double[] actionPrev, float reward, double[] input, double[] actionNext) {
 
-        if (rewardNormalizer != null) {
-            reward = rewardNormalizer.valueOf(reward);
-        }
+//        if (rewardNormalizer != null)
+//            reward = rewardNormalizer.valueOf(reward);
 
         if (reward == reward) {
-            double r = (rewardDelta ? rewardDelta(reward) : reward);
-            apply(action, (float) r, input, qNext);
-            actionFilter(qNext);
+            apply(actionPrev, reward, input, actionNext);
+            actionFilter(actionNext);
         }
-
 
         this.reward = reward;
     }

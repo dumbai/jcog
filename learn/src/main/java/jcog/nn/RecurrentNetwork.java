@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static java.lang.Math.abs;
+import static java.lang.System.arraycopy;
 import static jcog.nn.BackpropRecurrentNetwork.wClamp;
 
 /**
@@ -190,14 +191,16 @@ public class RecurrentNetwork extends DeltaPredictor {
         int n = n();
 
         //set inputs
-        System.arraycopy(x, 0, value, 0, inputs);
+        arraycopy(x, 0, value, 0, inputs);
 
-        value[inputs] = 1; //fixed bias, always
+        //set bias
+        value[/* bias index: */ inputs] = 1; //constant bias input
 
-        //zero outputs
+        //set hidden and outputs to 0
         Arrays.fill(value, inputs + 1, n, 0);
 
-        Arrays.fill(valueNext, 0);
+        //copy value to valueNext
+        arraycopy(value, 0, valueNext, 0, value.length);
 
         for (int i = 0; i < iterationsForward; i++) {
             if (!iteration(i))
@@ -250,7 +253,7 @@ public class RecurrentNetwork extends DeltaPredictor {
 
         if (changed) {
             //apply double-buffer
-            System.arraycopy(vNext, inputsConstant ? inputs + 1 : 0, v, inputsConstant ? inputs + 1 : 0, inputsConstant ? hiddens + outputs : this.n());
+            arraycopy(vNext, inputsConstant ? inputs + 1 : 0, v, inputsConstant ? inputs + 1 : 0, inputsConstant ? hiddens + outputs : this.n());
         }
 
         return changed;

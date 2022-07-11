@@ -11,7 +11,7 @@ import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
-import jcog.nn.optimizer.AdamOptimizer;
+import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
 import jcog.predict.Predictor;
@@ -64,7 +64,8 @@ public class PolicyAgent extends Agent {
 //        ).randomize()));
 //    }
 
-    Replay replay;
+    /** TODO move to subclass */
+    @Deprecated Replay replay;
 
     private transient double[] iPrev;
 
@@ -120,8 +121,8 @@ public class PolicyAgent extends Agent {
 
         PolicyAgent a = new PolicyAgent(inputs, actions,
             (i, o) ->
-                new QPolicy(brain.value(i,o))
-                //new QPolicySimul( i, o, brain)
+                //new QPolicy(brain.value(i,o))
+                new QPolicySimul( i, o, brain)
 //                new QPolicyBranched(i, o,
 //                          (ii, oo) -> mlpBrain(ii, oo, brains, precise, inputAE)
 //                )
@@ -214,10 +215,10 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers)
                 .optimizer(
-                    //new SGDOptimizer(0)
+                    new SGDOptimizer(0)
                     //new SGDOptimizer(0).minibatches(128)
                     //new SGDOptimizer(0.99f).minibatches(128)
-                    new AdamOptimizer()
+                    //new AdamOptimizer()
                     //new SGDOptimizer(0.9f)
                     //new SGDOptimizer(0.9f).minibatches(8)
                     //new AdamOptimizer().minibatches(16)
@@ -236,8 +237,9 @@ public class PolicyAgent extends Agent {
     public static Agent DQrecurrent(int inputs, int actions, float brainsScale, int trainIters) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
         return new PolicyAgent(inputs, actions,
-                (i, o) -> new QPolicy(
-                        recurrentBrain(inputs, actions, brains))).replay(new SimpleReplay(8 * 1024, 1/3f, trainIters));
+                (i, o) -> new QPolicySimul(i,o,
+                        (ii,oo)->recurrentBrain(ii, oo, brains)))
+                .replay(new SimpleReplay(8 * 1024, 1/3f, trainIters));
     }
 
 
@@ -313,63 +315,67 @@ public class PolicyAgent extends Agent {
      * TODO parameter to choose individual, or batch
      */
     @Override
-    public synchronized void apply(double[] action /* TODO */, float reward, double[] i, double[] qNext) {
+    public synchronized void apply(double[] actionPrev /* TODO */, float reward, double[] x, double[] actionNext) {
 
         double[] iPrev = this.iPrev;
         if (iPrev == null)
-            iPrev = this.iPrev = i.clone();
+            iPrev = this.iPrev = x.clone();
 
-        ReplayMemory e = new ReplayMemory(replay != null ? replay.t : 0, iPrev, action, reward, i);
-        run(e, /*replay != null ? 0.5f :*/ 1, qNext);
+        var e = new ReplayMemory(replay != null ? replay.t : 0, iPrev, actionPrev, reward, x);
+        run(e, 1, actionNext);
 
         if (replay != null)
-            replay.run(this,action, reward, i, iPrev, qNext);
+            replay.run(this, actionPrev, reward, x, iPrev, actionNext);
 
-        System.arraycopy(i, 0, iPrev, 0, i.length);
+        System.arraycopy(x, 0, iPrev, 0, x.length);
     }
 
 
 
     /** @return dq[] */
-    public double[] run(ReplayMemory e, float alpha, @Nullable double[] qNextCopy) {
+    public double[] run(ReplayMemory e, float alpha, @Nullable double[] action) {
 
         @Nullable DeltaPredictor p = (DeltaPredictor) ((policy instanceof DirectPolicy) ? ((DirectPolicy) policy).p :
                 (policy instanceof QPolicy ? ((QPolicy) policy).p : null));
 
         double errBefore = p!=null ? p.deltaSum : Double.NaN;
 
-        double[] qNext = e.learn(policy, alpha);
+        double[] actionNext = e.learn(policy, alpha);
 
-        double[] dq = null;
-        if (qNextCopy != null) {
-            System.arraycopy(qNext, 0, qNextCopy, 0, qNext.length);
+        if (action == null) return null;
 
-            if (policy instanceof QPolicy) {
-                dq = ((QPolicy) policy).dq;
-                err(dq);
-            } else if (policy instanceof QPolicySimul Q) {
-                dq = Q.q.dq;
-                err(dq);
-            } else if (p!=null && policy instanceof DirectPolicy) {
-                double errAfter = p.deltaSum;
-                double err = errAfter - errBefore;
-                errMean = err;
-                dq = null;
-            }
-        }
-
-        return dq;
-
+        System.arraycopy(actionNext, 0, action, 0, actionNext.length);
+        return runDQ(action, p, errBefore, actionNext);
     }
+
+    /** computes delta and err for some impl's */
+    @Deprecated @Nullable private double[] runDQ(@Nullable double[] action, @Nullable DeltaPredictor p, double errBefore, double[] actionNext) {
+        double[] dq = null;
+
+        if (policy instanceof QPolicy) {
+            dq = ((QPolicy) policy).dq;
+            err(dq);
+        } else if (policy instanceof QPolicySimul Q) {
+            dq = Q.q.dq;
+            err(dq);
+        } else if (p !=null && policy instanceof DirectPolicy) {
+            double errAfter = p.deltaSum;
+            double err = errAfter - errBefore;
+            errMean = err;
+            dq = null;
+        }
+        return dq;
+    }
+
     @Override
     protected void actionFilter(double[] actionNext) {
-        float n = explore.floatValue();
-        if (n <= Float.MIN_NORMAL) return;
+        float e = explore.floatValue();
+        if (e <= Float.MIN_NORMAL) return;
 
         for (int i = 0; i < actionNext.length; i++) {
-            if (RNG.nextBoolean(n)) {
+            if (RNG.nextBoolean(e))
                 actionNext[i] = RNG.nextFloat();
-            }
+
         }
     }
 
@@ -391,7 +397,7 @@ public class PolicyAgent extends Agent {
         return DQrecurrent(i, o,
                 //0.1f, 4
                 //0.25f, 6
-                0.75f, 7
+                0.75f, 4
                 //0.25f, 8
         );
     }

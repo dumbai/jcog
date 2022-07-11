@@ -125,7 +125,7 @@ class MLPTest {
 		float alpha = 0.04f;
 
 		int cases = d.rowCount();
-		int maxIter = 8000 * cases;
+		int maxIter = 9000 * cases;
 		int minIterations = cases * 2;
 		double errGoal = 0.05;
 

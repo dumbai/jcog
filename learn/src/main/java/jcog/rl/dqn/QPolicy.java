@@ -19,13 +19,13 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.1f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
 
 
     /** NaN to disable */
     private static final float tdErrClamp =
-        //Float.NaN;
-        1;
+        Float.NaN;
+        //1;
         //10;
 
     /** TODO move into separate impls of the update function */
@@ -52,14 +52,11 @@ public class QPolicy extends PredictorPolicy {
 
     /** experimental */
     public final FloatRange qDecay = FloatRange.unit(
-        0f
+        0
         //0.01f
     );
 
 
-    boolean rewardDelta = false;
-
-    boolean rewardPolarize = false;
 
     private transient double rewardPrev = Double.NaN;
 
@@ -73,8 +70,8 @@ public class QPolicy extends PredictorPolicy {
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
         double[] qNext = predict(x).clone(); //TODO is clone() necessary?
 
-        float alphaPri = pri * learn.floatValue(), alphaQ = 1;
-        //float alphaQ = pri * learn.floatValue(), alphaPri = 1;
+        //float alphaPri = pri * learn.floatValue(), alphaQ = 1;
+        float alphaQ = pri * learn.floatValue(), alphaPri = 1;
         //float alphaQ = (float) Math.sqrt(pri * learn.floatValue()), alphaPri = alphaQ; //balanced
 
         double gamma = plan.doubleValue();
@@ -94,12 +91,6 @@ public class QPolicy extends PredictorPolicy {
 
         double rewardPrev = this.rewardPrev;
         this.rewardPrev = reward;
-        assert(!(rewardDelta && rewardPolarize));
-        if (rewardDelta) {
-            reward = rewardPrev==rewardPrev ? reward - rewardPrev : 0;
-        } else {
-            if (rewardPolarize) reward = Fuzzy.polarize(reward);
-        }
 
         for (int a = 0; a < n; a++) {
             double qPrevA = qPrev[a], qNextA = qNext[a];
@@ -128,6 +119,7 @@ public class QPolicy extends PredictorPolicy {
                 clampSafe(dq, -tdErrClamp, +tdErrClamp);
                 //Util.normalizePolar(dq, tdErrClamp); //TODO this may only work if tdErrClamp=1
             }
+            //System.out.println(n4(dq));
             D.putDelta(dq, alphaPri);
         } else
             throw new TODO("d.put(plus(q,dq), learnRate) ?");

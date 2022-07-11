@@ -11,6 +11,7 @@ public interface Policy  {
 
     void clear(Random rng);
 
+    /** @return action vector */
     double[] learn(@Nullable double[] xPrev, double[] actionPrev, double reward, double[] x, float pri);
 
 }

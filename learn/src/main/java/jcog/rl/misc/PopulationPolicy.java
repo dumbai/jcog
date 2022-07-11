@@ -2,8 +2,8 @@ package jcog.rl.misc;
 
 import jcog.TODO;
 import jcog.Util;
-import jcog.activation.ReluActivation;
-import jcog.activation.SigLinearActivation;
+import jcog.activation.SigmoidActivation;
+import jcog.activation.TanhActivation;
 import jcog.math.optimize.MyAsyncCMAESOptimizer;
 import jcog.math.optimize.MyCMAESOptimizer;
 import jcog.nn.RecurrentNetwork;
@@ -23,7 +23,8 @@ public class PopulationPolicy implements Policy {
 
     /** explore vs. exploit rate.  0..1 */
     float explore =
-        0.95f;
+        1;
+        //0.95f;
         //0.75f;
         //0.5f
 
@@ -33,7 +34,7 @@ public class PopulationPolicy implements Policy {
     int episodePeriod = 64; //TODO tune
 
     /** population size */
-    final int capacity = 4;
+    final int capacity = 12;
 
     /** reward accumulator per individual */
     private transient double[] individualRewards = null;
@@ -65,8 +66,8 @@ public class PopulationPolicy implements Policy {
 
         if (exploring || piBest == null || timeUntilExplore-- <= 0) {
 
-            if (!exploring)
-                System.out.println("explore start");
+//            if (!exploring)
+//                System.out.println("explore start");
 
             exploring = true;
 
@@ -95,9 +96,9 @@ public class PopulationPolicy implements Policy {
 
                     piBest = pop.best();
                     System.out.println(
-                        "explore end " +
-                                "avg=" + n4(Util.mean(individualRewards)) +
-                                " max=" + n4(Util.max(individualRewards))
+                        PopulationPolicy.class.getSimpleName() + "\t"
+                                /*"avg="*/ + n4(Util.mean(individualRewards)) +
+                                /*" max="*/ "," + n4(Util.max(individualRewards))
                                 //+ " best=" + n2(piBest)
                     );
 
@@ -127,8 +128,8 @@ public class PopulationPolicy implements Policy {
 //            return actions; //DIRECT
 
         if (fn == null) {
-            boolean recurrent = false;
-            boolean inputsDirectToOutput = true;
+            boolean recurrent = true;
+            boolean inputsDirectToOutput = false;
             int loops = recurrent ? 3 : 2;
             int hidden =
                 //actions + 1;
@@ -139,10 +140,14 @@ public class PopulationPolicy implements Policy {
 
             this.fn = new RecurrentNetwork(inputs, actions, hidden, loops);
 
-            fn.activationFnHidden = ReluActivation.the;
-            fn.activationFnOutput =
+            fn.activationFnHidden =
                 //SigmoidActivation.the;
-                new SigLinearActivation();
+                TanhActivation.the;
+                //ReluActivation.the;
+
+            fn.activationFnOutput =
+                SigmoidActivation.the;
+                //new SigLinearActivation();
 
             //HACK to calculate weightsEnabled subset, establish full connectivity
             if (!recurrent) {
@@ -215,8 +220,9 @@ public class PopulationPolicy implements Policy {
          * TODO tune
          */
         private float SIGMA =
-                0.5f;
-                //0.1f;
+            //1;
+            0.5f;
+            //0.1f;
 
 
         @Override
