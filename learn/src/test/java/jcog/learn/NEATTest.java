@@ -1,5 +1,7 @@
 package jcog.learn;
 
+import jcog.activation.ReluActivation;
+import jcog.activation.SigmoidActivation;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.NEAT;
 import org.junit.jupiter.api.Test;
@@ -27,13 +29,7 @@ class NEATTest {
     private void freeformBackpropXOR2(int hiddens) {
         BackpropRecurrentNetwork n = new BackpropRecurrentNetwork(2, 1, hiddens, 3);
         xor2Test(n
-            //.activationFn(ReluActivation.the,SigmoidActivation.the)
-//                    SigmoidActivation.the,
-//                        SigmoidActivation.the
-//                    //new SigLinearActivation()
-//                      //ReluActivation.the
-//                    //TanhActivation.the
-//                )
+            .activationFn(ReluActivation.the, SigmoidActivation.the)
         );
     }
 }

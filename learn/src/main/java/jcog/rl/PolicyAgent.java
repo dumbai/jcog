@@ -2,10 +2,9 @@ package jcog.rl;
 
 import jcog.Fuzzy;
 import jcog.Util;
-import jcog.activation.LeakyReluActivation;
+import jcog.activation.DiffableFunction;
+import jcog.activation.LinearActivation;
 import jcog.activation.ReluActivation;
-import jcog.activation.SigLinearActivation;
-import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
@@ -47,22 +46,10 @@ public class PolicyAgent extends Agent {
     public final FloatRange explore = new FloatRange(0.0f, 0, 1);
 
 
-//    @Deprecated public static ValuePredictAgent DQN1(int inputs, int actions) {
-//        return new ValuePredictAgent(inputs, actions, DQN1::new);
-//    }
     /**
-     * last iteration's learning loss
+     * "surprise": last iteration's learning loss
      */
     public double errMean, errMin, errMax;
-    //    public static Agent DQNmini(int inputs, int actions) {
-////        return new ValuePredictAgent(inputs, actions, (i,o) ->
-//        return new PolarValuePredictAgent(inputs, actions, (i,o) ->
-//            new PolarPredictorPolicy(new MLP(i,
-//                new MLP.Dense(o+1, SigmoidActivation.the),
-//                new MLP.Dense(o, SigmoidActivation.the)
-////                new NormalizeLayer(o)
-//        ).randomize()));
-//    }
 
     /** TODO move to subclass */
     @Deprecated Replay replay;
@@ -82,8 +69,8 @@ public class PolicyAgent extends Agent {
 
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
-                false,
-               /*2*/ /*Util.PHI_min_1f*/ 4, 16);
+                true,
+               /*2*/ /*Util.PHI_min_1f*/ 8, 32);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -98,10 +85,7 @@ public class PolicyAgent extends Agent {
 
 
     public static PolicyAgent CMAES(int inputs, int actions) {
-        PolicyAgent a = new PolicyAgent(inputs, actions,
-                new PopulationPolicy()
-        );
-        return a;
+        return new PolicyAgent(inputs, actions, new PopulationPolicy());
     }
 
     public static PolicyAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
@@ -111,13 +95,14 @@ public class PolicyAgent extends Agent {
             //0.75f;
             //0.9f;
 
-        int brains = (int) Math.ceil(
-            //Fuzzy.mean(inputs, actions) * brainsScale
-            actions * brainsScale
+        int brains = (int) Math.ceil(brainsScale *
+            //inputs
+            Fuzzy.mean(inputs, actions)
+            //actions
         );
 
         IntIntToObjectFunction<Predictor> brain = (ii, oo) ->
-            mlpBrain(ii, oo, brains, deep, inputAE, dropOut);
+            mlpBrain(ii, oo, brains, deep ? 1 : 0, inputAE, dropOut);
 
         PolicyAgent a = new PolicyAgent(inputs, actions,
             (i, o) ->
@@ -131,14 +116,14 @@ public class PolicyAgent extends Agent {
 
         if (replays > 0)
             a.replay(
-                new SimpleReplay(1 * 1024, 1 / 3f, replays)
+                new SimpleReplay(16 * 1024, 1 / 3f, replays)
                 //new BagReplay(64*replays, replays)
             );
 
         return a;
     }
 
-    private static MLP mlpBrain(int i, int o, int brains, boolean precise, boolean inputAE, float dropOut) {
+    private static MLP mlpBrain(int i, int o, int brains, int depth, boolean inputAE, float dropOut) {
 
         //  int actionDigitization = 2; return new DigitizedPredictAgent(actionDigitization, inputs, actions, (i, o) -> {
         List<MLP.LayerBuilder> layers = new Lst(4);
@@ -178,10 +163,9 @@ public class PolicyAgent extends Agent {
             ));
         }
 
-        if (precise) {
-            int precisionLayers = 1;
-            for (int p = 0; p < precisionLayers; p++) {
-                layers.add(new MLP.Dense(Util.lerpInt((p+1f)/precisionLayers, brains, o),
+        if (depth > 0) {
+            for (int p = 0; p < depth; p++) {
+                layers.add(new MLP.Dense(Util.lerpInt((p+1f)/ depth, brains, o),
                         //LeakyReluActivation.the
                         ReluActivation.the
                         //EluActivation.the
@@ -196,34 +180,20 @@ public class PolicyAgent extends Agent {
         //action output
 //        layers.add(new MLP.Output(o));
 
-        layers.add(new MLP.Dense(o,
-                        SigmoidActivation.the
-                        //new SigLinearActivation()
-                         //ReluActivation.the
-                         //LinearActivation.the
-                        //new SigLinearActivation(-1, +1, 0, +1)
-//                            new SigLinearActivation(
-//                                    //0.5f, -2, 2 /* tolerance Q to overcompensate */
-//                                    //0.5f, 0, 1
-////                        2, 0, 1
-//                            )
-                        //TanhActivation.the
-                )
-        );
+        layers.add(new MLP.Dense(o, dqnOutputActivation));
 
         //layers.add(new NormalizeLayer(o));
 
-        MLP p = new MLP(i, layers)
-                .optimizer(
-                    new SGDOptimizer(0)
-                    //new SGDOptimizer(0).minibatches(128)
-                    //new SGDOptimizer(0.99f).minibatches(128)
-                    //new AdamOptimizer()
-                    //new SGDOptimizer(0.9f)
-                    //new SGDOptimizer(0.9f).minibatches(8)
-                    //new AdamOptimizer().minibatches(16)
-                    //new AdamOptimizer().momentum(0.99, 0.99)
-                );
+        MLP p = new MLP(i, layers).optimizer(
+            new SGDOptimizer(0)
+            //new SGDOptimizer(0.9f)
+            //new SGDOptimizer(0).minibatches(4)
+            //new SGDOptimizer(0.99f).minibatches(128)
+            //new SGDOptimizer(0.9f).minibatches(32)
+            //new AdamOptimizer()
+            //new AdamOptimizer().minibatches(64)
+            //new AdamOptimizer().momentum(0.99, 0.99)
+        );
 
         if (dropOut > 0) {
             for (int l = 0; l < p.layers.length; l++)
@@ -239,18 +209,21 @@ public class PolicyAgent extends Agent {
         return new PolicyAgent(inputs, actions,
                 (i, o) -> new QPolicySimul(i,o,
                         (ii,oo)->recurrentBrain(ii, oo, brains)))
-                .replay(new SimpleReplay(8 * 1024, 1/3f, trainIters));
+                .replay(new SimpleReplay(16 * 1024, 1/3f, trainIters));
     }
 
+    private static final DiffableFunction dqnOutputActivation = LinearActivation.the;
 
     private static BackpropRecurrentNetwork recurrentBrain(int inputs, int actions, int hidden) {
         BackpropRecurrentNetwork b = new BackpropRecurrentNetwork(
                 inputs, actions, hidden, 5);
         //b.momentum = 0.9f;
         b.activationFn(
-                LeakyReluActivation.the,
-                //SigmoidActivation.the
-                new SigLinearActivation()
+                ReluActivation.the,
+                dqnOutputActivation
+                //LeakyReluActivation.the,
+
+                //new SigLinearActivation()
                 //new SigLinearActivation(0, +10, 0, +1)
                 //LinearActivation.the
                 //new LeakyReluActivation(0.1f),
@@ -322,7 +295,7 @@ public class PolicyAgent extends Agent {
             iPrev = this.iPrev = x.clone();
 
         var e = new ReplayMemory(replay != null ? replay.t : 0, iPrev, actionPrev, reward, x);
-        run(e, 1, actionNext);
+        run(e, actionNext, 1);
 
         if (replay != null)
             replay.run(this, actionPrev, reward, x, iPrev, actionNext);
@@ -333,7 +306,7 @@ public class PolicyAgent extends Agent {
 
 
     /** @return dq[] */
-    public double[] run(ReplayMemory e, float alpha, @Nullable double[] action) {
+    public double[] run(ReplayMemory e, @Nullable double[] action, float alpha) {
 
         @Nullable DeltaPredictor p = (DeltaPredictor) ((policy instanceof DirectPolicy) ? ((DirectPolicy) policy).p :
                 (policy instanceof QPolicy ? ((QPolicy) policy).p : null));
@@ -397,7 +370,7 @@ public class PolicyAgent extends Agent {
         return DQrecurrent(i, o,
                 //0.1f, 4
                 //0.25f, 6
-                0.75f, 4
+                8, 4
                 //0.25f, 8
         );
     }

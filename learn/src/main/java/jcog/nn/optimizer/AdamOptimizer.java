@@ -108,7 +108,7 @@ public class AdamOptimizer extends BatchWeightUpdater {
                 m / (Math.sqrt(v) + epsilon);
 
             double Wprev = W[pRel];
-            W[pRel] = fma(alphaT, dw, Wprev * weightDecayFactor);
+            W[pRel] = fma(dw, alphaT, Wprev * weightDecayFactor);
 
 //                    double m_cap = m/(1-(Math.pow(beta1,t)))		#calculates the bias-corrected estimates
 //                            v_cap = v/(1-(Math.pow(beta2,t))		#calculates the bias-corrected estimates

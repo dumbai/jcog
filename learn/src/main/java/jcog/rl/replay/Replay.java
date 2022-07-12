@@ -55,7 +55,7 @@ public abstract class Replay {
     }
 
     protected void rerun(ReplayMemory m, float pri, PolicyAgent agent) {
-        agent.run(m, pri, null);
+        agent.run(m, null, pri);
     }
 
     protected abstract ReplayMemory sample(Random rng);

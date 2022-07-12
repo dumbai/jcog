@@ -102,8 +102,13 @@ public class QPolicySimul implements Policy {
     /** HACK 2-ary thresholding */
     public static class DistanceActionEncoder implements ActionEncoder {
 
-        private final float decodeSpecificity = 1;
-        private boolean normalizeManhattanOrCartesian = false;
+        //private final float decodeSpecificity = 1;
+
+        private final float temperature =
+            0.1f;
+            //0.25f;
+
+        private boolean normalizeManhattanOrCartesian = true;
 
         @Override public double[] actionEncode(double[] x, int actionsInternal) {
             //assert (actionDiscretization == 2);
@@ -131,11 +136,18 @@ public class QPolicySimul implements Policy {
             }
 
             if (zSum > Float.MIN_NORMAL) {
+
                 if (normalizeManhattanOrCartesian)
                     Util.mul(1 / zSum, z);
                 else {
                     Util.normalizeCartesian(z, z.length, Double.MIN_NORMAL);
                 }
+
+//                System.out.print(n2(z) + "\t .. \t");
+//                for (int i = 0; i < z.length; i++)
+//                    z[i] = Util.invSoftmax(z[i], temperature);
+//                System.out.println(n2(z));
+
 
 //                //0..1 -> -1..+1
 //                for (int i = 0; i < z.length; i++)
@@ -171,7 +183,6 @@ public class QPolicySimul implements Policy {
 //                z[i] = weight;
 //                zSum += weight;
             }
-
 
             Util.normalizeUnit(z);
             for (int i = 0; i < z.length; i++)
@@ -212,12 +223,13 @@ public class QPolicySimul implements Policy {
             double[] y = new double[actions];
             double s = 0;
             for (int i = 0; i < z.length; i++) {
-                double zi = Math.pow(
-                        z[i]
-                        //(z[i] - zMin)/zRange //NORMALIZATION to 0..1
-                        //z[i] - zMin
-                        //(1 - zMax) + z[i]
-                        , decodeSpecificity);
+//                double zi = Math.pow(
+//                        z[i]
+//                        //(z[i] - zMin)/zRange //NORMALIZATION to 0..1
+//                        //z[i] - zMin
+//                        //(1 - zMax) + z[i]
+//                        , decodeSpecificity);
+                double zi = Util.softmax(z[i], temperature);
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];

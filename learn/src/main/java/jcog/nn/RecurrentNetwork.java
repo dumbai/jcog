@@ -2,8 +2,8 @@ package jcog.nn;
 
 import jcog.Util;
 import jcog.activation.DiffableFunction;
-import jcog.activation.LeakyReluActivation;
 import jcog.activation.LinearActivation;
+import jcog.activation.ReluActivation;
 import jcog.activation.SigLinearActivation;
 import jcog.data.bit.MetalBitSet;
 import jcog.predict.DeltaPredictor;
@@ -60,10 +60,10 @@ public class RecurrentNetwork extends DeltaPredictor {
     private final MetalBitSet weightsEnabled;
 
     public DiffableFunction activationFnHidden =
-        LeakyReluActivation.the;
+        ReluActivation.the;
+        //LeakyReluActivation.the;
         //SigmoidActivation.the;
         //new SigLinearActivation();
-        //ReluActivation.the;
         //TanhActivation.the;
 
     public DiffableFunction activationFnOutput =
@@ -82,10 +82,10 @@ public class RecurrentNetwork extends DeltaPredictor {
     public final float[][] connect = new float[3][];
     {
         //inputs  -> ...
-        connect[0] = new float[]{0, 1/2f, 0};
+        connect[0] = new float[]{0, 3/4f, 0};
 
         //hiddens -> ...
-        connect[1] = new float[]{0 /* inputsConstant? */, 1/4f, 1/2f};
+        connect[1] = new float[]{0 /* inputsConstant? */, 1/4f, 3/4f};
 
         //outputs -> ...
         connect[2] = new float[]{
@@ -199,7 +199,6 @@ public class RecurrentNetwork extends DeltaPredictor {
         //set hidden and outputs to 0
         Arrays.fill(value, inputs + 1, n, 0);
 
-        //copy value to valueNext
         arraycopy(value, 0, valueNext, 0, value.length);
 
         for (int i = 0; i < iterationsForward; i++) {

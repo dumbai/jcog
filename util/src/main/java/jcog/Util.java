@@ -2550,9 +2550,14 @@ public enum Util {
 //    }
 
 
-	public static double softmax(double x, double temp) {
-		double f = Math.exp(x / temp);
-		return assertFinite(f);
+	public static double softmax(double x, double temperature) {
+		double f = Math.exp(x / temperature);
+		return f;
+		//return assertFinite(f);
+	}
+
+	public static double invSoftmax(double x, double temperature) {
+		return log(x) + temperature;
 	}
 
 	public static float[] arrayOf(IntToFloatFunction build, @Nullable float[] target) {

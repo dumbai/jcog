@@ -389,6 +389,7 @@ public class Optimize<S, X> extends Lab<X>  {
 
     }
 
+    /** TODO rewrite using MyAsyncCMAESOptimizer's iterator() */
     public static class CMAESOptimizationStrategy extends ApacheCommonsMathOptimizationStrategy {
         private final int maxIter;
 

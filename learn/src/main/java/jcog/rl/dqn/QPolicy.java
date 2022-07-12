@@ -1,6 +1,5 @@
 package jcog.rl.dqn;
 
-import jcog.Fuzzy;
 import jcog.Is;
 import jcog.TODO;
 import jcog.Util;
@@ -13,18 +12,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static jcog.Util.clampSafe;
 
 
+/**
+ * DQN
+ * https://towardsdatascience.com/deep-q-learning-tutorial-mindqn-2a4c855abffc
+ */
 @Is({"Q-learning", "State-action-reward-state-action"})
 public class QPolicy extends PredictorPolicy {
 
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.25f, 0, 1);
 
 
     /** NaN to disable */
     private static final float tdErrClamp =
-        Float.NaN;
+        //Float.NaN;
+        2;
         //1;
         //10;
 
@@ -50,11 +54,11 @@ public class QPolicy extends PredictorPolicy {
         super(p);
     }
 
-    /** experimental */
-    public final FloatRange qDecay = FloatRange.unit(
-        0
-        //0.01f
-    );
+//    /** experimental */
+//    public final FloatRange qDecay = FloatRange.unit(
+//        0
+//        //0.01f
+//    );
 
 
 
@@ -70,8 +74,8 @@ public class QPolicy extends PredictorPolicy {
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
         double[] qNext = predict(x).clone(); //TODO is clone() necessary?
 
-        //float alphaPri = pri * learn.floatValue(), alphaQ = 1;
-        float alphaQ = pri * learn.floatValue(), alphaPri = 1;
+        float alphaPri = pri * learn.floatValue(), alphaQ = 1;
+        //float alphaQ = pri * learn.floatValue(), alphaPri = 1;
         //float alphaQ = (float) Math.sqrt(pri * learn.floatValue()), alphaPri = alphaQ; //balanced
 
         double gamma = plan.doubleValue();
@@ -108,11 +112,11 @@ public class QPolicy extends PredictorPolicy {
             //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
         }
 
-        float qDecay = this.qDecay.floatValue();
-        if (qDecay!=0) {
-            for (int a = 0; a < n; a++)
-                dq[a] -= (1-action[a]) * qDecay * Fuzzy.mean(qPrev[a] ,qNext[a]);
-        }
+//        float qDecay = this.qDecay.floatValue();
+//        if (qDecay!=0) {
+//            for (int a = 0; a < n; a++)
+//                dq[a] -= (1-action[a]) * qDecay * Fuzzy.mean(qPrev[a] ,qNext[a]);
+//        }
 
         if (p instanceof jcog.predict.DeltaPredictor D) {
             if (tdErrClamp == tdErrClamp) {
@@ -124,6 +128,7 @@ public class QPolicy extends PredictorPolicy {
         } else
             throw new TODO("d.put(plus(q,dq), learnRate) ?");
 
+        //System.out.println(n4(qNext));
         return qNext;
     }
 
@@ -147,7 +152,7 @@ public class QPolicy extends PredictorPolicy {
 //        if (qMaxIndex == -1)
 //            return q[0];
 //        else
-            return q[qMaxIndex];
+        return q[qMaxIndex];
     }
 
 }

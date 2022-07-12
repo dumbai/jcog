@@ -59,7 +59,7 @@ public class BagReplay extends Replay {
     @Override
     protected void rerun(ReplayMemory m, float pri, PolicyAgent agent) {
         double[] qTmp = new double[agent.actions];
-        double[] dq = agent.run(m, pri, qTmp);
+        double[] dq = agent.run(m, qTmp, pri);
 
         float nextPri = (float) importance(dq);
         memory.get(m).pri(nextPri);
