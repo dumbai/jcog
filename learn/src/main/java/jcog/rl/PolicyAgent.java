@@ -3,8 +3,8 @@ package jcog.rl;
 import jcog.Fuzzy;
 import jcog.Util;
 import jcog.activation.DiffableFunction;
+import jcog.activation.LeakyReluActivation;
 import jcog.activation.LinearActivation;
-import jcog.activation.ReluActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
@@ -70,7 +70,7 @@ public class PolicyAgent extends Agent {
     public static Agent DQN(int inputs, int actions) {
         return DQN(inputs, false, actions,
                 true,
-               /*2*/ /*Util.PHI_min_1f*/ 8, 32);
+               /*2*/ /*Util.PHI_min_1f*/ 2, 16);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -85,7 +85,9 @@ public class PolicyAgent extends Agent {
 
 
     public static PolicyAgent CMAES(int inputs, int actions) {
-        return new PolicyAgent(inputs, actions, new PopulationPolicy());
+        return new PolicyAgent(inputs, actions, new PopulationPolicy(
+            new PopulationPolicy.CMAESPopulation())
+        );
     }
 
     public static PolicyAgent DQN(int inputs, boolean inputAE, int actions, boolean deep, float brainsScale, int replays) {
@@ -149,30 +151,23 @@ public class PolicyAgent extends Agent {
             );
         }
 
-        {
+        var hiddenActivation =
+            LeakyReluActivation.the
+            //new LeakyReluActivation(0.1f)
+            //ReluActivation.the
+            //SigmoidActivation.the
+            //EluActivation.the
+            //new SigLinearActivation()
+            //new SigLinearActivation(4, -1, +1)
+            //TanhActivation.the
+        ;
 
-            //brains
-            layers.add(new MLP.Dense(brains,
-                //LeakyReluActivation.the
-                ReluActivation.the
-                //SigmoidActivation.the
-                //EluActivation.the
-                //new SigLinearActivation()
-                //new SigLinearActivation(4, -1, +1)
-                //TanhActivation.the
-            ));
-        }
+        layers.add(new MLP.Dense(brains, hiddenActivation));
 
         if (depth > 0) {
             for (int p = 0; p < depth; p++) {
-                layers.add(new MLP.Dense(Util.lerpInt((p+1f)/ depth, brains, o),
-                        //LeakyReluActivation.the
-                        ReluActivation.the
-                        //EluActivation.the
-                        //SigmoidActivation.the
-//                    new SigLinearActivation()
-                        //TanhActivation.the
-                ));
+                layers.add(new MLP.Dense(
+                    Util.lerpInt((p+1f)/ depth, brains, o), hiddenActivation));
             }
 
         }
@@ -185,9 +180,9 @@ public class PolicyAgent extends Agent {
         //layers.add(new NormalizeLayer(o));
 
         MLP p = new MLP(i, layers).optimizer(
-            new SGDOptimizer(0)
+            //new SGDOptimizer(0)
             //new SGDOptimizer(0.9f)
-            //new SGDOptimizer(0).minibatches(4)
+            new SGDOptimizer(0.9f).minibatches(127)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()
@@ -207,9 +202,12 @@ public class PolicyAgent extends Agent {
     public static Agent DQrecurrent(int inputs, int actions, float brainsScale, int trainIters) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
         return new PolicyAgent(inputs, actions,
-                (i, o) -> new QPolicySimul(i,o,
-                        (ii,oo)->recurrentBrain(ii, oo, brains)))
-                .replay(new SimpleReplay(16 * 1024, 1/3f, trainIters));
+            (i, o) -> new QPolicySimul(i, o,
+                (ii, oo) -> recurrentBrain(ii, oo, brains)
+            )
+        ).replay(
+            new SimpleReplay(16 * 1024, 1/3f, trainIters)
+        );
     }
 
     private static final DiffableFunction dqnOutputActivation = LinearActivation.the;
@@ -219,9 +217,8 @@ public class PolicyAgent extends Agent {
                 inputs, actions, hidden, 5);
         //b.momentum = 0.9f;
         b.activationFn(
-                ReluActivation.the,
+                LeakyReluActivation.the,
                 dqnOutputActivation
-                //LeakyReluActivation.the,
 
                 //new SigLinearActivation()
                 //new SigLinearActivation(0, +10, 0, +1)
@@ -235,18 +232,6 @@ public class PolicyAgent extends Agent {
         return b;
     }
 
-    public static Agent direct(int inputs, int actions) {
-        return direct(inputs, actions, 2);
-    }
-    public static Agent direct(int inputs, int actions, float brainsScale) {
-        int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
-        return new PolicyAgent(inputs, actions,
-            new DirectPolicy(
-                recurrentBrain(inputs, actions, brains)
-                //mlpBrain(inputs, actions, brains, true)
-            )
-        );
-    }
 
     public static Agent DQN_NTM(int inputs, int actions) {
         //return new DigitizedPredictAgent(2, inputs, actions,
@@ -368,9 +353,10 @@ public class PolicyAgent extends Agent {
 
     public static Agent DQrecurrent(int i, int o) {
         return DQrecurrent(i, o,
+                //8, 4
+                2, 16
                 //0.1f, 4
                 //0.25f, 6
-                8, 4
                 //0.25f, 8
         );
     }

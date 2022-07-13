@@ -22,13 +22,13 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.25f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
 
 
     /** NaN to disable */
     private static final float tdErrClamp =
-        //Float.NaN;
-        2;
+        Float.NaN;
+        //2;
         //1;
         //10;
 

@@ -10,7 +10,6 @@ import java.util.Random;
 import java.util.function.IntToDoubleFunction;
 
 import static jcog.nn.optimizer.SGDOptimizer.WEIGHT_DECAY_DEFAULT;
-import static jcog.nn.optimizer.SGDOptimizer.wEpsilon;
 
 /**
  * "Freeform" (possibly-)Recurrent Network
@@ -28,26 +27,26 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
         //4;
         //16;
         //64;
-        //128;
+        128;
         //1024;
-        16 * 1024;
+        //16 * 1024;
 
     /**
      * weight gradient clamp
      */
     private double dwClamp =
-            Double.POSITIVE_INFINITY;
-            //1;
-            //initWeightRange*2;
-            //initWeightRange;
-            //initWeightRange/2;
-            //2;
-            //1;
-            //wClamp / 8f /* steps */;
+        //Double.POSITIVE_INFINITY;
+        wClamp / 2;
+        //wClamp / 8 /* steps */;
+        //4;
+        //1;
+        //initWeightRange*2;
+        //initWeightRange;
+        //2;
+        //1;
 
     /** -1 for auto */
-    final int iterationsBackward =
-            -1;
+    final int iterationsBackward = -1;
 
     final Random rng = new XoRoShiRo128PlusRandom();
     final RandomBits RNG = new RandomBits(rng);
@@ -207,10 +206,9 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
 
         updateWeights(/*priDelta*/ pri, momentum,
-
-                pri * BackpropRecurrentNetwork.this.weightDecay// * deltaL1
+            BackpropRecurrentNetwork.this.weightDecay// * deltaL1
 //                BackpropRecurrentNetwork.this.weightDecay * pri
-                );
+        );
 
         double deltaL1 = Util.sumAbs(delta)/delta.length;
         float priDelta = (float) (pri * deltaL1);
@@ -354,12 +352,13 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
     /**
      * SGD original impl
      */
-    private void updateWeights(float pri, double momentum, double weightDecayRate) {
+    private void updateWeights(float pri, double momentum, double _weightDecayRate) {
 
+        double wL1 = _weightDecayRate > 0 ? weights.weightL1() : 0;
+        double weightDecayRate = _weightDecayRate / (1 + wL1);
 
         int n = n();
 
-        double wL1 = weights.weightL1();
 
         double[] dW = this.dW;
         double[] dWprev = this.dWprev;
@@ -384,18 +383,13 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
                 if (wPrev!=0 && decaying) {
 //                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
 //                    wPrevDecayed = wPrev * decay;
-                    double decayed = weightDecayRate * wPrev / (wEpsilon + wL1);
-                    wPrevDecayed = wPrev - decayed;
-                } else
-                    wPrevDecayed = wPrev;
+                    double decayed = wPrev * weightDecayRate;
+                    dw -= decayed;
+                }
 
                 double wNext =
-                        wPrevDecayed + pri * dw;
-                        // Util.lerpSafe(pri, wPrev, dw + wPrevDecayed)
-                        //Util.fma(pri, dw, wPrev)
-                            //* (1 - Math.abs(wPrev) / (1.0E-8 + wL1) * weightDecayRate)
-                            //- (wPrev / (1.0E-8 + wL1) * weightDecayRate)
-                        ;
+                    Util.fma(pri, dw, wPrev);
+                    //pri * dw + wPrev;
 
                 if (wPrev != wNext)
                     weights.weightSet(f, t, wNext);

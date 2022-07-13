@@ -105,8 +105,9 @@ public class QPolicySimul implements Policy {
         //private final float decodeSpecificity = 1;
 
         private final float temperature =
-            0.1f;
-            //0.25f;
+            0.25f;
+            //1;
+            //0.1f;
 
         private boolean normalizeManhattanOrCartesian = true;
 

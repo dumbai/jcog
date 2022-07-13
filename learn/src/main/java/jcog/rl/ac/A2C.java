@@ -26,8 +26,7 @@ public class A2C implements Policy {
         this.actor = new MLP(inputs,
             new MLP.Dense(internal, TanhActivation.the),
 //                //nn.Linear(64, 32), //nn.Tanh(),
-                new MLP.Dense(actions, new SigLinearActivation())
-
+                new MLP.Dense(actions, SigLinearActivation.the)
             );
 
         this.critic = new MLP(inputs,

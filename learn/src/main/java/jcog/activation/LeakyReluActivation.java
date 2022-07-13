@@ -16,12 +16,10 @@ public class LeakyReluActivation implements DiffableFunction {
 
     @Override
     public double valueOf(double x) {
-        return x >= 0 ? x : x * a;
+        return x <= 0 ? x * a : x;
     }
 
     @Override
-    public double derivative(double x) {
-        return x >= 0 ? +1 : a;
-    }
+    public double derivative(double x) { return x <= 0 ? a : +1; }
 
 }

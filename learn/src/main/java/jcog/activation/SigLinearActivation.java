@@ -1,5 +1,7 @@
 package jcog.activation;
 
+import jcog.Util;
+
 import static jcog.Util.lerpSafe;
 import static jcog.Util.unitizeSafe;
 
@@ -16,8 +18,10 @@ public class SigLinearActivation implements DiffableFunction {
     private final float yMin, yMax;
     private final float slope;
 
-    public SigLinearActivation() {
-        this(-1, 1, 0, 1);
+    public static final SigLinearActivation the = new SigLinearActivation(Util.PHIf, 0, 1);
+
+    public SigLinearActivation(float xRadius, float yMin, float yMax) {
+        this(-xRadius, +xRadius, yMin, yMax);
     }
 
     public SigLinearActivation(float xMin, float xMax, float yMin, float yMax) {

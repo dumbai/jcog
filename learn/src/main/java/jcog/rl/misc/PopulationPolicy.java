@@ -2,8 +2,8 @@ package jcog.rl.misc;
 
 import jcog.TODO;
 import jcog.Util;
+import jcog.activation.LeakyReluActivation;
 import jcog.activation.SigmoidActivation;
-import jcog.activation.TanhActivation;
 import jcog.math.optimize.MyAsyncCMAESOptimizer;
 import jcog.math.optimize.MyCMAESOptimizer;
 import jcog.nn.RecurrentNetwork;
@@ -19,7 +19,7 @@ import static jcog.Str.n4;
 
 public class PopulationPolicy implements Policy {
 
-    final Population pop = new CMAESPopulation();
+    final Population pop;
 
     /** explore vs. exploit rate.  0..1 */
     float explore =
@@ -31,10 +31,10 @@ public class PopulationPolicy implements Policy {
     /** how many iterations to try each individual for
      *  TODO tune this in proportion to aggregate reward variance, starting with a small value
      * */
-    int episodePeriod = 64; //TODO tune
+    int episodePeriod = 1024; //TODO tune
 
     /** population size */
-    final int capacity = 12;
+    final int capacity = 64;
 
     /** reward accumulator per individual */
     private transient double[] individualRewards = null;
@@ -46,10 +46,15 @@ public class PopulationPolicy implements Policy {
     private transient int timeUntilExplore = 0;
 
     float weightRange =
-        Util.PHIf * 2;
+        Util.PHIf * 16;
+        //Util.PHIf * 2;
         //Util.PHIf;
 
     public RecurrentNetwork fn;
+
+    public PopulationPolicy(Population p) {
+        pop = p;
+    }
 
     @Override
     public void clear(Random rng) {
@@ -132,22 +137,21 @@ public class PopulationPolicy implements Policy {
             boolean inputsDirectToOutput = false;
             int loops = recurrent ? 3 : 2;
             int hidden =
-                //actions + 1;
+                actions + 1;
+                //actions;
                 //actions * 2;
                 //Fuzzy.mean(inputs, actions);
-                actions;
                 //inputs + actions;
 
             this.fn = new RecurrentNetwork(inputs, actions, hidden, loops);
 
-            fn.activationFnHidden =
-                //SigmoidActivation.the;
-                TanhActivation.the;
+            fn.activationFn(
+                LeakyReluActivation.the,
+                //SigLinearActivation.the
+                SigmoidActivation.the
+                //TanhActivation.the;
                 //ReluActivation.the;
-
-            fn.activationFnOutput =
-                SigmoidActivation.the;
-                //new SigLinearActivation();
+            );
 
             //HACK to calculate weightsEnabled subset, establish full connectivity
             if (!recurrent) {
@@ -220,8 +224,10 @@ public class PopulationPolicy implements Policy {
          * TODO tune
          */
         private float SIGMA =
-            //1;
-            0.5f;
+            1;
+            //0.5f;
+            //2;
+            //4;
             //0.1f;
 
 

@@ -24,7 +24,8 @@ public class SGDOptimizer extends BatchWeightUpdater {
     private transient float alpha;
 
     public static final float WEIGHT_DECAY_DEFAULT =
-        1.0E-7f;
+        //1.0E-3f;
+        1.0E-4f;
         //1.0E-5f;
 
     public final FloatRange weightDecay = FloatRange.unit(WEIGHT_DECAY_DEFAULT);
@@ -54,9 +55,12 @@ public class SGDOptimizer extends BatchWeightUpdater {
 
     @Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
         double pri = this.alpha;
-        double weightDecayRate = this.weightDecay.floatValue() * pri;
-        boolean weightDecaying = weightDecayRate > 0;
+        final float _weightDecayRate = this.weightDecay.floatValue();
+        boolean weightDecaying = _weightDecayRate > 0;
         double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
+        double weightDecayRate =
+                //_weightDecayRate / (wEpsilon + wL1);
+                _weightDecayRate / (1 + wL1);
 
         float dwMomentum = this.dwMomentum;
 
@@ -76,8 +80,9 @@ public class SGDOptimizer extends BatchWeightUpdater {
 //                                Math.abs(wPrev) / (wEpsilon + wL1);
 //                wPrev *= decayFactor;
 
-                double decayed = weightDecayRate * wPrev / (wEpsilon + wL1);
-                wPrev -= decayed;
+                double decayed = wPrev * weightDecayRate;
+                dwNext -= decayed;
+//                wPrev -= decayed;
             }
 
             W[io] =

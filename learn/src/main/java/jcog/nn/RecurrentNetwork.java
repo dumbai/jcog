@@ -67,7 +67,7 @@ public class RecurrentNetwork extends DeltaPredictor {
         //TanhActivation.the;
 
     public DiffableFunction activationFnOutput =
-        new SigLinearActivation();
+        SigLinearActivation.the;
         //SigmoidActivation.the;
         //ReluActivation.the;
 

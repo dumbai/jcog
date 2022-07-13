@@ -694,14 +694,13 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 	public FitEval iterator(GoalType goal, double[] mid, double[] min, double[] max, @Nullable double[] startPoint) {
 		optimize(
-				new MaxEval(1),
-				null,
+				new MaxEval(Integer.MAX_VALUE),
 				goal,
 				new InitialGuess(mid),
 				new SimpleBounds(min, max)
 		);
 
-		return new FitEval(startPoint!=null ? startPoint : getStartPoint());
+		return iterator(startPoint);
 	}
 
 	private FitEval iterator(@Nullable double[] startPoint) {
@@ -820,10 +819,6 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		BD = times(B, repmat(diagD.transpose(), dimension, 1));
 		C = B.multiply(diag(square(D)).multiply(B.transpose()));
 
-		/* Size of history queue of best values. */
-		int historySize = 10 + (int) (3 * 10 * dimension / (double) capacity);
-		fitnessHistory = new double[historySize];
-		Arrays.fill(fitnessHistory, Double.POSITIVE_INFINITY);
 	}
 
 	/**
@@ -1113,7 +1108,10 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 				////ValuePenaltyPair valuePenalty = value(guess); valuePenalty.value + valuePenalty.penalty;
 
-            push(fitnessHistory, bestValue);
+			/* Size of history queue of best values. */
+			int historySize = 10 + (int) (3 * 10 * dimension / (double) capacity);
+			fitnessHistory = new double[historySize];
+			Arrays.fill(fitnessHistory, bestValue);
 
             opt = new PointValuePair(guess, bestValue);
             lastResult = null;
@@ -1162,7 +1160,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double[] repaired = new double[x.length];
 			for (int i = 0; i < x.length; i++) {
 				double xi = x[i];
-                repaired[i] = xi < lB[i] ? lB[i] : Math.min(xi, uB[i]);
+                repaired[i] = xi < lB[i] ? lB[i] : Util.min(xi, uB[i]);
 			}
 			return repaired;
 		}
@@ -1216,6 +1214,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			if (getEvaluations() >= getMaxEvaluations())
 				return false;
 
+			final int dimension = MyCMAESOptimizer.this.dimension;
+
 			double valueRange = valueRange(value);
 			for (int iValue = 0; iValue < value.length; iValue++)
 				fitness[iValue] = value[iValue].value + value[iValue].penalty * valueRange;
@@ -1241,13 +1241,13 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double bestFitness = fitness[arindex[0]];
 			double worstFitness = fitness[arindex[arindex.length - 1]];
 			ConvergenceChecker<PointValuePair> convergence = getConvergenceChecker();
-			if (this.bestValue > bestFitness) {
+			if (better(this.bestValue, bestFitness)) {
 				this.bestValue = bestFitness;
 				this.lastResult = opt;
 
-				this.opt = new PointValuePair(this.repair(bestArx.getColumn(0)),
-						//bestFitness
-						isMinimize ? bestFitness : -bestFitness
+				this.opt = new PointValuePair(
+					this.repair(bestArx.getColumn(0)),
+					isMinimize ? bestFitness : -bestFitness
 				);
 
 				if (convergence != null && convergence.converged(iterations, opt, this.lastResult))
@@ -1300,6 +1300,11 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
 			}
 			return true;
+		}
+
+		private boolean better(double prev, double next) {
+			//return isMinimize ? prev > next : next > prev;
+			return prev > next;
 		}
 
 
