@@ -321,7 +321,7 @@ public abstract class ArrayBag<X, Y extends Prioritizable> extends Bag<X, Y> {
 
         model.histogram(sort, n, pMin, pRange, h);
 
-        h.commit(0, n, Math.max(3, bins -1));
+        h.commit(0, n, Math.max(3, bins - 1));
     }
 
     private void _free(int n) {

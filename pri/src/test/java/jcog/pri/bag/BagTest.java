@@ -141,7 +141,7 @@ public class BagTest {
         sampleLinear(bag, batchSizeProp, 1);
     }
 
-    public static void sampleLinear(Bag<PLink<String>, PLink<String>> bag, float batchSizeProp, float sharp) {
+    public static float sampleLinear(Bag<PLink<String>, PLink<String>> bag, float batchSizeProp, float sharp) {
         fillLinear(bag, bag.capacity());
 
         if (bag instanceof ArrayBag) {
@@ -166,10 +166,10 @@ public class BagTest {
             err += e;
         }
         err /= n;
-        System.out.println("cap=" + bag.capacity() + "\tsharp=" + sharp + "\terr=" + n4(err));
+        //System.out.println("cap=" + bag.capacity() + "\tsharp=" + sharp + "\terr=" + n4(err));
 
-        assertTrue( err < 0.25f);
-
+        assertTrue( err < 0.25f, "excessive error: " + err);
+        return (float) err;
     }
 
     public static void sampleSquashed(Bag<PLink<String>, PLink<String>> bag, float batchSizeProp) {

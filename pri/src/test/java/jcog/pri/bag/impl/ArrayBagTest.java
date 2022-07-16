@@ -294,9 +294,12 @@ public class ArrayBagTest {
 
     @Test
     void CurveBagDistributions() {
+        float err = 0;
         for (int n : new int[]{2,3,4,5,6,7,8,16,32,50,100,1000,1001})
             for (float sharp : new float[]{ 0.5f, 1, 1.5f, 2, 3 })
-                BagTest.sampleLinear(newBag(n, PriMerge.replace), 0, sharp);
+                err += BagTest.sampleLinear(newBag(n, PriMerge.replace), 0, sharp);
+
+        System.out.println("total err=" + err);
     }
 
     @Test

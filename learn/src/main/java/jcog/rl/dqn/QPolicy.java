@@ -22,7 +22,7 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.25f, 0, 1);
 
 
     /** NaN to disable */
@@ -73,6 +73,9 @@ public class QPolicy extends PredictorPolicy {
 
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
         double[] qNext = predict(x).clone(); //TODO is clone() necessary?
+
+//        clampSafe(qPrev, -1, +1);
+//        clampSafe(qNext, -1, +1);
 
         float alphaPri = pri * learn.floatValue(), alphaQ = 1;
         //float alphaQ = pri * learn.floatValue(), alphaPri = 1;
@@ -149,10 +152,10 @@ public class QPolicy extends PredictorPolicy {
 
     private static double qMax(double[] q) {
         int qMaxIndex = Util.argmax(q);
-//        if (qMaxIndex == -1)
-//            return q[0];
-//        else
-        return q[qMaxIndex];
+        if (qMaxIndex == -1)
+            return q[0];
+        else
+            return q[qMaxIndex];
     }
 
 }

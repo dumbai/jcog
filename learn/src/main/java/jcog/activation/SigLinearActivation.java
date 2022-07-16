@@ -33,6 +33,11 @@ public class SigLinearActivation implements DiffableFunction {
     }
 
     @Override
+    public double valueOf(double x) {
+        return lerpSafe(unitizeSafe((x - xMin) / xRange), yMin, yMax);
+    }
+
+    @Override
     public double derivative(double x) {
         return
             x <= xMin || x >= xMax ?
@@ -40,8 +45,4 @@ public class SigLinearActivation implements DiffableFunction {
               0 : slope;
     }
 
-    @Override
-    public double valueOf(double x) {
-        return lerpSafe(unitizeSafe((x - xMin) / xRange), yMin, yMax);
-    }
 }

@@ -24,13 +24,14 @@ public class SGDOptimizer extends BatchWeightUpdater {
     private transient float alpha;
 
     public static final float WEIGHT_DECAY_DEFAULT =
-        //1.0E-3f;
-        1.0E-4f;
+        1.0E-3f;
+        //1.0E-4f;
         //1.0E-5f;
+        //0; //disabled
 
     public final FloatRange weightDecay = FloatRange.unit(WEIGHT_DECAY_DEFAULT);
 
-    public static final double wEpsilon =
+    @Deprecated public static final double wEpsilon =
         1.0E-24;
         //0;
         //1;
@@ -55,7 +56,7 @@ public class SGDOptimizer extends BatchWeightUpdater {
 
     @Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
         double pri = this.alpha;
-        final float _weightDecayRate = this.weightDecay.floatValue();
+        float _weightDecayRate = this.weightDecay.floatValue();
         boolean weightDecaying = _weightDecayRate > 0;
         double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
         double weightDecayRate =
@@ -63,31 +64,29 @@ public class SGDOptimizer extends BatchWeightUpdater {
                 _weightDecayRate / (1 + wL1);
 
         float dwMomentum = this.dwMomentum;
+        boolean momentum = dwMomentum > 0;
 
         int n = l.ins() * l.outs();
         for (int io = 0; io < n; io++) {
-            double dwNext = lerpSafe(dwMomentum, dW[io], dWPrev[io]);
-            dWPrev[io] = dwNext;
+            double dwP = dWPrev[io];
+            double dwN = dW[io];
 
-            double wPrev = W[io];
-//            double wDecay = weightDecaying ? 1 - Math.abs(wPrev) / (1.0E-16 + wL1) * weightDecayRate : 1;
-//            double wNext = wPrev * wDecay + dwNext;
-//            W[io] = lerpSafe(lr, wPrev, wNext);
+            double dw = momentum ? lerpSafe(dwMomentum, dwN, dwP) : dwN;
+
+            dWPrev[io] = dw;
+
+            double wP = W[io];
 
             if (weightDecaying) {
-//                double decayFactor = 1 -
-//                        weightDecayRate * pri *
-//                                Math.abs(wPrev) / (wEpsilon + wL1);
-//                wPrev *= decayFactor;
-
-                double decayed = wPrev * weightDecayRate;
-                dwNext -= decayed;
-//                wPrev -= decayed;
+                double decay = wP * weightDecayRate;
+                dw -= decay;
             }
 
-            W[io] =
-                Util.fma(dwNext, pri, wPrev);
+            double wN =
+                Util.fma(dw, pri, wP);
                 //wPrev + dwNext * pri;
+
+            W[io] = wN;
         }
     }
 

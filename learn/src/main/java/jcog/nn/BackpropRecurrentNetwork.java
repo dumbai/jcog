@@ -185,9 +185,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
         }
 
-
         boolean outputTerminal = outputsTerminal;
-
 
         //iterative backpropagation through time, or something similar
         double[] delta = outputDelta(dx, this.dA);
@@ -203,18 +201,16 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
                 updateIncomingWeightGradient(t, delta, dW);
         }
 
-
-
         updateWeights(/*priDelta*/ pri, momentum,
             BackpropRecurrentNetwork.this.weightDecay// * deltaL1
 //                BackpropRecurrentNetwork.this.weightDecay * pri
         );
 
-        double deltaL1 = Util.sumAbs(delta)/delta.length;
-        float priDelta = (float) (pri * deltaL1);
+//        double deltaL1 = Util.sumAbs(delta)/delta.length;
+//        float priDelta = (float) (pri * deltaL1);
 
-        mutateWeights(mutationRate * priDelta);
-        eraseWeights(eraseRate * priDelta);
+        mutateWeights(mutationRate * pri/*Delta*/);
+        eraseWeights(eraseRate * pri/*Delta*/);
     }
 
     private int iterationsBackward() {
@@ -353,43 +349,47 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
      * SGD original impl
      */
     private void updateWeights(float pri, double momentum, double _weightDecayRate) {
+        boolean momentumEnabled = momentum > 0;
 
-        double wL1 = _weightDecayRate > 0 ? weights.weightL1() : 0;
-        double weightDecayRate = _weightDecayRate / (1 + wL1);
+        boolean decaying = _weightDecayRate > 0;
+        double wL1 = decaying ? weights.weightL1() : 0;
+        double weightDecayRate =
+            //_weightDecayRate / (wEpsilon + wL1);
+            _weightDecayRate / (1 + wL1);
 
         int n = n();
-
 
         double[] dW = this.dW;
         double[] dWprev = this.dWprev;
 
-
-        boolean decaying = weightDecayRate!=0;
         boolean dwClamping = dwClamp!=Double.POSITIVE_INFINITY;
 
         int ft = 0;
         for (int t = 0; t < n; t++) {
             for (int f = 0; f < n; f++, ft++) {
 
-                double dw = Util.lerpSafe(momentum, dW[ft], dWprev[ft]);
+                double dwN = dW[ft];
+                double dwP = dWprev[ft];
 
-                if (dwClamping) dw = dwClamp(dw);
+                double wPrev = weights.weight(f, t);
+
+                double dw = momentumEnabled ? Util.lerpSafe(momentum, dwN, dwP) : dwN;
 
                 dWprev[ft] = dw;
 
-                final double wPrev = weights.weight(f, t);
-
-                double wPrevDecayed;
-                if (wPrev!=0 && decaying) {
+//                double wPrevDecayed;
+                if (decaying && wPrev != 0) {
 //                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
 //                    wPrevDecayed = wPrev * decay;
                     double decayed = wPrev * weightDecayRate;
                     dw -= decayed;
                 }
 
+                if (dwClamping) dw = dwClamp(dw);
+
                 double wNext =
-                    Util.fma(pri, dw, wPrev);
-                    //pri * dw + wPrev;
+                    Util.fma(dw, pri, wPrev);
+                    //dw * pri + wPrev;
 
                 if (wPrev != wNext)
                     weights.weightSet(f, t, wNext);

@@ -50,7 +50,7 @@ class MLPTest {
 	}
 
 	@Test void IRIS_adam_dropout() {
-		mlpIrisTest(new AdamOptimizer(), 0.05f);
+		mlpIrisTest(new AdamOptimizer(), 0.5f);
 	}
 	@Test void IRIS_adam_minibatch8() {
 		mlpIrisTest(new AdamOptimizer().minibatches(8));
@@ -61,7 +61,7 @@ class MLPTest {
 	}
 
 	@Test void XOR2_sgd_momentum_full() {
-		mlpXor2Test(new SGDOptimizer(0.99f));
+		mlpXor2Test(new SGDOptimizer(0.9f));
 	}
 
 	@Test void XOR2_rmsprop() {

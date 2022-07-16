@@ -3,11 +3,12 @@ package jcog.rl.misc;
 import jcog.TODO;
 import jcog.Util;
 import jcog.activation.LeakyReluActivation;
-import jcog.activation.SigmoidActivation;
+import jcog.activation.SigLinearActivation;
 import jcog.math.optimize.MyAsyncCMAESOptimizer;
 import jcog.math.optimize.MyCMAESOptimizer;
 import jcog.nn.RecurrentNetwork;
 import jcog.rl.Policy;
+import jcog.signal.FloatRange;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +32,10 @@ public class PopulationPolicy implements Policy {
     /** how many iterations to try each individual for
      *  TODO tune this in proportion to aggregate reward variance, starting with a small value
      * */
-    int episodePeriod = 1024; //TODO tune
+    int episodePeriod = 512; //TODO tune
 
     /** population size */
-    final int capacity = 64;
+    final int capacity = 128;
 
     /** reward accumulator per individual */
     private transient double[] individualRewards = null;
@@ -137,9 +138,9 @@ public class PopulationPolicy implements Policy {
             boolean inputsDirectToOutput = false;
             int loops = recurrent ? 3 : 2;
             int hidden =
-                actions + 1;
+                //actions + 1;
                 //actions;
-                //actions * 2;
+                actions * 2;
                 //Fuzzy.mean(inputs, actions);
                 //inputs + actions;
 
@@ -147,8 +148,9 @@ public class PopulationPolicy implements Policy {
 
             fn.activationFn(
                 LeakyReluActivation.the,
-                //SigLinearActivation.the
-                SigmoidActivation.the
+                //LeakyReluActivation.the
+                SigLinearActivation.the
+                //SigmoidActivation.the
                 //TanhActivation.the;
                 //ReluActivation.the;
             );
@@ -220,15 +222,11 @@ public class PopulationPolicy implements Policy {
 
         /**
          * Standard deviation for all parameters (all parameters must be scaled accordingly).
-         * Defines the search space as the std dev from an initial x0. Larger values will sample a initially wider Gaussian.
+         * Defines the search space as the std dev from an initial x0.
+         * Larger values will sample a initially wider Gaussian.
          * TODO tune
          */
-        private float SIGMA =
-            1;
-            //0.5f;
-            //2;
-            //4;
-            //0.1f;
+        public final FloatRange SIGMA = new FloatRange(1f, 0.0001f, 4f);
 
 
         @Override
@@ -237,7 +235,7 @@ public class PopulationPolicy implements Policy {
             System.out.println("CMAES+NEAT: " + parameters + " parameters");
 
             double[] sigma = new double[parameters];
-            Arrays.fill(sigma, SIGMA);
+            Arrays.fill(sigma, SIGMA.floatValue());
 
             opt = new MyAsyncCMAESOptimizer(populationSize, sigma) {
                 @Override
