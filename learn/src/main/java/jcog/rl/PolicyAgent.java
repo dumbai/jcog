@@ -71,6 +71,7 @@ public class PolicyAgent extends Agent {
         int deep =
             //0;
             1;
+            //2;
             //3;
         return DQN(inputs, false, actions,
                 deep,
@@ -183,7 +184,7 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers).optimizer(
             //new SGDOptimizer(0)
-            new SGDOptimizer(0).minibatches(64)
+            new SGDOptimizer(0).minibatches(32)
             //new SGDOptimizer(0.9f)
             //new SGDOptimizer(0.9f).minibatches(64)
             //new SGDOptimizer(0.99f).minibatches(128)
