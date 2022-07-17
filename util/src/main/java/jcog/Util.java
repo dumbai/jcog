@@ -608,9 +608,9 @@ public enum Util {
 
 	public static int lerpInt(float x, int min, int max) {
 		if (min == max) return min;
-		return Math.round(
+		else return Math.round(
+			fma(max - min, unitize(x), min)
 			//min + (max - min) * unitize(x)
-			fma(max-min, unitize(x), min)
 		);
 	}
 

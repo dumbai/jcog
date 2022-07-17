@@ -5,6 +5,7 @@ import jcog.Util;
 import jcog.activation.DiffableFunction;
 import jcog.activation.LinearActivation;
 import jcog.activation.SigLinearActivation;
+import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
@@ -157,11 +158,11 @@ public class PolicyAgent extends Agent {
         }
 
         var hiddenActivation =
-            SigLinearActivation.the
+            //SigLinearActivation.the
+            SigmoidActivation.the
             //LeakyReluActivation.the
             //new LeakyReluActivation(0.1f)
             //ReluActivation.the
-            //SigmoidActivation.the
             //EluActivation.the
             //new SigLinearActivation(4, -1, +1)
             //TanhActivation.the
@@ -171,8 +172,8 @@ public class PolicyAgent extends Agent {
 
         if (depth > 0) {
             for (int p = 0; p < depth; p++) {
-                layers.add(new MLP.Dense(
-                    Util.lerpInt((p + 1f) / depth, brains, o), hiddenActivation));
+                int hidden = Util.lerpInt((p +  0.5f) / depth, brains, o);
+                layers.add(new MLP.Dense(hidden, hiddenActivation));
             }
 
         }
@@ -184,9 +185,9 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers).optimizer(
             //new SGDOptimizer(0)
-            new SGDOptimizer(0).minibatches(32)
+            //new SGDOptimizer(0).minibatches(32)
             //new SGDOptimizer(0.9f)
-            //new SGDOptimizer(0.9f).minibatches(64)
+            new SGDOptimizer(0.9f).minibatches(32)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()

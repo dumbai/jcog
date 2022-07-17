@@ -1,9 +1,9 @@
 package jcog.rl.misc;
 
+import jcog.Fuzzy;
 import jcog.TODO;
 import jcog.Util;
-import jcog.activation.LeakyReluActivation;
-import jcog.activation.SigLinearActivation;
+import jcog.activation.SigmoidActivation;
 import jcog.math.optimize.MyAsyncCMAESOptimizer;
 import jcog.math.optimize.MyCMAESOptimizer;
 import jcog.nn.RecurrentNetwork;
@@ -32,10 +32,10 @@ public class PopulationPolicy implements Policy {
     /** how many iterations to try each individual for
      *  TODO tune this in proportion to aggregate reward variance, starting with a small value
      * */
-    int episodePeriod = 512; //TODO tune
+    int episodePeriod = 1024; //TODO tune
 
     /** population size */
-    final int capacity = 128;
+    final int capacity = 256;
 
     /** reward accumulator per individual */
     private transient double[] individualRewards = null;
@@ -140,17 +140,18 @@ public class PopulationPolicy implements Policy {
             int hidden =
                 //actions + 1;
                 //actions;
-                actions * 2;
-                //Fuzzy.mean(inputs, actions);
+                //actions * 2;
+                Fuzzy.mean(inputs/4, actions);
                 //inputs + actions;
 
             this.fn = new RecurrentNetwork(inputs, actions, hidden, loops);
 
             fn.activationFn(
-                LeakyReluActivation.the,
+                //LeakyReluActivation.the,
+                SigmoidActivation.the,
                 //LeakyReluActivation.the
-                SigLinearActivation.the
-                //SigmoidActivation.the
+                //SigLinearActivation.the
+                SigmoidActivation.the
                 //TanhActivation.the;
                 //ReluActivation.the;
             );
@@ -226,7 +227,7 @@ public class PopulationPolicy implements Policy {
          * Larger values will sample a initially wider Gaussian.
          * TODO tune
          */
-        public final FloatRange SIGMA = new FloatRange(1f, 0.0001f, 4f);
+        public final FloatRange SIGMA = new FloatRange(0.1f, 0.0001f, 4f);
 
 
         @Override
