@@ -1,5 +1,6 @@
 package jcog.nn.optimizer;
 
+import jcog.Util;
 import jcog.activation.DiffableFunction;
 import jcog.data.bit.MetalBitSet;
 import jcog.nn.layer.DenseLayer;
@@ -11,12 +12,12 @@ import static jcog.Util.lerpSafe;
 public class RMSPropOptimizer implements WeightUpdater {
 
 
-    static private final boolean eps_inside_sqrt = false;
+    static private final boolean eps_inside_sqrt = true;
 
     /**
      * alpha, learning rate
      */
-    public double lr;
+    public double alpha;
 
     /**
      * aka "Aleph"
@@ -36,10 +37,10 @@ public class RMSPropOptimizer implements WeightUpdater {
     private int pAbs;
 
     @Override
-    public void reset(int weights, float learningRate) {
+    public void reset(int weights, float alpha) {
         if (ms.length != weights) ms = new double[weights];
 
-        this.lr = learningRate;
+        this.alpha = alpha;
         pAbs = 0;
     }
 
@@ -53,11 +54,11 @@ public class RMSPropOptimizer implements WeightUpdater {
         double[] dW = l.dW;
         MetalBitSet set = l.enabled;
         double[] in = l.in;
-        double lr = this.lr;
+        double alpha = this.alpha;
         double eps = this.eps;
 
 
-        double alpha = this.momentum;
+        double momentum = this.momentum;
         int pAbs = this.pAbs, pRel = 0;
         double[] ms = this.ms;
 
@@ -69,7 +70,8 @@ public class RMSPropOptimizer implements WeightUpdater {
 
             double dxo = OO * act.derivative(out[o]);
 
-            final double[] delta = l.delta;
+            double[] delta = l.delta;
+
             for (int i = 0; i < ii; i++, pAbs++, pRel++) {
                 //TODO reconcile dropout behavior with Momentum impl
 //                    delta[i] = fma(W[io], dxo, delta[i]);
@@ -85,12 +87,13 @@ public class RMSPropOptimizer implements WeightUpdater {
                 //dW[io] = lr * II * dxo;
 
                 double dw = dW[pRel] = /*gradClamp*/(II * dxo);
-                double m = lerpSafe(alpha, dw * dw, ms[pAbs]);
-                double denom =
-                        eps_inside_sqrt ? Math.sqrt(m + eps) : Math.sqrt(m) + eps;
+                double m = lerpSafe(momentum, Util.sqr(dw), ms[pAbs]);
                 ms[pAbs] = m;
 
-                W[pRel] += lr * dw / denom;
+                double denom =
+                        eps_inside_sqrt ? Math.sqrt(m + eps) : Math.sqrt(m) + eps;
+
+                W[pRel] += alpha * dw / denom;
 //                    }
 
                 delta[i] = fma(W[pRel], dxo, delta[i]);

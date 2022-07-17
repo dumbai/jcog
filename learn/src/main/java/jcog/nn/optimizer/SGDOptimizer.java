@@ -59,9 +59,7 @@ public class SGDOptimizer extends BatchWeightUpdater {
         float _weightDecayRate = this.weightDecay.floatValue();
         boolean weightDecaying = _weightDecayRate > 0;
         double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
-        double weightDecayRate =
-                //_weightDecayRate / (wEpsilon + wL1);
-                _weightDecayRate / (1 + wL1);
+        double weightDecayRate = _weightDecayRate / (wEpsilon + wL1);
 
         float dwMomentum = this.dwMomentum;
         boolean momentum = dwMomentum > 0;

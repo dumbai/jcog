@@ -15,6 +15,7 @@ import jcog.random.XoRoShiRo128PlusRandom;
 import jcog.signal.anomaly.ewma.Ewma;
 import jcog.table.ARFF;
 import jcog.table.DataTable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -45,8 +46,13 @@ class MLPTest {
 	@Test void IRIS_in_2_out_1_sgd_momentum() {
 		mlpIrisTest(new SGDOptimizer(0.9f));
 	}
+
 	@Test void IRIS_adam() {
 		mlpIrisTest(new AdamOptimizer());
+	}
+
+	@Disabled @Test void IRIS_RMSprop() {
+		mlpIrisTest(new RMSPropOptimizer());
 	}
 
 	@Test void IRIS_adam_dropout() {

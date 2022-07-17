@@ -76,7 +76,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 8, 32);
+               /*2*/ /*Util.PHI_min_1f*/ 6, 16);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -133,10 +133,7 @@ public class PolicyAgent extends Agent {
 
     private static MLP mlpBrain(int i, int o, int brains, int depth, boolean inputAE, float dropOut) {
 
-        //  int actionDigitization = 2; return new DigitizedPredictAgent(actionDigitization, inputs, actions, (i, o) -> {
-        List<MLP.LayerBuilder> layers = new Lst(4);
-
-        //PRE
+        List<MLP.LayerBuilder> layers = new Lst<>(4);
 
         if (inputAE) {
 //                layers.add(new MLP.AutoEncoderLayerBuilder(
@@ -172,7 +169,7 @@ public class PolicyAgent extends Agent {
 
         if (depth > 0) {
             for (int p = 0; p < depth; p++) {
-                int hidden = Util.lerpInt((p +  0.5f) / depth, brains, o);
+                int hidden = Util.lerpInt((p + 0.5f) / depth, brains, o);
                 layers.add(new MLP.Dense(hidden, hiddenActivation));
             }
 
@@ -185,14 +182,15 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers).optimizer(
             //new SGDOptimizer(0)
-            //new SGDOptimizer(0).minibatches(32)
+            new SGDOptimizer(0).minibatches(16)
             //new SGDOptimizer(0.9f)
-            new SGDOptimizer(0.9f).minibatches(32)
+            //new SGDOptimizer(0.99f).minibatches(16)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()
-            //new AdamOptimizer().minibatches(64)
+            //new AdamOptimizer().minibatches(16)
             //new AdamOptimizer().momentum(0.99, 0.99)
+            //new RMSPropOptimizer()
         );
 
         if (dropOut > 0) {

@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.function.IntToDoubleFunction;
 
 import static jcog.nn.optimizer.SGDOptimizer.WEIGHT_DECAY_DEFAULT;
+import static jcog.nn.optimizer.SGDOptimizer.wEpsilon;
 
 /**
  * "Freeform" (possibly-)Recurrent Network
@@ -354,8 +355,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
         boolean decaying = _weightDecayRate > 0;
         double wL1 = decaying ? weights.weightL1() : 0;
         double weightDecayRate =
-            //_weightDecayRate / (wEpsilon + wL1);
-            _weightDecayRate / (1 + wL1);
+            _weightDecayRate / (wEpsilon + wL1);
 
         int n = n();
 
