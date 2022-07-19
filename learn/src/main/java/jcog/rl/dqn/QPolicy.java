@@ -42,9 +42,9 @@ public class QPolicy extends PredictorPolicy {
      */
     public final AtomicBoolean munchausen = new AtomicBoolean(false);
     private static final float m_alpha = 0.9f;
-    private static final float entropy_tau =
+    private static final double entropy_tau =
             //1;
-            0.03f;
+            0.03;
     private static final float lo = -1;
 
     public transient double[] dq;
@@ -88,7 +88,7 @@ public class QPolicy extends PredictorPolicy {
 
         boolean sarsaOrQ = this.sarsaOrQ.getOpaque();
         double qNextMax = sarsaOrQ ?
-                Double.NaN /* computed below */ : qMax(qNext);
+                Double.NaN /* computed below */ : Util.max(qNext);
         double gammaQNextMax = gamma * qNextMax;
 
         double logsumNext = m ? Util.logsumexp(qNext, -qNextMax, 1/entropy_tau)*entropy_tau : Double.NaN;
@@ -136,7 +136,7 @@ public class QPolicy extends PredictorPolicy {
     }
 
     private double gqMunch(double gamma, double qNextMax, double logsumNext, double qPrevMax, double logsumPrev, double qPrevA, double qNextA) {
-        double gq;
+
         // Get predicted Q values (for next states) from target model to calculate entropy term with logsum
         double mNext = qNextA - qNextMax - logsumNext;
 
@@ -144,18 +144,17 @@ public class QPolicy extends PredictorPolicy {
 
         boolean terminal = false; //TODO final episode iteration
 
-        gq = m_alpha * clampSafe(mPrev, lo, 0) +
+        return m_alpha * clampSafe(mPrev, lo, 0) +
                 (terminal ? 0 : (gamma * qNextA * (qNextA - mNext)));
-        return gq;
     }
 
 
-    private static double qMax(double[] q) {
-        int qMaxIndex = Util.argmax(q);
-        if (qMaxIndex == -1)
-            return q[0];
-        else
-            return q[qMaxIndex];
-    }
+//    private static double qMax(double[] q) {
+//        int qMaxIndex = Util.argmax(q);
+//        if (qMaxIndex == -1)
+//            return q[0];
+//        else
+//            return q[qMaxIndex];
+//    }
 
 }

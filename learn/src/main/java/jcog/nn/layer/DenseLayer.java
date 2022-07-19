@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
+import static java.lang.Math.sqrt;
 import static jcog.Util.fma;
 
 public class DenseLayer extends AbstractLayer {
@@ -44,17 +45,15 @@ public class DenseLayer extends AbstractLayer {
     /**
      * https://jmlr.org/papers/volume15/srivastava14a/srivastava14a.pdf
      */
-    public float dropout;
+    public double dropout;
 
     public boolean dropping = false;
 
 
     public DenseLayer(int inputSize, int outputSize, DiffableFunction activation, boolean bias) {
         super(inputSize + (bias ? 1 : 0), outputSize);
-        if (inputSize < 1)
-            throw new UnsupportedOperationException();
-        if (outputSize < 1)
-            throw new UnsupportedOperationException();
+        if (inputSize < 1) throw new UnsupportedOperationException();
+        if (outputSize < 1) throw new UnsupportedOperationException();
         this.bias = bias;
         delta = new double[in.length];
         W = new double[in.length * outputSize];
@@ -84,6 +83,7 @@ public class DenseLayer extends AbstractLayer {
     @Override
     public void randomize(Random r) {
         randomizeXavier(r);
+        //randomizeXavierUniform(r);
         //randomizeHe(r);
     }
 
@@ -92,14 +92,24 @@ public class DenseLayer extends AbstractLayer {
      * */
     private void randomizeXavier(Random r) {
         double variance =
-                2.0 / ins();
-                //2.0 / (ins() + outs());
-        double sigma = Math.sqrt(variance);
+                2.0 / Fuzzy.mean((float)ins(), outs());
+                //2.0 / ins();
+        double sigma = sqrt(variance);
+        double norm =
+                1;
+                //1/sigma;
+                //sigma;
         Gaussian g =
-                new Gaussian(1, 0, sigma);
+                new Gaussian(norm, 0, sigma);
         for (int i = 0; i < W.length; i++)
             W[i] = normalSample(r, g);
 
+    }
+
+    public void randomizeXavierUniform(Random r) {
+        double w = sqrt(6.0 / Fuzzy.mean((float)ins(), outs()));
+        for (int i = 0; i < W.length; i++)
+            W[i] = r.nextDouble(-w, +w);
     }
 
     private void randomizeHe(Random r) {
@@ -145,16 +155,14 @@ public class DenseLayer extends AbstractLayer {
      */
     @Override
     public double[] forward(double[] x, RandomGenerator rng) {
-        double[] in = this.in, W = this.W, out = this.out;
-        System.arraycopy(x, 0, in, 0, x.length);
-        int I = in.length;
+        double[] in = input(x);
 
-        if (bias) in[I - 1] = 1;
-
+        double[] W = this.W, out = this.out;
         int O = out.length;
         int io = 0;
 
-        float dropIn = 1 - dropout;
+        double dropIn = 1 - dropout;
+        int I = in.length;
 
         int n = W.length;
         DiffableFunction a = this.activation;
@@ -165,7 +173,7 @@ public class DenseLayer extends AbstractLayer {
 
                 double ii = in[i];
                 if (
-                        ii == ii //not NaN
+                    ii == ii //not NaN, but possibly non-finite
                     //Double.isFinite(ii)
                 )
                     y = fma(ii * dropIn, W[io], y);
@@ -175,6 +183,13 @@ public class DenseLayer extends AbstractLayer {
             out[o] = a!=null ? a.valueOf(y) : y /* linear */;
         }
         return out;
+    }
+
+    private double[] input(double[] x) {
+        double[] in = this.in;
+        System.arraycopy(x, 0, in, 0, x.length);
+        if (bias) in[in.length - 1] = 1;
+        return in;
     }
 
     @Override
@@ -190,25 +205,24 @@ public class DenseLayer extends AbstractLayer {
 
     private void updateDropout() {
 
-
-        float dropout = this.dropout;
+        double dropout = this.dropout;
         if (dropout <= Float.MIN_NORMAL) return;
 
-        float dropIn = 1 - dropout;
+        double dropIn = 1 - dropout;
 
         int n = W.length;
         RandomBits rng = new RandomBits(
-                new XoRoShiRo128PlusRandom()
-                //ThreadLocalRandom.current()
+            new XoRoShiRo128PlusRandom()
+            //ThreadLocalRandom.current()
         );
         boolean invert = dropout > 0.5f;
 
         if (dropping)
             enabled.setAll(!invert);
 
-        boolean dropping = true;
+        boolean dropping;
 
-        int d = rng.floor((invert ? (1-dropout) : dropout) * n);
+        int d = rng.floor((float)((invert ? (1-dropout) : dropout) * n));
         if (d > 0) {
             dropping = true;
             for (int i = 0; i < d; i++)

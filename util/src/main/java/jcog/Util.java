@@ -3277,7 +3277,7 @@ public enum Util {
      * https://pytorch.org/docs/stable/generated/torch.logsumexp.html
      * https://www.deeplearningbook.org/slides/04_numerical.pdf (page 31)
      * */
-    @Is("LogSumExp") public static double logsumexp(double[] x, double innerPlus, float innerProd) {
+    @Is("LogSumExp") public static double logsumexp(double[] x, double innerPlus, double innerProd) {
         double mx = innerProd * (max(x) + innerPlus);
 		double s = 0;
         for (double xx : x) {

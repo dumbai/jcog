@@ -227,7 +227,7 @@ public class PopulationPolicy implements Policy {
          * Larger values will sample a initially wider Gaussian.
          * TODO tune
          */
-        public final FloatRange SIGMA = new FloatRange(0.1f, 0.0001f, 4f);
+        public final FloatRange SIGMA = new FloatRange(0.5f, 0.0001f, 4f);
 
 
         @Override

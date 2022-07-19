@@ -128,7 +128,7 @@ class MLPTest {
 
 		p.clear(r);
 
-		float alpha = 0.04f;
+		float alpha = 0.03f;
 
 		int cases = d.rowCount();
 		int maxIter = 12000 * cases;

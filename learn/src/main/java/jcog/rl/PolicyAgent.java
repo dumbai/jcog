@@ -3,7 +3,6 @@ package jcog.rl;
 import jcog.Fuzzy;
 import jcog.Util;
 import jcog.activation.DiffableFunction;
-import jcog.activation.LinearActivation;
 import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
 import jcog.agent.Agent;
@@ -76,7 +75,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 6, 16);
+               /*2*/ /*Util.PHI_min_1f*/ 8, 16);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -100,12 +99,13 @@ public class PolicyAgent extends Agent {
         float dropOut =
             0;
             //0.1f;
+            //0.5f;
             //0.75f;
             //0.9f;
 
         int brains = (int) Math.ceil(brainsScale *
+            Fuzzy.mean((float)inputs, actions)
             //inputs
-            Fuzzy.mean(inputs, actions)
             //actions
         );
 
@@ -155,8 +155,8 @@ public class PolicyAgent extends Agent {
         }
 
         var hiddenActivation =
-            //SigLinearActivation.the
             SigmoidActivation.the
+            //SigLinearActivation.the
             //LeakyReluActivation.the
             //new LeakyReluActivation(0.1f)
             //ReluActivation.the
@@ -169,7 +169,7 @@ public class PolicyAgent extends Agent {
 
         if (depth > 0) {
             for (int p = 0; p < depth; p++) {
-                int hidden = Util.lerpInt((p + 0.5f) / depth, brains, o);
+                int hidden = Util.lerpInt((p + 1) / (depth + 1f), brains, o);
                 layers.add(new MLP.Dense(hidden, hiddenActivation));
             }
 
@@ -182,7 +182,7 @@ public class PolicyAgent extends Agent {
 
         MLP p = new MLP(i, layers).optimizer(
             //new SGDOptimizer(0)
-            new SGDOptimizer(0).minibatches(16)
+            new SGDOptimizer(0).minibatches(3)
             //new SGDOptimizer(0.9f)
             //new SGDOptimizer(0.99f).minibatches(16)
             //new SGDOptimizer(0.99f).minibatches(128)
@@ -215,7 +215,9 @@ public class PolicyAgent extends Agent {
 
     /** should allow some +/- range */
     private static final DiffableFunction dqnOutputActivation =
-        LinearActivation.the;
+        //LinearActivation.the;
+        //SigmoidActivation.the;
+        SigLinearActivation.the;
         //new SigLinearActivation(2, -2, +2);
         //TanhActivation.the;
 

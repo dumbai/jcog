@@ -1,6 +1,7 @@
 package jcog.rl.dqn;
 
 import jcog.Util;
+import jcog.WTF;
 import jcog.data.DistanceFunction;
 import jcog.decide.Decide;
 import jcog.decide.DecideSoftmax;
@@ -10,6 +11,7 @@ import jcog.rl.Policy;
 import org.eclipse.collections.api.block.function.primitive.IntIntToObjectFunction;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static jcog.Util.sqr;
 
@@ -105,56 +107,141 @@ public class QPolicySimul implements Policy {
         //private final float decodeSpecificity = 1;
 
         private final float temperature =
-            0.25f;
-            //1;
+            1;
+            //0.5f;
+            //0.25f;
+            //2;
             //0.1f;
 
         private boolean normalizeManhattanOrCartesian = true;
 
+        /** TODO still not perfect */
+        public double[] actionEncode2(double[] x, int actionsInternal) {
+            int actions = x.length;
+            double[] z = new double[actionsInternal];
+            double[] xDelta = x.clone();
+            double[] xSum = new double[x.length];
+
+            var rng = ThreadLocalRandom.current();
+
+            int jMax = actionsInternal;
+            for (int j = 0; j < jMax; j++) {
+                int best = -1; double bestDist = Double.POSITIVE_INFINITY;
+                int iOffset = rng.nextInt(actionsInternal); //for fairness
+                for (int _i = 0; _i < actionsInternal; _i++) {
+                    int i = (iOffset + _i)%actionsInternal;
+                    if (z[i] > 0) continue; //already added
+
+                    double[] yi = idealDecode(i, actions);
+                    double dist = DistanceFunction.distanceCartesian(xSum, yi);
+                    if (dist < bestDist) {
+                        bestDist = dist; best = i;
+                    }
+                }
+                if (best < 0) break; //HACK
+
+                double yScale;
+                double[] yi = idealDecode(best, actions);
+                if (j == 0) {
+                    yScale = 1;
+                } else {
+                    yScale =
+                            //Util.max(xx);
+                            vectorProject(xDelta, yi);
+                }
+                if (yScale!=yScale)
+                    break; //HACK
+                z[best] = yScale;
+                Util.mul(yScale, yi);
+
+                for (int i = 0; i < actions; i++) {
+                    xDelta[i] -= yi[i];
+                    xSum[i] += yi[i];
+                }
+                if (len(xDelta) < Float.MIN_NORMAL)
+                    break;
+            }
+
+            //Util.normalizeCartesian(z, z.length, Double.MIN_NORMAL);
+            double zSum = Util.sumAbs(z); Util.mul(1/zSum, z); //Normalize Manhattan
+
+            double diff = DistanceFunction.distanceManhattan(x, actionDecode(z, actions));
+            if (diff!=diff)
+                throw new WTF();
+            System.out.println("diff: " + diff);
+
+            //System.out.println(n4(x) + "\t->\t" + n4(z) + "\t=\t" + n4(actionDecode(z, actions)));
+
+            return z;
+        }
+
+        public static double dotProduct(double[] x, double[] y) {
+            assert(x.length == y.length);
+            double s = 0;
+            for (int i = 0; i < x.length; i++)
+                s += (x[i]*y[i]);
+            return s;
+        }
+
+        public static double len(double[] x) {
+            double s = 0;
+            for (int i = 0; i < x.length; i++)
+                s += sqr(x[i]);
+            return Math.sqrt(s);
+        }
+
+        private double vectorProject(double[] a, double[] b) {
+            return dotProduct(a, b) / len(b);
+        }
+
+        //TODO not great
         @Override public double[] actionEncode(double[] x, int actionsInternal) {
             //assert (actionDiscretization == 2);
             double[] z = new double[actionsInternal];
             int actions = x.length;
             double zSum = 0;
+            double distMax = 1; //z.length;
+            //TODO refine
             for (int i = 0; i < actionsInternal; i++) {
                 double d = dist(x, idealDecode(i, actions));
-                double weight =
-                        actionsInternal == 2 ? Math.max(0, 1-d) /* clean */ : 1 / sqr(1 + d * actionsInternal); /*blur intense*/
-                        //1 / (1 + d * actionsInternal); //blur
-                        //1 / sqr(1 + d * actionsInternal); //blur intense
-                        //Math.max(0, 1-d); //clean
-                        //1 / (1 + d * actions);
-                        //Math.max(0, 1-d/actions);
-                        //sqr(Math.max(0, 1-d/actions));
-                        //Math.max(0, 1-sqr(d/actions));
-                        //Math.max(0, 1-d*2);
-                        //1 / (1 + d);
-                        //1 / sqr(1 + d);
-                        //1 / sqr(1 + d * actions);
-
-                z[i] = weight;
-                zSum += weight;
+//                double weight =
+//                    actionsInternal == 2 ? Math.max(0, 1-d) /* clean */ : 1 / sqr(1 + d * actionsInternal); /*blur intense*/
+//                    //(distMax - d)/distMax;
+//                    //Math.max(0, 1-d); //clean
+//                    //1 / (1 + d * actionsInternal); //blur
+//                    //1 / sqr(1 + d * actionsInternal); //blur intense
+//                    //1 / (1 + d * actions);
+//                    //Math.max(0, 1-d/actions);
+//                    //sqr(Math.max(0, 1-d/actions));
+//                    //Math.max(0, 1-sqr(d/actions));
+//                    //Math.max(0, 1-d*2);
+//                    //1 / (1 + d);
+//                    //1 / sqr(1 + d);
+//                    //1 / sqr(1 + d * actions);
+////                z[i] = weight;
+//                zSum += weight;
+                z[i] = d;
+            }
+//            double zMax = Util.max(z), zMin = Util.min(z);
+            for (int i = 0; i < z.length; i++) {
+//                z[i] = Util.normalize(z[i], zMin, zMax);
+                z[i] = 1.0 / (1.0 + Math.pow(z[i]*actionsInternal, 2));
+                zSum += z[i];
             }
 
-            if (zSum > Float.MIN_NORMAL) {
 
+            if (zSum > Float.MIN_NORMAL) {
                 if (normalizeManhattanOrCartesian)
                     Util.mul(1 / zSum, z);
                 else {
                     Util.normalizeCartesian(z, z.length, Double.MIN_NORMAL);
                 }
-
-//                System.out.print(n2(z) + "\t .. \t");
-//                for (int i = 0; i < z.length; i++)
-//                    z[i] = Util.invSoftmax(z[i], temperature);
-//                System.out.println(n2(z));
-
-
-//                //0..1 -> -1..+1
-//                for (int i = 0; i < z.length; i++)
-//                    z[i] = Fuzzy.polarize(z[i]);
             }
 
+//            double diff = DistanceFunction.distanceManhattan(x, actionDecode(z, actions));
+//            System.out.println("diff: " + diff);
+
+            //System.out.println(n4(x) + "\t->\t" + n4(z) + "\t=\t" + n4(actionDecode(z, actions)));
             return z;
         }
 
@@ -224,13 +311,9 @@ public class QPolicySimul implements Policy {
             double[] y = new double[actions];
             double s = 0;
             for (int i = 0; i < z.length; i++) {
-//                double zi = Math.pow(
-//                        z[i]
-//                        //(z[i] - zMin)/zRange //NORMALIZATION to 0..1
-//                        //z[i] - zMin
-//                        //(1 - zMax) + z[i]
-//                        , decodeSpecificity);
-                double zi = Util.softmax(z[i], temperature);
+                double zi =
+                        //Util.softmax(z[i], temperature);
+                        z[i];
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];
@@ -241,6 +324,18 @@ public class QPolicySimul implements Policy {
             else {
                 //TODO randomize?
             }
+
+//            boolean noise = true;
+//            if (noise) {
+//                var rng = ThreadLocalRandom.current();
+//                System.out.println(s);
+//                for (int a = 0; a < actions; a++) {
+//                    y[a] = Util.unitizeSafe(y[a] +
+//                        //rng.nextGaussian(0, s/10)
+//                        (Util.max(s-1, 0)/100)*rng.nextDouble(-1, +1)
+//                    );
+//                }
+//            }
 
             return y;
         }
