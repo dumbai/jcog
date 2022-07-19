@@ -225,7 +225,7 @@ public class QPolicySimul implements Policy {
 //            double zMax = Util.max(z), zMin = Util.min(z);
             for (int i = 0; i < z.length; i++) {
 //                z[i] = Util.normalize(z[i], zMin, zMax);
-                z[i] = 1.0 / (1.0 + Math.pow(z[i]*actionsInternal, 2));
+                z[i] = 1.0 / (1.0 + Math.pow(z[i]*actionsInternal, 3));
                 zSum += z[i];
             }
 

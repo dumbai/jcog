@@ -75,7 +75,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 8, 16);
+               /*2*/ /*Util.PHI_min_1f*/ 8, 24);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -216,8 +216,8 @@ public class PolicyAgent extends Agent {
     /** should allow some +/- range */
     private static final DiffableFunction dqnOutputActivation =
         //LinearActivation.the;
-        //SigmoidActivation.the;
-        SigLinearActivation.the;
+        SigmoidActivation.the;
+        //SigLinearActivation.the;
         //new SigLinearActivation(2, -2, +2);
         //TanhActivation.the;
 
