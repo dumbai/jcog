@@ -97,12 +97,15 @@ public class SGDOptimizer extends BatchWeightUpdater {
     float dwMomentum = this.dwMomentum;
     boolean momentum = dwMomentum > 0;
 
+    boolean momentumAccel = false;
+    double antiMomentum = momentumAccel ? 1 : (1 - dwMomentum);
+
     int n = l.ins() * l.outs();
     for (int io = 0; io < n; io++) {
         double dwP = dWPrev[io];
         double dwN = pri * dW[io];
 
-        double dw = momentum ? fma(dwMomentum, dwP, dwN) : dwN;
+        double dw = momentum ? fma(dwMomentum, dwP, antiMomentum * dwN) : dwN;
 
         dWPrev[io] = dw;
 

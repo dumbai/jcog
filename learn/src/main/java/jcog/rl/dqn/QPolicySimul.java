@@ -312,8 +312,8 @@ public class QPolicySimul implements Policy {
             double s = 0;
             for (int i = 0; i < z.length; i++) {
                 double zi =
-                        Util.softmax(z[i], temperature);
-                        //Util.unitizeSafe(z[i]);
+                        //Util.softmax(z[i], temperature);
+                        Util.unitizeSafe(z[i]);
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];
