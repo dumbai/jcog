@@ -107,8 +107,8 @@ public class QPolicySimul implements Policy {
         //private final float decodeSpecificity = 1;
 
         private final float temperature =
-            1;
-            //0.5f;
+            0.5f;
+            //1;
             //0.25f;
             //2;
             //0.1f;
@@ -312,8 +312,8 @@ public class QPolicySimul implements Policy {
             double s = 0;
             for (int i = 0; i < z.length; i++) {
                 double zi =
-                        //Util.softmax(z[i], temperature);
-                        z[i];
+                        Util.softmax(z[i], temperature);
+                        //Util.unitizeSafe(z[i]);
                 double[] ideal = idealDecode(i, actions);
                 for (int a = 0; a <actions; a++)
                     y[a] += zi * ideal[a];

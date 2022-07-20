@@ -348,6 +348,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
     /**
      * SGD original impl
+     * TODO copy SGDOptimizer's new Momentum impl for here
      */
     private void updateWeights(float pri, double momentum, double _weightDecayRate) {
         boolean momentumEnabled = momentum > 0;
@@ -379,8 +380,6 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
 //                double wPrevDecayed;
                 if (decaying && wPrev != 0) {
-//                    double decay = (1 - weightDecayRate * Math.abs(wPrev) / (1.0E-8 + wL1));
-//                    wPrevDecayed = wPrev * decay;
                     double decayed = wPrev * weightDecayRate;
                     dw -= decayed;
                 }

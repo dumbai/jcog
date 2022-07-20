@@ -4,7 +4,7 @@ import jcog.Util;
 import jcog.nn.layer.DenseLayer;
 import jcog.signal.FloatRange;
 
-import static jcog.Util.lerpSafe;
+import static jcog.Util.fma;
 
 /**
  * 'vanilla' stochastic gradient descent (SGD), with optional:
@@ -54,38 +54,64 @@ public class SGDOptimizer extends BatchWeightUpdater {
         this.alpha = alpha;
     }
 
-    @Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
-        double pri = this.alpha;
-        float _weightDecayRate = this.weightDecay.floatValue();
-        boolean weightDecaying = _weightDecayRate > 0;
-        double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
-        double weightDecayRate = _weightDecayRate / (wEpsilon + wL1);
+//    @Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
+//        double pri = this.alpha;
+//        float _weightDecayRate = this.weightDecay.floatValue();
+//        boolean weightDecaying = _weightDecayRate > 0;
+//        double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
+//        double weightDecayRate = _weightDecayRate / (wEpsilon + wL1);
+//
+//        float dwMomentum = this.dwMomentum;
+//        boolean momentum = dwMomentum > 0;
+//
+//        int n = l.ins() * l.outs();
+//        for (int io = 0; io < n; io++) {
+//            double dwP = dWPrev[io];
+//            double dwN = dW[io];
+//
+//            double dw = momentum ? lerpSafe(dwMomentum, dwN, dwP) : dwN;
+//
+//            dWPrev[io] = dw;
+//
+//            double wP = W[io];
+//
+//            if (weightDecaying) {
+//                double decay = wP * weightDecayRate;
+//                dw -= decay;
+//            }
+//
+//            double wN =
+//                Util.fma(dw, pri, wP);
+//                //dw * pri + wP;
+//
+//            W[io] = wN;
+//        }
+//    }
+@Override protected void updateWeights(DenseLayer l, double[] dW, double[] dWPrev, double[] W) {
+    double pri = this.alpha;
+    float _weightDecayRate = this.weightDecay.floatValue();
+    boolean weightDecaying = _weightDecayRate > 0;
+    double wL1 = weightDecaying ? Util.sumAbs(W) : 0;
+    double weightDecayRate = -pri * _weightDecayRate / (wEpsilon + wL1);
 
-        float dwMomentum = this.dwMomentum;
-        boolean momentum = dwMomentum > 0;
+    float dwMomentum = this.dwMomentum;
+    boolean momentum = dwMomentum > 0;
 
-        int n = l.ins() * l.outs();
-        for (int io = 0; io < n; io++) {
-            double dwP = dWPrev[io];
-            double dwN = dW[io];
+    int n = l.ins() * l.outs();
+    for (int io = 0; io < n; io++) {
+        double dwP = dWPrev[io];
+        double dwN = pri * dW[io];
 
-            double dw = momentum ? lerpSafe(dwMomentum, dwN, dwP) : dwN;
+        double dw = momentum ? fma(dwMomentum, dwP, dwN) : dwN;
 
-            dWPrev[io] = dw;
+        dWPrev[io] = dw;
 
-            double wP = W[io];
+        double wP = W[io];
 
-            if (weightDecaying) {
-                double decay = wP * weightDecayRate;
-                dw -= decay;
-            }
+        if (weightDecaying)
+            dw = fma(wP, weightDecayRate, dw);
 
-            double wN =
-                Util.fma(dw, pri, wP);
-                //wPrev + dwNext * pri;
-
-            W[io] = wN;
-        }
+        W[io] = dw + wP;
     }
-
+}
 }

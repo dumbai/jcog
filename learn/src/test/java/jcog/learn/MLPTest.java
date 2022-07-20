@@ -44,7 +44,7 @@ class MLPTest {
 		mlpIrisTest(new SGDOptimizer(0).minibatches(4));
 	}
 	@Test void IRIS_in_2_out_1_sgd_momentum() {
-		mlpIrisTest(new SGDOptimizer(0.9f));
+		mlpIrisTest(new SGDOptimizer(0.8f));
 	}
 
 	@Test void IRIS_adam() {

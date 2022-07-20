@@ -5,6 +5,7 @@ import jcog.Util;
 import jcog.activation.DiffableFunction;
 import jcog.activation.SigLinearActivation;
 import jcog.activation.SigmoidActivation;
+import jcog.activation.TanhActivation;
 import jcog.agent.Agent;
 import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
@@ -75,7 +76,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 8, 24);
+               /*2*/ /*Util.PHI_min_1f*/ 6, 12);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -156,10 +157,10 @@ public class PolicyAgent extends Agent {
 
         var hiddenActivation =
             SigmoidActivation.the
+            //ReluActivation.the
             //SigLinearActivation.the
             //LeakyReluActivation.the
             //new LeakyReluActivation(0.1f)
-            //ReluActivation.the
             //EluActivation.the
             //new SigLinearActivation(4, -1, +1)
             //TanhActivation.the
@@ -181,10 +182,10 @@ public class PolicyAgent extends Agent {
         //layers.add(new NormalizeLayer(o));
 
         MLP p = new MLP(i, layers).optimizer(
-            //new SGDOptimizer(0)
-            new SGDOptimizer(0).minibatches(3)
+            new SGDOptimizer(0)
+            //new SGDOptimizer(0).minibatches(3)
             //new SGDOptimizer(0.9f)
-            //new SGDOptimizer(0.99f).minibatches(16)
+            //new SGDOptimizer(0.9f).minibatches(2)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()
@@ -216,10 +217,10 @@ public class PolicyAgent extends Agent {
     /** should allow some +/- range */
     private static final DiffableFunction dqnOutputActivation =
         //LinearActivation.the;
-        SigmoidActivation.the;
+        //SigmoidActivation.the;
         //SigLinearActivation.the;
         //new SigLinearActivation(2, -2, +2);
-        //TanhActivation.the;
+        TanhActivation.the;
 
     private static BackpropRecurrentNetwork recurrentBrain(int inputs, int actions, int hidden) {
         BackpropRecurrentNetwork b = new BackpropRecurrentNetwork(
