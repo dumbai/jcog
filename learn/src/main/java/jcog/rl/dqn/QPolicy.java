@@ -107,12 +107,11 @@ public class QPolicy extends PredictorPolicy {
                 gqMunch(gamma, qNextMax, logsumNext, qPrevMax, logsumPrev, qPrevA, qNextA) :
                 (sarsaOrQ ? gamma * qNextA : gammaQNextMax);
 
-
             double aa = action[a];
             dq[a] = alphaQ * aa * (reward + gq - qPrevA);
-            //dq[a] = aa * (reward + gq) - qPrevA;
-            //dq[a] = aa * (reward) + (gq - qPrevA);
-            //dq[a] = aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
+            //dq[a] = alphaQ * aa * (reward + gq) - qPrevA;
+            //dq[a] = alphaQ * aa * (reward) + (gq - qPrevA);
+            //dq[a] = alphaQ * aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
         }
 
 //        float qDecay = this.qDecay.floatValue();

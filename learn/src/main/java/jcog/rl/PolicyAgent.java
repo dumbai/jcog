@@ -11,7 +11,7 @@ import jcog.data.list.Lst;
 import jcog.nn.BackpropRecurrentNetwork;
 import jcog.nn.MLP;
 import jcog.nn.layer.DenseLayer;
-import jcog.nn.optimizer.AdamOptimizer;
+import jcog.nn.optimizer.SGDOptimizer;
 import jcog.predict.DeltaPredictor;
 import jcog.predict.LivePredictor;
 import jcog.predict.Predictor;
@@ -76,7 +76,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 12, 12);
+               /*2*/ /*Util.PHI_min_1f*/ 8, 12);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -146,8 +146,8 @@ public class PolicyAgent extends Agent {
             layers.add(new MLP.AutoEncoderLayerBuilder(
                     //(int) Math.ceil(Util.sqrt(i))
                     //i*2
-                    i/3
-                    //i / 2
+                    //i/3
+                    i / 2
                     //Fuzzy.mean(i,o*4)
                     //i
                     //Math.round(Util.lerp(0.33f, i, o))
@@ -185,11 +185,11 @@ public class PolicyAgent extends Agent {
             //new SGDOptimizer(0)
             //new SGDOptimizer(0).minibatches(3)
             //new SGDOptimizer(0.9f)
-            //new SGDOptimizer(0.9f).minibatches(2)
+            new SGDOptimizer(0.9f).minibatches(3)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()
-            new AdamOptimizer().minibatches(4)
+            //new AdamOptimizer().minibatches(4)
             //new AdamOptimizer().momentum(0.99, 0.99)
             //new RMSPropOptimizer()
         );

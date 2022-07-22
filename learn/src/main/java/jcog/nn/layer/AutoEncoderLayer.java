@@ -21,7 +21,7 @@ public class AutoEncoderLayer extends AbstractLayer {
 
     final boolean normalize = false;
 
-    float learningRate = 0.01f;
+    float learningRate = 0.005f;
 
     public AutoEncoderLayer(int inputSize, int outputSize) {
         super(inputSize, outputSize);

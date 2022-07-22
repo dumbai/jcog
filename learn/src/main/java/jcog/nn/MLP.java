@@ -148,6 +148,9 @@ public class MLP extends DeltaPredictor {
         weightCount = Stream.of(layers).mapToInt(i -> i.ins()*i.outs()).sum();
     }
 
+    public int ins() { return layers[0].ins(); }
+    public int outs() { return layers[layers.length-1].outs(); }
+
     public void clear() {
         clear(ThreadLocalRandom.current());
     }
