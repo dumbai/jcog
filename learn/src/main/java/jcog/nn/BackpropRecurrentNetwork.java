@@ -243,12 +243,13 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
         //mergeDeltaMax(iterationsBackward, delta);
         mergeDeltaPlus(iterationsBackward, delta,
-                //i -> 1 - i/((float)(iterationsBackward))
-                i -> Math.pow(Util.PHI_min_1, iterationsBackward)
-                //i -> Math.pow(1 - i/((float)(iterationsBackward)), 1.5)
-                //i -> 1
-                //i -> i/((float)(iterationsBackward)) //BAD
-                //i -> Math.pow(Util.PHI_min_1, i)
+            i -> Math.pow(Util.PHI_min_1, iterationsBackward)
+            //i -> 1 - i/((float)(iterationsBackward))
+            //i -> Math.pow(1 - i/((float)(iterationsBackward)), 1.5)
+            //i -> 1
+            //i -> 1/((float)(iterationsBackward)-1)
+            //i -> i/((float)(iterationsBackward)) //BAD
+            //i -> Math.pow(Util.PHI_min_1, i)
         );
     }
 
@@ -348,7 +349,6 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
 
     /**
      * SGD original impl
-     * TODO copy SGDOptimizer's new Momentum impl for here
      */
     private void updateWeights(float pri, double momentum, double _weightDecayRate) {
         boolean momentumEnabled = momentum > 0;
@@ -356,7 +356,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
         boolean decaying = _weightDecayRate > 0;
         double wL1 = decaying ? weights.weightL1() : 0;
         double weightDecayRate =
-            _weightDecayRate / (wEpsilon + wL1);
+            pri * _weightDecayRate / (wEpsilon + wL1);
 
         int n = n();
 
@@ -369,14 +369,14 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
         for (int t = 0; t < n; t++) {
             for (int f = 0; f < n; f++, ft++) {
 
-                double dwN = dW[ft];
+                double dwN = dW[ft] * pri;
                 double dwP = dWprev[ft];
-
-                double wPrev = weights.weight(f, t);
 
                 double dw = momentumEnabled ? Util.lerpSafe(momentum, dwN, dwP) : dwN;
 
                 dWprev[ft] = dw;
+
+                double wPrev = weights.weight(f, t);
 
 //                double wPrevDecayed;
                 if (decaying && wPrev != 0) {
@@ -387,7 +387,7 @@ public class BackpropRecurrentNetwork extends RecurrentNetwork {
                 if (dwClamping) dw = dwClamp(dw);
 
                 double wNext =
-                    Util.fma(dw, pri, wPrev);
+                    dw + wPrev;
                     //dw * pri + wPrev;
 
                 if (wPrev != wNext)

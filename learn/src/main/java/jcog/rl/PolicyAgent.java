@@ -203,14 +203,14 @@ public class PolicyAgent extends Agent {
         return p;
     }
 
-    public static Agent DQrecurrent(int inputs, int actions, float brainsScale, int trainIters) {
+    public static Agent DQrecurrent(int inputs, int actions, float brainsScale, int computeIters, int replayIters) {
         int brains = (int) Math.ceil(Fuzzy.mean(inputs, actions) * brainsScale);
         return new PolicyAgent(inputs, actions,
             (i, o) -> new QPolicySimul(i, o,
-                (ii, oo) -> recurrentBrain(ii, oo, brains)
+                (ii, oo) -> recurrentBrain(ii, oo, brains, computeIters)
             )
         ).replay(
-            new SimpleReplay(16 * 1024, 1/3f, trainIters)
+            new SimpleReplay(16 * 1024, 1/3f, replayIters)
         );
     }
 
@@ -221,9 +221,9 @@ public class PolicyAgent extends Agent {
         //new SigLinearActivation(2, -2, +2);
         //TanhActivation.the;
 
-    private static BackpropRecurrentNetwork recurrentBrain(int inputs, int actions, int hidden) {
+    private static BackpropRecurrentNetwork recurrentBrain(int inputs, int actions, int hidden, int iterations) {
         BackpropRecurrentNetwork b = new BackpropRecurrentNetwork(
-                inputs, actions, hidden, 4);
+                inputs, actions, hidden, iterations);
         //b.momentum = 0.9f;
         b.activationFn(
                 //LeakyReluActivation.the,
@@ -364,7 +364,7 @@ public class PolicyAgent extends Agent {
     public static Agent DQrecurrent(int i, int o) {
         return DQrecurrent(i, o,
                 //8, 4
-                2, 16
+                4, 4, 16
                 //0.1f, 4
                 //0.25f, 6
                 //0.25f, 8
