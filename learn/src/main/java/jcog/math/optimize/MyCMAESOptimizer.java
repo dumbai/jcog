@@ -20,6 +20,7 @@ import static java.util.Arrays.copyOf;
 
 /**
  * adapted from Apache Commons Math 3.6
+ * TODO "warm starting" https://arxiv.org/abs/2012.06932
  */
 public class MyCMAESOptimizer extends MultivariateOptimizer {
 
@@ -35,8 +36,10 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	private static final double epsilon6WTF = 1.0e-6;
 	private static final double negminresidualvariance = 0.66;
 
+    private final Stats stats;
 
-	/**
+
+    /**
 	 * "Lambda": Population size, offspring number. The primary strategy parameter to play
 	 * with, which can be increased from its default value. Increasing the
 	 * population size improves global search properties in exchange to speed.
@@ -62,6 +65,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * adaptation.
 	 */
 	private final boolean isActiveCMA;
+
 	/**
 	 * Determines how often a new random offspring is generated in case it is
 	 * not feasible / beyond the defined limits, default is 0.
@@ -80,10 +84,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * Too small values might however lead to early termination.
 	 */
 	private final double[] sigma;
-	/**
-	 * Indicates whether statistic data is collected.
-	 */
-	private final boolean generateStatistics;
+
 	/**
 	 * Maximal number of iterations allowed.
 	 */
@@ -96,23 +97,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * Random generator.
 	 */
 	public final Random random;
-	/**
-	 * History of sigma values.
-	 */
-	private final List<Double> statisticsSigmaHistory = new Lst<>();
-	/**
-	 * History of mean matrix.
-	 */
-	private final List<RealMatrix> statisticsMeanHistory = new Lst<>();
-	/**
-	 * History of fitness values.
-	 */
-    public final List<Double> statisticsFitnessHistory = new Lst<>();
-	/**
-	 * History of D matrix.
-	 */
-	public final List<RealMatrix> statisticsDHistory = new Lst<>();
-	/**
+    /**
 	 * Number of objective variables/problem dimension
 	 */
 	private int dimension;
@@ -126,10 +111,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * @see <a href="http:
 	 */
 	private int diagonalOnly;
-	/**
-	 * Number of objective variables/problem dimension
-	 */
-	private boolean isMinimize = true;
+
+	private boolean minimizing = true;
 	/**
 	 * Stop if x-changes larger stopTolUpX.
 	 */
@@ -259,16 +242,16 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * @param sigma
 	 * @since 3.1
 	 */
-	public MyCMAESOptimizer(int maxIterations,
-							double stopFitness,
-							boolean isActiveCMA,
-							int diagonalOnly,
-							int checkFeasableCount,
-							Random random,
-							boolean generateStatistics,
-							@Nullable ConvergenceChecker<PointValuePair> checker,
-							int populationSize,
-							double[] sigma) {
+	MyCMAESOptimizer(int maxIterations,
+					 double stopFitness,
+					 boolean isActiveCMA,
+					 int diagonalOnly,
+					 int checkFeasableCount,
+					 Random random,
+					 boolean generateStatistics,
+					 @Nullable ConvergenceChecker<PointValuePair> checker,
+					 int populationSize,
+					 double[] sigma) {
 		super(checker);
 		this.maxIterations = maxIterations;
 		this.stopFitness = stopFitness;
@@ -276,7 +259,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		this.diagonalOnly = diagonalOnly;
 		this.checkFeasableCount = checkFeasableCount;
 		this.random = random;
-		this.generateStatistics = generateStatistics;
+		this.stats = generateStatistics ? new Stats() : null;
 		this.capacity = populationSize;
 		this.sigma = sigma;
 	}
@@ -298,8 +281,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		vals[0] = val;
 	}
 
-	protected ValuePenaltyPair valuePenalty(double value, double penalty) {
-		return new ValuePenaltyPair(isMinimize ? value : -value, isMinimize ? penalty : -penalty);
+	ValuePenaltyPair valuePenalty(double value, double penalty) {
+		return new ValuePenaltyPair(minimizing ? value : -value, minimizing ? penalty : -penalty);
 	}
 
 
@@ -311,12 +294,13 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * TODO refacotr
 	 */
 	private static int[] sortedIndices(double[] x) {
-		DoubleIndex[] y = new DoubleIndex[x.length];
-		for (int i = 0; i < x.length; i++)
+		int n = x.length;
+		DoubleIndex[] y = new DoubleIndex[n];
+		for (int i = 0; i < n; i++)
 		    y[i] = new DoubleIndex(x[i], i);
 		Arrays.sort(y);
-		int[] j = new int[x.length];
-		for (int i = 0; i < x.length; i++)
+		int[] j = new int[n];
+		for (int i = 0; i < n; i++)
 		    j[i] = y[i].index;
 		return j;
 	}
@@ -536,18 +520,17 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 	 * @return a matrix which replicates the input matrix in both directions.
 	 */
 	private static RealMatrix repmat(RealMatrix mat, int n, int m) {
-		int rd = mat.getRowDimension();
-		int cd = mat.getColumnDimension();
-		//double[][] d = new double[n * rd][m * cd];
-		int nRd = n * rd;
-		int mCd = m * cd;
-		BlockRealMatrix y = new BlockRealMatrix(nRd, mCd);
+		int rd = mat.getRowDimension(), cd = mat.getColumnDimension();
+
+		int nRd = n * rd, mCd = m * cd;
+
+		RealMatrix y = new BlockRealMatrix(nRd, mCd);
 		for (int r = 0; r < nRd; r++) {
 			int rrd = r % rd;
 			for (int c = 0; c < mCd; c++)
 				y.setEntry(r, c, mat.getEntry(rrd, c % cd));
 		}
-		//return new Array2DRowRealMatrix(d, false);
+
 		return y;
 	}
 
@@ -624,33 +607,6 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		return reverse;
 	}
 
-	/**
-	 * @return History of sigma values.
-	 */
-	public List<Double> getStatisticsSigmaHistory() {
-		return statisticsSigmaHistory;
-	}
-
-	/**
-	 * @return History of mean matrix.
-	 */
-	public List<RealMatrix> getStatisticsMeanHistory() {
-		return statisticsMeanHistory;
-	}
-
-	/**
-	 * @return History of fitness values.
-	 */
-	public List<Double> getStatisticsFitnessHistory() {
-		return statisticsFitnessHistory;
-	}
-
-	/**
-	 * @return History of D matrix.
-	 */
-	public List<RealMatrix> getStatisticsDHistory() {
-		return statisticsDHistory;
-	}
 
 	/**
 	 * {@inheritDoc}
@@ -709,9 +665,9 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 
 	public void print(PrintStream out) {
-		out.println("sigmaHistory: " + statisticsSigmaHistory);
-		out.println("sigmaFitnessHistory: " + statisticsFitnessHistory);
-		out.println("meanHistory: " + statisticsMeanHistory);
+		out.println("sigmaHistory: " + stats.statisticsSigmaHistory);
+		out.println("sigmaFitnessHistory: " + stats.statisticsFitnessHistory);
+		out.println("meanHistory: " + stats.statisticsMeanHistory);
 	}
 
 	/**
@@ -955,7 +911,9 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			diagD = diag(D);
 
 			if (min(diagD) <= 0) {
-				for (int i = 0; i < dimension; i++) if (diagD.getEntry(i, 0) < 0) diagD.setEntry(i, 0, 0);
+				for (int i = 0; i < dimension; i++)
+					if (diagD.getEntry(i, 0) < 0)
+						diagD.setEntry(i, 0, 0);
 				double tfac = max(diagD) / big_magic_number_WTF;
 				C = C.add(eye(dimension).scalarMultiply(tfac));
 				diagD = diagD.add(ones(dimension, 1).scalarMultiply(tfac));
@@ -1070,7 +1028,27 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		}
 	}
 
-	/**
+    public static class Stats {
+        /**
+         * History of sigma values.
+         */
+        private final List<Double> statisticsSigmaHistory = new Lst<>();
+        /**
+         * History of mean matrix.
+         */
+        private final List<RealMatrix> statisticsMeanHistory = new Lst<>();
+        /**
+         * History of fitness values.
+         */
+        final List<Double> statisticsFitnessHistory = new Lst<>();
+        /**
+         * History of D matrix.
+         */
+        final List<RealMatrix> statisticsDHistory = new Lst<>();
+
+    }
+
+    /**
 	 * Normalizes fitness values to the range [0,1]. Adds a penalty to the
 	 * fitness value if out of range.
 	 */
@@ -1080,11 +1058,11 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * bounds if defined
 		 */
 		final boolean isRepairMode;
-        public final double[] lB;
+        final double[] lB;
         public final double[] uB;
-        public PointValuePair opt;
-        public PointValuePair lastResult;
-        public double bestValue;
+        PointValuePair opt;
+        PointValuePair lastResult;
+        double bestValue;
         final double[] fitness = new double[capacity];
         final ValuePenaltyPair[] value = new ValuePenaltyPair[capacity];
 
@@ -1092,7 +1070,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 		 * Simple constructor.
 		 */
 		FitEval(double[] guess) {
-            isMinimize = getGoalType() == GoalType.MINIMIZE;
+            minimizing = getGoalType() == GoalType.MINIMIZE;
 			isRepairMode = true;
 			lB = getLowerBound();
 			uB = getUpperBound();
@@ -1130,13 +1108,8 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			} else
 			    penalty = 0;
 
-			return value(point, penalty);
-		}
-
-		private ValuePenaltyPair value(double[] point, double penalty) {
 			return valuePenalty(MyCMAESOptimizer.this.computeObjectiveValue(point), penalty);
 		}
-
 
 		/**
 		 * @param x Normalized objective variables.
@@ -1174,7 +1147,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			double penalty = 0;
 			for (int i = 0; i < x.length; i++)
 			    penalty += Math.abs(x[i] - repaired[i]);
-			return isMinimize ? penalty : -penalty;
+			return minimizing ? penalty : -penalty;
 		}
 
         public boolean iterate() {
@@ -1214,7 +1187,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 			if (getEvaluations() >= getMaxEvaluations())
 				return false;
 
-			final int dimension = MyCMAESOptimizer.this.dimension;
+			int dimension = MyCMAESOptimizer.this.dimension;
 
 			double valueRange = valueRange(value);
 			for (int iValue = 0; iValue < value.length; iValue++)
@@ -1238,6 +1211,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				updateCovarianceDiagonalOnly(hsig, bestArz);
 
             sigmaVolume *= Math.exp(Math.min(1, (normps / chiN - 1) * cs / damps));
+
 			double bestFitness = fitness[arindex[0]];
 			double worstFitness = fitness[arindex[arindex.length - 1]];
 			ConvergenceChecker<PointValuePair> convergence = getConvergenceChecker();
@@ -1247,15 +1221,14 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 
 				this.opt = new PointValuePair(
 					this.repair(bestArx.getColumn(0)),
-					isMinimize ? bestFitness : -bestFitness
+					minimizing ? bestFitness : -bestFitness
 				);
 
 				if (convergence != null && convergence.converged(iterations, opt, this.lastResult))
 					return false;
 			}
 
-
-			if (stopFitness == stopFitness && bestFitness < (isMinimize ? stopFitness : -stopFitness))
+			if (stopFitness == stopFitness && bestFitness < (minimizing ? stopFitness : -stopFitness))
 				return false;
 
 			double[] sqrtDiagC = sqrtSelf(diagC.getColumn(0).clone());
@@ -1281,7 +1254,7 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				return false;
 
 			if (convergence != null) {
-				PointValuePair current = new PointValuePair(bestArx.getColumn(0), isMinimize ? bestFitness : -bestFitness);
+				PointValuePair current = new PointValuePair(bestArx.getColumn(0), minimizing ? bestFitness : -bestFitness);
 				if (this.lastResult != null && convergence.converged(iterations, current, this.lastResult))
 					return false;
 				this.lastResult = current;
@@ -1293,13 +1266,18 @@ public class MyCMAESOptimizer extends MultivariateOptimizer {
 				sigmaVolume *= Math.exp(0.2 + cs / damps);
 
 			push(fitnessHistory, bestFitness);
-			if (generateStatistics) {
-				statisticsSigmaHistory.add(sigmaVolume);
-				statisticsFitnessHistory.add(bestFitness);
-				statisticsMeanHistory.add(xmean.transpose());
-				statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
-			}
+
+			if (stats!=null)
+				record(bestFitness);
+
 			return true;
+		}
+
+		private void record(double bestFitness) {
+			stats.statisticsSigmaHistory.add(sigmaVolume);
+			stats.statisticsFitnessHistory.add(bestFitness);
+			stats.statisticsMeanHistory.add(xmean.transpose());
+			stats.statisticsDHistory.add(diagD.transpose().scalarMultiply(hUNDreDtHOUSAND));
 		}
 
 		private boolean better(double prev, double next) {

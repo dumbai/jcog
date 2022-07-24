@@ -76,7 +76,7 @@ public class PolicyAgent extends Agent {
             //3;
         return DQN(inputs, false, actions,
                 deep,
-               /*2*/ /*Util.PHI_min_1f*/ 8, 12);
+               /*2*/ /*Util.PHI_min_1f*/ 12, 64);
     }
 
     public static Agent DQNbig(int inputs, int actions) {
@@ -182,14 +182,14 @@ public class PolicyAgent extends Agent {
         //layers.add(new NormalizeLayer(o));
 
         MLP p = new MLP(i, layers).optimizer(
-            //new SGDOptimizer(0)
+            new SGDOptimizer(0)
             //new SGDOptimizer(0).minibatches(3)
             //new SGDOptimizer(0.9f)
-            new SGDOptimizer(0.9f).minibatches(3)
+            //new SGDOptimizer(0.9f).minibatches(3)
             //new SGDOptimizer(0.99f).minibatches(128)
             //new SGDOptimizer(0.9f).minibatches(32)
             //new AdamOptimizer()
-            //new AdamOptimizer().minibatches(4)
+            //new AdamOptimizer().minibatches(3)
             //new AdamOptimizer().momentum(0.99, 0.99)
             //new RMSPropOptimizer()
         );
@@ -216,8 +216,8 @@ public class PolicyAgent extends Agent {
 
     private static final DiffableFunction dqnOutputActivation =
         SigmoidActivation.the;
-        //LinearActivation.the;
         //SigLinearActivation.the;
+        //LinearActivation.the;
         //new SigLinearActivation(2, -2, +2);
         //TanhActivation.the;
 

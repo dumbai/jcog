@@ -22,7 +22,7 @@ public class QPolicy extends PredictorPolicy {
 
     /** "gamma" discount factor: importance of future rewards
      *  https://en.wikipedia.org/wiki/Q-learning#Discount_factor */
-    public final FloatRange plan = new FloatRange(0.5f, 0, 1);
+    public final FloatRange plan = new FloatRange(0.25f, 0, 1);
 
 
     /** NaN to disable */
@@ -72,10 +72,11 @@ public class QPolicy extends PredictorPolicy {
         if (dq == null || dq.length!=action.length) dq = new double[action.length];
 
         double[] qPrev = predict(xPrev).clone(); //TODO is clone() necessary?
-        double[] qNext = predict(x).clone(); //TODO is clone() necessary?
+        double[] qNext = predict(x).clone();     //TODO is clone() necessary?
 
-//        clampSafe(qPrev, -1, +1);
-//        clampSafe(qNext, -1, +1);
+        //Util.normalize(qPrev, 0, qPrev.length, 0, Util.max(qPrev)); Util.normalize(qNext, 0, qNext.length, 0, Util.max(qNext));
+        //Util.mul(Util.max(qNext)/Util.max(qPrev), qPrev);
+        //double s = Util.max(Util.max(qNext), Util.max(qPrev)); Util.normalize(qPrev, 0, qPrev.length, 0, s); Util.normalize(qNext, 0, qNext.length, 0, s);
 
         float alphaPri = pri * learn.floatValue(), alphaQ = 1;
         //float alphaQ = pri * learn.floatValue(), alphaPri = 1;
@@ -108,8 +109,8 @@ public class QPolicy extends PredictorPolicy {
                 (sarsaOrQ ? gamma * qNextA : gammaQNextMax);
 
             double aa = action[a];
-            dq[a] = alphaQ * aa * (reward + gq - qPrevA);
-            //dq[a] = alphaQ * aa * (reward + gq) - qPrevA;
+            dq[a] = alphaQ * (aa * (reward + gq - qPrevA));
+            //dq[a] = alphaQ * (aa * (reward + gq) - qPrevA);
             //dq[a] = alphaQ * aa * (reward) + (gq - qPrevA);
             //dq[a] = alphaQ * aa * ((reward*action[a]) + gq - qPrevA); //fair proportion of reward, assuming sum(action)=1
         }
